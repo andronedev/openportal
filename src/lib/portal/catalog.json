@@ -1,243 +1,244 @@
 [
-  {
-    "id": "immortal-launcher",
-    "name": "Immortal Launcher",
-    "packageName": "com.immortal.launcher",
-    "description": "Full replacement home screen with app store, photo frame screensaver, weather, and folders",
-    "category": "launcher",
-    "version": "latest",
-    "madeForPortal": true,
-    "source": "github",
-    "repo": "starbrightlab/immortal",
-    "downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
-    "iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",
-    "setup": {
-      "kind": "commands",
-      "auto": true,
-      "commands": [
-        "cmd package set-home-activity com.immortal.launcher/.HomeActivity",
-        "cmd overlay disable --user 0 com.facebook.aloha.rro.niu.android"
-      ],
-      "labelKey": "setAsDefault"
-    }
-  },
-  {
-    "id": "aurora-store",
-    "name": "Aurora Store",
-    "packageName": "com.aurora.store",
-    "description": "Open-source alternative to Google Play Store for downloading Android apps",
-    "category": "store",
-    "version": "4.6.1",
-    "source": "fdroid",
-    "iconUrl": "https://f-droid.org/repo/com.aurora.store/en-US/icon.png"
-  },
-  {
-    "id": "google-photos-screensaver",
-    "name": "Google Photos Screensaver",
-    "packageName": "com.ramnat.portalgphotos",
-    "description": "Use your Google Photos albums as a screensaver on your Portal",
-    "category": "photo",
-    "version": "latest",
-    "madeForPortal": true,
-    "source": "github",
-    "repo": "ram-nat/portal-gphotos",
-    "downloadUrl": "https://github.com/ram-nat/portal-gphotos/releases/latest",
-    "iconUrl": "https://raw.githubusercontent.com/ram-nat/portal-gphotos/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
-    "skipUpdateCheck": true,
-    "setup": {
-      "kind": "custom",
-      "id": "gphotos",
-      "labelKey": "setUpGphotos"
-    }
-  },
-  {
-    "id": "fdroid",
-    "name": "F-Droid",
-    "packageName": "org.fdroid.fdroid",
-    "description": "Open-source app store with free and open-source apps",
-    "category": "store",
-    "version": "1.21.0",
-    "source": "fdroid",
-    "iconUrl": "https://f-droid.org/repo/org.fdroid.fdroid/en-US/icon.png"
-  },
-  {
-    "id": "vlc",
-    "name": "VLC",
-    "packageName": "org.videolan.vlc",
-    "description": "Free and open-source media player for video and audio",
-    "category": "media",
-    "version": "3.6.4",
-    "source": "fdroid",
-    "repo": "videolan/vlc-android",
-    "iconUrl": "https://f-droid.org/repo/org.videolan.vlc/en-US/icon.png"
-  },
-  {
-    "id": "jellyfin",
-    "name": "Jellyfin",
-    "packageName": "org.jellyfin.mobile",
-    "description": "Self-hosted media streaming client",
-    "category": "media",
-    "version": "2.6.2",
-    "source": "fdroid",
-    "repo": "jellyfin/jellyfin-android",
-    "iconUrl": "https://f-droid.org/repo/org.jellyfin.mobile/en-US/icon.png"
-  },
-  {
-    "id": "cromite",
-    "name": "Cromite",
-    "packageName": "org.cromite.cromite",
-    "description": "Privacy-focused Chromium browser with built-in ad blocking",
-    "category": "utility",
-    "version": "latest",
-    "source": "github",
-    "repo": "uazo/cromite",
-    "downloadUrl": "https://github.com/uazo/cromite/releases/latest",
-    "iconUrl": "https://web.archive.org/web/20260314054730im_/https://www.cromite.org/app_icon.png"
-  },
-  {
-    "id": "archivetune",
-    "name": "ArchiveTune",
-    "packageName": "moe.koiverse.archivetune",
-    "description": "Material 3 music player with local files and YouTube Music support",
-    "category": "media",
-    "version": "latest",
-    "source": "github",
-    "repo": "koiverse/ArchiveTune",
-    "downloadUrl": "https://github.com/koiverse/ArchiveTune/releases/latest",
-    "iconUrl": "https://apt.izzysoft.de/fdroid/repo/moe.koiverse.archivetune/en-US/icon.png"
-  },
-  {
-    "id": "material-files",
-    "name": "Material Files",
-    "packageName": "me.zhanghai.android.files",
-    "description": "File manager with FTP server for wireless file transfer",
-    "category": "utility",
-    "version": "1.8.0",
-    "source": "fdroid",
-    "repo": "zhanghai/MaterialFiles",
-    "iconUrl": "https://f-droid.org/repo/me.zhanghai.android.files/en-US/icon.png"
-  },
-  {
-    "id": "newpipe",
-    "name": "NewPipe",
-    "packageName": "org.schabi.newpipe",
-    "description": "Lightweight YouTube client with background play and downloads",
-    "category": "media",
-    "version": "latest",
-    "source": "github",
-    "repo": "TeamNewPipe/NewPipe",
-    "downloadUrl": "https://github.com/TeamNewPipe/NewPipe/releases/latest",
-    "iconUrl": "https://raw.githubusercontent.com/TeamNewPipe/NewPipe/dev/fastlane/metadata/android/en-US/images/icon.png"
-  },
-  {
-    "id": "libretube",
-    "name": "LibreTube",
-    "packageName": "com.github.libretube",
-    "description": "Privacy-focused YouTube client with SponsorBlock built in",
-    "category": "media",
-    "version": "31.4",
-    "source": "fdroid",
-    "repo": "libre-tube/LibreTube",
-    "iconUrl": "https://f-droid.org/repo/com.github.libretube/en-US/icon.png"
-  },
-  {
-    "id": "home-assistant",
-    "name": "Home Assistant",
-    "packageName": "io.homeassistant.companion.android.minimal",
-    "description": "Companion app for the Home Assistant smart home platform",
-    "category": "smartHome",
-    "version": "2026.4.4-minimal",
-    "source": "fdroid",
-    "repo": "home-assistant/android",
-    "iconUrl": "https://f-droid.org/repo/io.homeassistant.companion.android.minimal/en-US/icon.png"
-  },
-  {
-    "id": "antennapod",
-    "name": "AntennaPod",
-    "packageName": "de.danoeh.antennapod",
-    "description": "Open-source podcast manager and player",
-    "category": "media",
-    "version": "3.11.4",
-    "source": "fdroid",
-    "repo": "AntennaPod/AntennaPod",
-    "iconUrl": "https://f-droid.org/repo/de.danoeh.antennapod/en-US/icon.png"
-  },
-  {
-    "id": "kodi",
-    "name": "Kodi",
-    "packageName": "org.xbmc.kodi",
-    "description": "Open-source media center for videos, music, and streaming add-ons",
-    "category": "media",
-    "version": "21.3",
-    "source": "fdroid",
-    "repo": "xbmc/xbmc",
-    "iconUrl": "https://raw.githubusercontent.com/xbmc/xbmc/master/media/icon256x256.png"
-  },
-  {
-    "id": "stremio",
-    "name": "Stremio",
-    "packageName": "com.stremio.one",
-    "description": "Media center for streaming movies and series through add-ons",
-    "category": "media",
-    "version": "2.2.3",
-    "source": "url",
-    "apkUrl": "https://dl.strem.io/android/v2.2.3-android/com.stremio.one-2.2.3-6145731-arm64-v8a.apk",
-    "downloadUrl": "https://www.stremio.com/downloads",
-    "iconUrl": "https://www.stremio.com/website/stremio-logo-small.png"
-  },
-  {
-    "id": "smarttube",
-    "name": "SmartTube",
-    "packageName": "org.smarttube.stable",
-    "description": "Ad-free YouTube client for TV screens with SponsorBlock built in",
-    "category": "media",
-    "version": "latest",
-    "source": "github",
-    "repo": "yuliskov/SmartTube",
-    "downloadUrl": "https://github.com/yuliskov/SmartTube/releases/latest",
-    "iconUrl": "https://raw.githubusercontent.com/yuliskov/SmartTube/master/smarttubetv/src/ststable/res/mipmap-nodpi/app_icon.png"
-  },
-  {
-    "id": "portal-calendar",
-    "name": "Portal Calendar",
-    "packageName": "com.portal.calendar",
-    "description": "Turn your Portal into a family calendar board synced from Google, iCloud, or any iCal feed",
-    "category": "utility",
-    "version": "latest",
-    "madeForPortal": true,
-    "source": "github",
-    "repo": "thefloppytaco/portal-calendar",
-    "downloadUrl": "https://github.com/thefloppytaco/portal-calendar/releases/latest",
-    "iconFile": true,
-    "setup": {
-      "kind": "custom",
-      "id": "portal-calendar",
-      "labelKey": "setUpCalendar"
-    }
-  },
-  {
-    "id": "portal-iss-tracker",
-    "name": "Space Portal",
-    "packageName": "com.portal.isstracker",
-    "description": "NASA-style ISS dashboard with live 4K video, a real-time ground track, who's in space, space weather, and a launch countdown",
-    "category": "utility",
-    "version": "latest",
-    "madeForPortal": true,
-    "source": "github",
-    "repo": "compscirunner/portal-iss-tracker",
-    "downloadUrl": "https://github.com/compscirunner/portal-iss-tracker/releases/latest",
-    "iconUrl": "https://raw.githubusercontent.com/compscirunner/portal-iss-tracker/main/docs/icon.png"
-  },
-  {
-    "id": "portal-adsb-tracker",
-    "name": "ADSB Portal",
-    "packageName": "com.portal.adsbtracker",
-    "description": "Live ADS-B flight tracker showing aircraft around your current location, powered by globe.adsb.fi",
-    "category": "utility",
-    "version": "latest",
-    "madeForPortal": true,
-    "source": "github",
-    "repo": "ochaine/portal-adsb-tracker",
-    "downloadUrl": "https://github.com/ochaine/portal-adsb-tracker/releases/latest"
-  }
+	{
+		"id": "immortal-launcher",
+		"name": "Immortal Launcher",
+		"packageName": "com.immortal.launcher",
+		"description": "Full replacement home screen with app store, photo frame screensaver, weather, and folders",
+		"category": "launcher",
+		"version": "latest",
+		"madeForPortal": true,
+		"source": "github",
+		"repo": "starbrightlab/immortal",
+		"downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
+		"iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",
+		"setup": {
+			"kind": "commands",
+			"auto": true,
+			"commands": [
+				"cmd package set-home-activity com.immortal.launcher/.HomeActivity",
+				"cmd overlay disable --user 0 com.facebook.aloha.rro.niu.android"
+			],
+			"labelKey": "setAsDefault"
+		}
+	},
+	{
+		"id": "aurora-store",
+		"name": "Aurora Store",
+		"packageName": "com.aurora.store",
+		"description": "Open-source alternative to Google Play Store for downloading Android apps",
+		"category": "store",
+		"version": "4.6.1",
+		"source": "fdroid",
+		"iconUrl": "https://f-droid.org/repo/com.aurora.store/en-US/icon.png"
+	},
+	{
+		"id": "google-photos-screensaver",
+		"name": "Google Photos Screensaver",
+		"packageName": "com.ramnat.portalgphotos",
+		"description": "Use your Google Photos albums as a screensaver on your Portal",
+		"category": "photo",
+		"version": "latest",
+		"madeForPortal": true,
+		"source": "github",
+		"repo": "ram-nat/portal-gphotos",
+		"downloadUrl": "https://github.com/ram-nat/portal-gphotos/releases/latest",
+		"iconUrl": "https://raw.githubusercontent.com/ram-nat/portal-gphotos/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+		"skipUpdateCheck": true,
+		"setup": {
+			"kind": "custom",
+			"id": "gphotos",
+			"labelKey": "setUpGphotos"
+		}
+	},
+	{
+		"id": "fdroid",
+		"name": "F-Droid",
+		"packageName": "org.fdroid.fdroid",
+		"description": "Open-source app store with free and open-source apps",
+		"category": "store",
+		"version": "1.21.0",
+		"source": "fdroid",
+		"iconUrl": "https://f-droid.org/repo/org.fdroid.fdroid/en-US/icon.png"
+	},
+	{
+		"id": "vlc",
+		"name": "VLC",
+		"packageName": "org.videolan.vlc",
+		"description": "Free and open-source media player for video and audio",
+		"category": "media",
+		"version": "3.6.4",
+		"source": "fdroid",
+		"repo": "videolan/vlc-android",
+		"iconUrl": "https://f-droid.org/repo/org.videolan.vlc/en-US/icon.png"
+	},
+	{
+		"id": "jellyfin",
+		"name": "Jellyfin",
+		"packageName": "org.jellyfin.mobile",
+		"description": "Self-hosted media streaming client",
+		"category": "media",
+		"version": "2.6.2",
+		"source": "fdroid",
+		"repo": "jellyfin/jellyfin-android",
+		"iconUrl": "https://f-droid.org/repo/org.jellyfin.mobile/en-US/icon.png"
+	},
+	{
+		"id": "cromite",
+		"name": "Cromite",
+		"packageName": "org.cromite.cromite",
+		"description": "Privacy-focused Chromium browser with built-in ad blocking",
+		"category": "utility",
+		"version": "latest",
+		"source": "github",
+		"repo": "uazo/cromite",
+		"downloadUrl": "https://github.com/uazo/cromite/releases/latest",
+		"iconUrl": "https://web.archive.org/web/20260314054730im_/https://www.cromite.org/app_icon.png"
+	},
+	{
+		"id": "archivetune",
+		"name": "ArchiveTune",
+		"packageName": "moe.koiverse.archivetune",
+		"description": "Material 3 music player with local files and YouTube Music support",
+		"category": "media",
+		"version": "latest",
+		"source": "github",
+		"repo": "koiverse/ArchiveTune",
+		"downloadUrl": "https://github.com/koiverse/ArchiveTune/releases/latest",
+		"iconUrl": "https://apt.izzysoft.de/fdroid/repo/moe.koiverse.archivetune/en-US/icon.png"
+	},
+	{
+		"id": "material-files",
+		"name": "Material Files",
+		"packageName": "me.zhanghai.android.files",
+		"description": "File manager with FTP server for wireless file transfer",
+		"category": "utility",
+		"version": "1.8.0",
+		"source": "fdroid",
+		"repo": "zhanghai/MaterialFiles",
+		"iconUrl": "https://f-droid.org/repo/me.zhanghai.android.files/en-US/icon.png"
+	},
+	{
+		"id": "newpipe",
+		"name": "NewPipe",
+		"packageName": "org.schabi.newpipe",
+		"description": "Lightweight YouTube client with background play and downloads",
+		"category": "media",
+		"version": "latest",
+		"source": "github",
+		"repo": "TeamNewPipe/NewPipe",
+		"downloadUrl": "https://github.com/TeamNewPipe/NewPipe/releases/latest",
+		"iconUrl": "https://raw.githubusercontent.com/TeamNewPipe/NewPipe/dev/fastlane/metadata/android/en-US/images/icon.png"
+	},
+	{
+		"id": "libretube",
+		"name": "LibreTube",
+		"packageName": "com.github.libretube",
+		"description": "Privacy-focused YouTube client with SponsorBlock built in",
+		"category": "media",
+		"version": "31.4",
+		"source": "fdroid",
+		"repo": "libre-tube/LibreTube",
+		"iconUrl": "https://f-droid.org/repo/com.github.libretube/en-US/icon.png"
+	},
+	{
+		"id": "home-assistant",
+		"name": "Home Assistant",
+		"packageName": "io.homeassistant.companion.android.minimal",
+		"description": "Companion app for the Home Assistant smart home platform",
+		"category": "smartHome",
+		"version": "2026.4.4-minimal",
+		"source": "fdroid",
+		"repo": "home-assistant/android",
+		"iconUrl": "https://f-droid.org/repo/io.homeassistant.companion.android.minimal/en-US/icon.png"
+	},
+	{
+		"id": "antennapod",
+		"name": "AntennaPod",
+		"packageName": "de.danoeh.antennapod",
+		"description": "Open-source podcast manager and player",
+		"category": "media",
+		"version": "3.11.4",
+		"source": "fdroid",
+		"repo": "AntennaPod/AntennaPod",
+		"iconUrl": "https://f-droid.org/repo/de.danoeh.antennapod/en-US/icon.png"
+	},
+	{
+		"id": "kodi",
+		"name": "Kodi",
+		"packageName": "org.xbmc.kodi",
+		"description": "Open-source media center for videos, music, and streaming add-ons",
+		"category": "media",
+		"version": "21.3",
+		"source": "fdroid",
+		"repo": "xbmc/xbmc",
+		"iconUrl": "https://raw.githubusercontent.com/xbmc/xbmc/master/media/icon256x256.png"
+	},
+	{
+		"id": "stremio",
+		"name": "Stremio",
+		"packageName": "com.stremio.one",
+		"description": "Media center for streaming movies and series through add-ons",
+		"category": "media",
+		"version": "2.2.3",
+		"source": "url",
+		"apkUrl": "https://dl.strem.io/android/v2.2.3-android/com.stremio.one-2.2.3-6145731-arm64-v8a.apk",
+		"downloadUrl": "https://www.stremio.com/downloads",
+		"iconUrl": "https://www.stremio.com/website/stremio-logo-small.png"
+	},
+	{
+		"id": "smarttube",
+		"name": "SmartTube",
+		"packageName": "org.smarttube.stable",
+		"description": "Ad-free YouTube client for TV screens with SponsorBlock built in",
+		"category": "media",
+		"version": "latest",
+		"source": "github",
+		"repo": "yuliskov/SmartTube",
+		"downloadUrl": "https://github.com/yuliskov/SmartTube/releases/latest",
+		"iconUrl": "https://raw.githubusercontent.com/yuliskov/SmartTube/master/smarttubetv/src/ststable/res/mipmap-nodpi/app_icon.png"
+	},
+	{
+		"id": "portal-calendar",
+		"name": "Portal Calendar",
+		"packageName": "com.portal.calendar",
+		"description": "Turn your Portal into a family calendar board synced from Google, iCloud, or any iCal feed",
+		"category": "utility",
+		"version": "latest",
+		"madeForPortal": true,
+		"source": "github",
+		"repo": "thefloppytaco/portal-calendar",
+		"downloadUrl": "https://github.com/thefloppytaco/portal-calendar/releases/latest",
+		"iconFile": true,
+		"setup": {
+			"kind": "custom",
+			"id": "portal-calendar",
+			"labelKey": "setUpCalendar"
+		}
+	},
+	{
+		"id": "portal-iss-tracker",
+		"name": "Space Portal",
+		"packageName": "com.portal.isstracker",
+		"description": "NASA-style ISS dashboard with live 4K video, a real-time ground track, who's in space, space weather, and a launch countdown",
+		"category": "utility",
+		"version": "latest",
+		"madeForPortal": true,
+		"source": "github",
+		"repo": "compscirunner/portal-iss-tracker",
+		"downloadUrl": "https://github.com/compscirunner/portal-iss-tracker/releases/latest",
+		"iconUrl": "https://raw.githubusercontent.com/compscirunner/portal-iss-tracker/main/docs/icon.png"
+	},
+	{
+		"id": "portal-adsb-tracker",
+		"name": "ADSB Portal",
+		"packageName": "com.portal.adsbtracker",
+		"description": "Live ADS-B flight tracker showing aircraft around your current location, powered by globe.adsb.fi",
+		"category": "utility",
+		"version": "latest",
+		"madeForPortal": true,
+		"source": "github",
+		"repo": "ochaine/portal-adsb-tracker",
+		"downloadUrl": "https://github.com/ochaine/portal-adsb-tracker/releases/latest",
+		"iconFile": "svg"
+	}
 ]
