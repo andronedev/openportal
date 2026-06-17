@@ -85,7 +85,7 @@ export function InstalledAppsList() {
 			for (const [packageName, update] of Object.entries(updates)) {
 				const name = getCatalogApp(packageName)?.name ?? packageName;
 				try {
-					await installFromUrl(adb, update.urls);
+					await installFromUrl(adb, update.urls, undefined, update.sha256);
 					clearUpdate(packageName);
 					toast.success(name, { description: t("updated") });
 				} catch (err) {

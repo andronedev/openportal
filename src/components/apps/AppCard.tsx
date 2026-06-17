@@ -8,6 +8,7 @@ import {
 	Download,
 	ExternalLink,
 	Loader2,
+	Puzzle,
 	Settings,
 	Sparkles,
 	SquareArrowOutUpRight,
@@ -71,6 +72,12 @@ export function AppCard({ app }: { app: CatalogApp }) {
 							<AppBadge tone="violet">
 								<Sparkles className="h-3 w-3" />
 								{t("madeForPortal")}
+							</AppBadge>
+						)}
+						{app.source === "morphe" && (
+							<AppBadge tone="sky">
+								<Puzzle className="h-3 w-3" />
+								{t("moddedForPortal")}
 							</AppBadge>
 						)}
 						{actions.hasUpdate && actions.update && (

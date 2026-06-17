@@ -21,6 +21,7 @@ export interface AppUpdate {
 	urls: string[];
 	latestVersion: string;
 	installedVersion: string;
+	sha256?: string;
 }
 
 interface AppStore {
@@ -109,6 +110,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 									urls: latest.urls,
 									latestVersion: latest.version,
 									installedVersion: installed.versionName,
+									sha256: latest.sha256,
 								};
 							}
 						} catch {}

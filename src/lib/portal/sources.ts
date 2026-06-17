@@ -1,4 +1,10 @@
 import { deviceFetchText } from "@/lib/adb/online-install";
+import { getprop } from "@/lib/adb/shell";
+import { MORPHE_MANIFEST_URLS } from "@/lib/security/manifest-key";
+import {
+	type MorpheManifestApp,
+	verifyAndParseManifest,
+} from "@/lib/security/verify-manifest";
 import type { Adb } from "@yume-chan/adb";
 import type { CatalogApp } from "./catalog";
 import fdroidMirrors from "./fdroid-mirrors.json";
@@ -10,11 +16,15 @@ export interface ResolvedApk {
 	version: string;
 	url: string;
 	urls: string[];
+	sha256?: string;
 }
 
 export function canAutoInstall(app: CatalogApp): boolean {
 	return (
-		app.source === "github" || app.source === "fdroid" || app.source === "url"
+		app.source === "github" ||
+		app.source === "fdroid" ||
+		app.source === "url" ||
+		app.source === "morphe"
 	);
 }
 
@@ -39,6 +49,8 @@ export function getSourceLabel(app: CatalogApp): string {
 			return "GitHub";
 		case "fdroid":
 			return "F-Droid";
+		case "morphe":
+			return "Morphe";
 		default:
 			return "Web";
 	}
@@ -111,6 +123,68 @@ export async function resolveFdroidLatest(
 	};
 }
 
+async function fetchMorpheManifest(adb: Adb): Promise<string> {
+	if (MORPHE_MANIFEST_URLS.length === 0) {
+		throw new Error("No Morphe manifest URL configured");
+	}
+	let lastError: Error | null = null;
+	for (const url of MORPHE_MANIFEST_URLS) {
+		try {
+			return await deviceFetchText(adb, url);
+		} catch (err) {
+			lastError = err instanceof Error ? err : new Error(String(err));
+		}
+	}
+	throw lastError ?? new Error("Could not fetch the Morphe manifest");
+}
+
+async function pickArch(
+	adb: Adb,
+	entries: MorpheManifestApp[],
+): Promise<MorpheManifestApp | undefined> {
+	if (entries.length <= 1) return entries[0];
+	let abis: string[] = [];
+	try {
+		const primary = (await getprop(adb, "ro.product.cpu.abi")).trim();
+		const list = (await getprop(adb, "ro.product.cpu.abilist")).trim();
+		abis = [primary, ...list.split(",")]
+			.map((abi) => abi.trim())
+			.filter((abi) => abi.length > 0);
+	} catch {}
+	for (const abi of abis) {
+		const match = entries.find((entry) => entry.arch === abi);
+		if (match) return match;
+	}
+	return (
+		entries.find((entry) => !entry.arch || entry.arch === "universal") ??
+		entries[0]
+	);
+}
+
+export async function resolveMorpheApk(
+	adb: Adb,
+	app: CatalogApp,
+): Promise<ResolvedApk> {
+	const manifest = await verifyAndParseManifest(await fetchMorpheManifest(adb));
+	const entries = manifest.apps.filter(
+		(entry) => entry.packageName === app.packageName,
+	);
+	const entry = await pickArch(adb, entries);
+	if (!entry) {
+		throw new Error("This app is not in the Morphe manifest");
+	}
+	const url = entry.urls[0];
+	if (!url) {
+		throw new Error("No download URL in the Morphe manifest");
+	}
+	return {
+		version: entry.version,
+		url,
+		urls: entry.urls,
+		sha256: entry.sha256,
+	};
+}
+
 export async function resolveApk(
 	adb: Adb,
 	app: CatalogApp,
@@ -124,6 +198,8 @@ export async function resolveApk(
 		case "url":
 			if (!app.apkUrl) throw new Error("Missing APK URL");
 			return { version: app.version, url: app.apkUrl, urls: [app.apkUrl] };
+		case "morphe":
+			return resolveMorpheApk(adb, app);
 		default:
 			throw new Error("This app can't be installed automatically");
 	}

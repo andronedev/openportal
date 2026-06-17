@@ -50,6 +50,15 @@ export function AppCatalog() {
 		[mode],
 	);
 
+	const moddedApps = useMemo(
+		() =>
+			APP_CATALOG.filter(
+				(a) =>
+					a.source === "morphe" && (mode === "advanced" || !a.advancedOnly),
+			),
+		[mode],
+	);
+
 	const query = search.trim().toLowerCase();
 	const matches = (app: CatalogApp) =>
 		!query ||
@@ -76,17 +85,22 @@ export function AppCatalog() {
 		category === "all" && !query && portalApps.length > 0;
 	const portalIds = new Set(portalApps.map((a) => a.id));
 
+	const showModdedSection =
+		category === "all" && !query && moddedApps.length > 0;
+	const moddedIds = new Set(moddedApps.map((a) => a.id));
+
 	const sections = activeCats
 		.map((cat) => ({
 			cat,
 			apps: (visibleByCategory.get(cat) ?? [])
 				.filter((a) => !(showPortalSection && portalIds.has(a.id)))
+				.filter((a) => !(showModdedSection && moddedIds.has(a.id)))
 				.filter(matches),
 		}))
 		.filter((section) => section.apps.length > 0);
 
 	const totalMatches = sections.reduce((n, s) => n + s.apps.length, 0);
-	const hasContent = showPortalSection || totalMatches > 0;
+	const hasContent = showPortalSection || showModdedSection || totalMatches > 0;
 
 	return (
 		<div className="space-y-3">
@@ -120,6 +134,18 @@ export function AppCatalog() {
 							</h4>
 							<div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-3">
 								{portalApps.map((app) => (
+									<AppCard key={app.id} app={app} />
+								))}
+							</div>
+						</div>
+					)}
+					{showModdedSection && (
+						<div>
+							<h4 className="mb-3 text-sm font-medium text-muted-foreground">
+								{t("moddedForPortal")}
+							</h4>
+							<div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-3">
+								{moddedApps.map((app) => (
 									<AppCard key={app.id} app={app} />
 								))}
 							</div>

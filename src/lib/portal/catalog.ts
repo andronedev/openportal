@@ -9,7 +9,7 @@ export type CatalogCategory =
 	| "assistant"
 	| "utility";
 
-export type AppSource = "github" | "fdroid" | "url" | "external";
+export type AppSource = "github" | "fdroid" | "url" | "morphe" | "external";
 
 /**
  * Post-install configuration for an app.
@@ -44,8 +44,10 @@ export interface CatalogApp {
 	 */
 	madeForPortal?: boolean;
 	/**
-	 * Where the APK comes from. `github`/`fdroid`/`url` can be installed
+	 * Where the APK comes from. `github`/`fdroid`/`url`/`morphe` can be installed
 	 * automatically (the device downloads them); `external` only opens a page.
+	 * `morphe` resolves a signed remote manifest (modded builds) and verifies the
+	 * APK hash on-device before install.
 	 */
 	source?: AppSource;
 	/**
@@ -74,6 +76,7 @@ export interface CatalogApp {
 	 * embedded versionName), which would otherwise surface a phantom update.
 	 */
 	skipUpdateCheck?: boolean;
+	requires?: string[];
 }
 
 // The catalog is data-only and lives in catalog.json so the community can submit

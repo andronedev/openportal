@@ -24,8 +24,11 @@
 		"utility": "Utilities"
 	},
 	"madeForPortal": "Made for Portal",
+	"moddedForPortal": "Modded for Portal",
 	"installed": "Installed",
 	"alreadyInstalled": "Already installed on this device",
+	"requiresDescription": "Needs {{deps}} to run. Install it first?",
+	"installWithDeps": "Install both",
 	"install": "Install",
 	"update": "Update",
 	"updateAvailable": "Update available",

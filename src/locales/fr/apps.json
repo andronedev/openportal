@@ -24,8 +24,11 @@
 		"utility": "Utilitaires"
 	},
 	"madeForPortal": "Conçu pour Portal",
+	"moddedForPortal": "Moddé pour Portal",
 	"installed": "Installé",
 	"alreadyInstalled": "Déjà installée sur cet appareil",
+	"requiresDescription": "Nécessite {{deps}} pour fonctionner. L'installer d'abord ?",
+	"installWithDeps": "Tout installer",
 	"install": "Installer",
 	"update": "Mettre à jour",
 	"updateAvailable": "Mise à jour dispo",

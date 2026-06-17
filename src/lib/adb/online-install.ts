@@ -100,10 +100,28 @@ async function orderByMeasuredSpeed(
  * against the URL's Content-Length; `percent` is null when the size is
  * unknown or the stage has no measurable progress.
  */
+async function verifyDeviceSha256(
+	adb: Adb,
+	dest: string,
+	expected: string,
+): Promise<void> {
+	const { stdout, exitCode } = await execShell(adb, `sha256sum "${dest}"`, {
+		timeoutMs: 120_000,
+	});
+	const actual = stdout.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+	if (exitCode !== 0 || actual.length === 0) {
+		throw new Error("Could not compute the APK checksum on the device");
+	}
+	if (actual !== expected.trim().toLowerCase()) {
+		throw new Error("APK checksum does not match the signed manifest");
+	}
+}
+
 export async function installFromUrl(
 	adb: Adb,
 	urls: string | string[],
 	onProgress?: (stage: InstallStage, percent: number | null) => void,
+	expectedSha256?: string,
 ): Promise<void> {
 	const downloader = await detectDownloader(adb);
 	if (!downloader) {
@@ -143,6 +161,16 @@ export async function installFromUrl(
 	}
 
 	onProgress?.("downloading", 100);
+
+	if (expectedSha256) {
+		try {
+			await verifyDeviceSha256(adb, dest, expectedSha256);
+		} catch (err) {
+			await execShell(adb, `rm -f "${dest}"`);
+			throw err;
+		}
+	}
+
 	onProgress?.("installing", null);
 	const install = await execShell(adb, `pm install -r "${dest}"`, {
 		timeoutMs: 180_000,
