@@ -58,6 +58,14 @@
 	"defaultLauncher": "Default launcher",
 	"setUpGphotos": "Set up screensaver",
 	"setUpCalendar": "Set up calendar",
+	"grantPermissions": "Grant permissions",
+	"setupNoticeAuto": "Installing also grants this app extra permissions on your Portal",
+	"setupNoticeManual": "This app can be granted extra permissions on your Portal",
+	"setupNoticeIntro": "OpenPortal runs these ADB commands on your device. Nothing leaves your Portal:",
+	"setupConfirmTitle": "Install {{name}}?",
+	"setupConfirmIntro": "To work on your Portal, {{name}} needs extra permissions that aren't exposed in settings. OpenPortal can run these ADB commands on your device right after installing:",
+	"setupConfirmRunCommands": "Run this setup after installing",
+	"setupConfirmHint": "If you turn this off, you can run it later from the app's setup button.",
 	"runSetup": "Run setup",
 	"installAndConfigure": "Install & set up",
 	"getApk": "Get APK",
@@ -99,7 +107,7 @@
 		"credentialsLabel": "OAuth credentials (client_secret.json)",
 		"chooseFile": "Choose file",
 		"apply": "Apply & launch",
-		"done": "Screensaver configured — finish signing in on the Portal."
+		"done": "Screensaver configured. Finish signing in on the Portal."
 	},
 	"portalCalendar": {
 		"intro": "Turn your Portal into a wall calendar. You set it up from your browser.",

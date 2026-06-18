@@ -20,6 +20,7 @@ import { Link } from "react-router";
 import { AppBadge } from "./AppBadge";
 import { AppIcon } from "./AppIcon";
 import { InstallProgress } from "./InstallProgress";
+import { SetupConfirmDialog } from "./SetupConfirmDialog";
 import { AppSetupPanel } from "./setup/AppSetupPanel";
 import { useAppActions } from "./use-app-actions";
 
@@ -35,6 +36,7 @@ export function AppCard({ app }: { app: CatalogApp }) {
 
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [setupOpen, setSetupOpen] = useState(false);
+	const [confirmSetup, setConfirmSetup] = useState(false);
 
 	const isLauncher = app.category === "launcher";
 	const setup = app.setup;
@@ -167,7 +169,7 @@ export function AppCard({ app }: { app: CatalogApp }) {
 				) : canAutoInstall(app) ? (
 					<button
 						type="button"
-						onClick={actions.install}
+						onClick={autoSetup ? () => setConfirmSetup(true) : actions.install}
 						className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
 						<Download className="h-3.5 w-3.5" />
@@ -202,6 +204,14 @@ export function AppCard({ app }: { app: CatalogApp }) {
 				app={app}
 				open={setupOpen}
 				onClose={() => setSetupOpen(false)}
+			/>
+
+			<SetupConfirmDialog
+				app={app}
+				open={confirmSetup}
+				onClose={() => setConfirmSetup(false)}
+				onConfirm={actions.install}
+				onInstallOnly={actions.installWithoutSetup}
 			/>
 		</div>
 	);

@@ -81,7 +81,7 @@ export function useAppActions(packageName: string, displayName: string) {
 		clearUpdate(target.packageName);
 	};
 
-	const doInstall = (withDeps: boolean) =>
+	const doInstall = (withDeps: boolean, runSetup: boolean) =>
 		run(hasUpdate ? "update" : "install", async () => {
 			if (!app) return;
 			let activeAdb = adb;
@@ -113,7 +113,12 @@ export function useAppActions(packageName: string, displayName: string) {
 				description: t(updating ? "updated" : "installed"),
 			});
 			await refreshInstalled();
-			if (!updating && app.setup?.kind === "commands" && app.setup.auto) {
+			if (
+				runSetup &&
+				!updating &&
+				app.setup?.kind === "commands" &&
+				app.setup.auto
+			) {
 				try {
 					await runPostInstall(activeAdb, app.setup.commands);
 					await refreshDefaultLauncher();
@@ -121,7 +126,7 @@ export function useAppActions(packageName: string, displayName: string) {
 			}
 		});
 
-	const install = () => {
+	const startInstall = (runSetup: boolean) => {
 		if (app && missingRequires.length > 0) {
 			toast(displayName, {
 				description: t("requiresDescription", {
@@ -130,13 +135,16 @@ export function useAppActions(packageName: string, displayName: string) {
 				duration: 15000,
 				action: {
 					label: t("installWithDeps"),
-					onClick: () => doInstall(true),
+					onClick: () => doInstall(true, runSetup),
 				},
 			});
 			return;
 		}
-		doInstall(false);
+		doInstall(false, runSetup);
 	};
+
+	const install = () => startInstall(true);
+	const installWithoutSetup = () => startInstall(false);
 
 	const open = () =>
 		run("open", async () => {
@@ -183,6 +191,7 @@ export function useAppActions(packageName: string, displayName: string) {
 		stage,
 		progress,
 		install,
+		installWithoutSetup,
 		open,
 		runSetup,
 		uninstall,

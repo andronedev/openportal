@@ -2,6 +2,8 @@ import { AppBadge } from "@/components/apps/AppBadge";
 import { AppIcon } from "@/components/apps/AppIcon";
 import { InstallProgress } from "@/components/apps/InstallProgress";
 import { MarkdownRenderer } from "@/components/apps/MarkdownRenderer";
+import { SetupConfirmDialog } from "@/components/apps/SetupConfirmDialog";
+import { SetupNotice } from "@/components/apps/SetupNotice";
 import { AppSetupPanel } from "@/components/apps/setup/AppSetupPanel";
 import { useAppActions } from "@/components/apps/use-app-actions";
 import { Button, ConfirmDialog, Spinner } from "@/components/ui/primitives";
@@ -76,6 +78,7 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [confirmClear, setConfirmClear] = useState(false);
 	const [setupOpen, setSetupOpen] = useState(false);
+	const [confirmSetup, setConfirmSetup] = useState(false);
 	const [permsOpen, setPermsOpen] = useState(false);
 	const [perms, setPerms] = useState<AppPermission[] | null>(null);
 
@@ -238,6 +241,8 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 				</dl>
 			)}
 
+			{setup?.kind === "commands" && <SetupNotice setup={setup} />}
+
 			<div className="flex flex-wrap gap-2">
 				{actions.stage ? (
 					<InstallProgress stage={actions.stage} percent={actions.progress} />
@@ -288,7 +293,7 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 				) : catApp && canAutoInstall(catApp) ? (
 					<Button
 						variant="primary"
-						onClick={actions.install}
+						onClick={autoSetup ? () => setConfirmSetup(true) : actions.install}
 						disabled={actions.busy !== null}
 					>
 						<Download className="h-4 w-4" />
@@ -413,6 +418,16 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 					app={catApp}
 					open={setupOpen}
 					onClose={() => setSetupOpen(false)}
+				/>
+			)}
+
+			{catApp && (
+				<SetupConfirmDialog
+					app={catApp}
+					open={confirmSetup}
+					onClose={() => setConfirmSetup(false)}
+					onConfirm={actions.install}
+					onInstallOnly={actions.installWithoutSetup}
 				/>
 			)}
 		</div>

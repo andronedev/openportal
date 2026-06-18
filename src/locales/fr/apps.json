@@ -58,6 +58,14 @@
 	"defaultLauncher": "Launcher par défaut",
 	"setUpGphotos": "Configurer l'économiseur",
 	"setUpCalendar": "Configurer le calendrier",
+	"grantPermissions": "Accorder les permissions",
+	"setupNoticeAuto": "L'installation accorde aussi à cette application des autorisations supplémentaires sur votre Portal",
+	"setupNoticeManual": "Cette application peut recevoir des autorisations supplémentaires sur votre Portal",
+	"setupNoticeIntro": "OpenPortal exécute ces commandes ADB sur votre appareil. Rien ne quitte votre Portal :",
+	"setupConfirmTitle": "Installer {{name}} ?",
+	"setupConfirmIntro": "Pour fonctionner sur votre Portal, {{name}} a besoin d'autorisations supplémentaires qui ne sont pas exposées dans les réglages. OpenPortal peut exécuter ces commandes ADB sur votre appareil juste après l'installation :",
+	"setupConfirmRunCommands": "Exécuter la configuration après l'installation",
+	"setupConfirmHint": "Si vous la décochez, vous pourrez la lancer plus tard depuis le bouton de configuration de l'application.",
 	"runSetup": "Lancer la configuration",
 	"installAndConfigure": "Installer et configurer",
 	"getApk": "Obtenir l'APK",
@@ -99,7 +107,7 @@
 		"credentialsLabel": "Identifiants OAuth (client_secret.json)",
 		"chooseFile": "Choisir un fichier",
 		"apply": "Appliquer et lancer",
-		"done": "Économiseur configuré — terminez la connexion sur le Portal."
+		"done": "Économiseur configuré. Terminez la connexion sur le Portal."
 	},
 	"portalCalendar": {
 		"intro": "Transformez votre Portal en calendrier mural. La configuration se fait depuis votre navigateur.",
