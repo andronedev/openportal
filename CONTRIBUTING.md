@@ -85,6 +85,13 @@ Field reference:
   APK is resolved from its releases); for any source it also renders that repo's
   README on the app's detail page, so pointing an F-Droid or URL app at its GitHub
   mirror gives it a rich description
+- `assetPattern` — optional, `source: "github"` only; a case-insensitive regex
+  matched against release asset file names to pick the right APK when a release
+  ships several variants (per-ABI splits, signed vs unsigned flavors, TV builds).
+  The first match wins. Omit it to take the first `.apk` asset; set it when that
+  default would grab an unsigned or off-target build (e.g.
+  `"^app-mobile-universal-release\\.apk$"` for a signed universal build). The
+  Portal is arm64, so prefer a `universal` or `arm64` asset
 - `iconFile` — optional; use instead of `iconUrl` when the app has no hosted
   icon to link to. Drop a square PNG at `public/app-icons/<packageName>.png` and
   set `"iconFile": true` (or pass an extension like `"svg"`). `iconUrl` wins when

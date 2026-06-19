@@ -103,8 +103,9 @@
 		"category": "media",
 		"version": "latest",
 		"source": "github",
-		"repo": "koiverse/ArchiveTune",
-		"downloadUrl": "https://github.com/koiverse/ArchiveTune/releases/latest",
+		"repo": "ArchiveTuneApp/ArchiveTune",
+		"assetPattern": "^app-mobile-universal-release\\.apk$",
+		"downloadUrl": "https://github.com/ArchiveTuneApp/ArchiveTune/releases/latest",
 		"iconUrl": "https://apt.izzysoft.de/fdroid/repo/moe.koiverse.archivetune/en-US/icon.png"
 	},
 	{

@@ -57,6 +57,16 @@ export interface CatalogApp {
 	 * GitHub mirror to give an F-Droid/URL app a rich description.
 	 */
 	repo?: string;
+	/**
+	 * For `source: "github"` only: a case-insensitive regular expression matched
+	 * against release asset file names to pick the right APK when a release ships
+	 * several variants (per-ABI splits, signed vs unsigned flavors, TV builds…).
+	 * The first matching asset wins. Without it, the resolver falls back to the
+	 * first `.apk` asset, which is wrong when that happens to be an unsigned or
+	 * off-target build. If set and nothing matches, install fails loudly rather
+	 * than installing the wrong APK.
+	 */
+	assetPattern?: string;
 	/** Direct APK URL for `source: "url"`. */
 	apkUrl?: string;
 	downloadUrl?: string;

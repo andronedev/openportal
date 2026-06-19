@@ -65,8 +65,15 @@ interface GithubRelease {
 	assets?: GithubAsset[];
 }
 
-/** Reads the latest GitHub release from api.github.com (CORS-friendly). */
-export async function resolveGithubLatest(repo: string): Promise<ResolvedApk> {
+/**
+ * Reads the latest GitHub release from api.github.com (CORS-friendly). When the
+ * release ships several APK variants, `assetPattern` (a case-insensitive regex)
+ * selects the right one; without it, the first `.apk` asset wins.
+ */
+export async function resolveGithubLatest(
+	repo: string,
+	assetPattern?: string,
+): Promise<ResolvedApk> {
 	const res = await fetch(
 		`https://api.github.com/repos/${repo}/releases/latest`,
 		{ headers: { Accept: "application/vnd.github+json" } },
@@ -75,7 +82,26 @@ export async function resolveGithubLatest(repo: string): Promise<ResolvedApk> {
 		throw new Error(`GitHub API returned ${res.status}`);
 	}
 	const data = (await res.json()) as GithubRelease;
-	const apk = data.assets?.find((a) => a.name.toLowerCase().endsWith(".apk"));
+	const apks = data.assets?.filter((a) =>
+		a.name.toLowerCase().endsWith(".apk"),
+	);
+	if (!apks || apks.length === 0) {
+		throw new Error("No APK in the latest GitHub release");
+	}
+	let apk = apks[0];
+	if (assetPattern) {
+		let matcher: RegExp;
+		try {
+			matcher = new RegExp(assetPattern, "i");
+		} catch {
+			throw new Error(`Invalid assetPattern: ${assetPattern}`);
+		}
+		const match = apks.find((a) => matcher.test(a.name));
+		if (!match) {
+			throw new Error(`No GitHub release asset matched ${assetPattern}`);
+		}
+		apk = match;
+	}
 	if (!apk) {
 		throw new Error("No APK in the latest GitHub release");
 	}
@@ -192,7 +218,7 @@ export async function resolveApk(
 	switch (app.source) {
 		case "github":
 			if (!app.repo) throw new Error("Missing GitHub repo");
-			return resolveGithubLatest(app.repo);
+			return resolveGithubLatest(app.repo, app.assetPattern);
 		case "fdroid":
 			return resolveFdroidLatest(adb, app.packageName);
 		case "url":
