@@ -101,10 +101,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
 							if (installed?.versionName) {
 								foundVersions[app.packageName] = installed.versionName;
 							}
-							if (
-								installed &&
-								isNewerVersion(latest.version, installed.versionName)
-							) {
+							const hasUpdate =
+								!!installed &&
+								(latest.versionCode != null && installed.versionCode > 0
+									? latest.versionCode > installed.versionCode
+									: isNewerVersion(latest.version, installed.versionName));
+							if (installed && hasUpdate) {
 								found[app.packageName] = {
 									url: latest.url,
 									urls: latest.urls,

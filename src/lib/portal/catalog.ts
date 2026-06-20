@@ -9,7 +9,13 @@ export type CatalogCategory =
 	| "assistant"
 	| "utility";
 
-export type AppSource = "github" | "fdroid" | "url" | "morphe" | "external";
+export type AppSource =
+	| "github"
+	| "fdroid"
+	| "url"
+	| "morphe"
+	| "external"
+	| "custom";
 
 /**
  * Post-install configuration for an app.
@@ -63,9 +69,16 @@ export interface CatalogApp {
 	 * Where the APK comes from. `github`/`fdroid`/`url`/`morphe` can be installed
 	 * automatically (the device downloads them); `external` only opens a page.
 	 * `morphe` resolves a signed remote manifest (modded builds) and verifies the
-	 * APK hash on-device before install.
+	 * APK hash on-device before install. `custom` resolves via bespoke code keyed
+	 * by `customSource`.
 	 */
 	source?: AppSource;
+	/**
+	 * For `source: "custom"`: id of the resolver in
+	 * `src/lib/portal/custom-sources/registry.ts` that fetches this app's latest
+	 * APK and version. Bespoke code for apps with no standard release feed.
+	 */
+	customSource?: string;
 	/**
 	 * `owner/repo` on GitHub. Required for `source: "github"` (the APK is
 	 * resolved from its releases). For any other source it is optional and only

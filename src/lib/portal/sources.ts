@@ -7,6 +7,7 @@ import {
 } from "@/lib/security/verify-manifest";
 import type { Adb } from "@yume-chan/adb";
 import type { CatalogApp } from "./catalog";
+import { CUSTOM_SOURCES } from "./custom-sources/registry";
 import fdroidMirrors from "./fdroid-mirrors.json";
 
 const FDROID_MIRRORS: string[] =
@@ -14,6 +15,7 @@ const FDROID_MIRRORS: string[] =
 
 export interface ResolvedApk {
 	version: string;
+	versionCode?: number;
 	url: string;
 	urls: string[];
 	sha256?: string;
@@ -24,7 +26,8 @@ export function canAutoInstall(app: CatalogApp): boolean {
 		app.source === "github" ||
 		app.source === "fdroid" ||
 		app.source === "url" ||
-		app.source === "morphe"
+		app.source === "morphe" ||
+		app.source === "custom"
 	);
 }
 
@@ -32,6 +35,7 @@ export function canAutoInstall(app: CatalogApp): boolean {
 export function getSourceUrl(app: CatalogApp): string | undefined {
 	switch (app.source) {
 		case "github":
+		case "custom":
 			return app.repo ? `https://github.com/${app.repo}` : app.downloadUrl;
 		case "fdroid":
 			return `https://f-droid.org/packages/${app.packageName}`;
@@ -51,6 +55,8 @@ export function getSourceLabel(app: CatalogApp): string {
 			return "F-Droid";
 		case "morphe":
 			return "Morphe";
+		case "custom":
+			return app.repo ? "GitHub" : "Web";
 		default:
 			return "Web";
 	}
@@ -215,6 +221,15 @@ export async function resolveApk(
 	adb: Adb,
 	app: CatalogApp,
 ): Promise<ResolvedApk> {
+	if (app.source === "custom") {
+		const resolver = app.customSource
+			? CUSTOM_SOURCES[app.customSource]
+			: undefined;
+		if (!resolver) {
+			throw new Error(`Unknown custom source "${app.customSource ?? ""}"`);
+		}
+		return resolver(adb, app);
+	}
 	switch (app.source) {
 		case "github":
 			if (!app.repo) throw new Error("Missing GitHub repo");
