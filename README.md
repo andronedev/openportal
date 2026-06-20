@@ -15,6 +15,7 @@ OpenPortal talks to your Portal over USB using [WebUSB](https://developer.mozill
 
 - **Connect over USB**: plug in your Portal and click Connect. The RSA key is generated and kept in your browser, and the app recovers on its own if the cable is pulled.
 - **App catalog**: one-click install of community-verified apps. The Portal downloads the APK itself (GitHub releases or F-Droid, so there's no backend or CORS proxy), with update detection and post-install setup.
+- **Immortal launcher provisioning**: set up the [Immortal](https://github.com/starbrightlab/immortal) launcher and its on-device app store in one click. OpenPortal runs Immortal's full provisioning straight from the browser, a faithful port of its official `provision.sh`, so the launcher, app store, and screensaver are ready to go.
 - **Sideload APKs**: drag and drop any `.apk` onto the page to install it.
 - **Manage installed apps**: launch, uninstall, clear data, force stop, and inspect permissions.
 - **Screen mirroring**: your Portal's screen in the browser via real **scrcpy** (H.264 to WebCodecs). Control it with the mouse, type with your keyboard, go fullscreen, or grab a PNG screenshot.
