@@ -23,6 +23,7 @@ import { InstallProgress } from "./InstallProgress";
 import { SetupConfirmDialog } from "./SetupConfirmDialog";
 import { AppSetupPanel } from "./setup/AppSetupPanel";
 import { useAppActions } from "./use-app-actions";
+import { useSetupPanel } from "./use-setup-panel";
 
 const ICON_BUTTON =
 	"rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
@@ -35,8 +36,13 @@ export function AppCard({ app }: { app: CatalogApp }) {
 	);
 
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
-	const [setupOpen, setSetupOpen] = useState(false);
 	const [confirmSetup, setConfirmSetup] = useState(false);
+	const {
+		open: setupOpen,
+		setOpen: setSetupOpen,
+		openPanel: openSetup,
+		connecting: connectingSetup,
+	} = useSetupPanel();
 
 	const isLauncher = app.category === "launcher";
 	const setup = app.setup;
@@ -53,7 +59,7 @@ export function AppCard({ app }: { app: CatalogApp }) {
 
 	const handleSetup = () => {
 		if (!setup) return;
-		if (setup.kind === "custom") setSetupOpen(true);
+		if (setup.kind === "custom") openSetup();
 		else actions.runSetup();
 	};
 
@@ -175,14 +181,20 @@ export function AppCard({ app }: { app: CatalogApp }) {
 						type="button"
 						onClick={
 							installViaPanel
-								? () => setSetupOpen(true)
+								? () =>
+										openSetup({ packageName: app.packageName, name: app.name })
 								: autoSetup
 									? () => setConfirmSetup(true)
 									: actions.install
 						}
-						className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						disabled={connectingSetup}
+						className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
 					>
-						<Download className="h-3.5 w-3.5" />
+						{connectingSetup ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						) : (
+							<Download className="h-3.5 w-3.5" />
+						)}
 						{t(
 							installViaPanel || autoSetup ? "installAndConfigure" : "install",
 						)}

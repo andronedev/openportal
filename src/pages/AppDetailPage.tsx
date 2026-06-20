@@ -6,6 +6,7 @@ import { SetupConfirmDialog } from "@/components/apps/SetupConfirmDialog";
 import { SetupNotice } from "@/components/apps/SetupNotice";
 import { AppSetupPanel } from "@/components/apps/setup/AppSetupPanel";
 import { useAppActions } from "@/components/apps/use-app-actions";
+import { useSetupPanel } from "@/components/apps/use-setup-panel";
 import { Button, ConfirmDialog, Spinner } from "@/components/ui/primitives";
 import {
 	type AppPermission,
@@ -77,8 +78,13 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 	const [copiedLink, setCopiedLink] = useState(false);
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [confirmClear, setConfirmClear] = useState(false);
-	const [setupOpen, setSetupOpen] = useState(false);
 	const [confirmSetup, setConfirmSetup] = useState(false);
+	const {
+		open: setupOpen,
+		setOpen: setSetupOpen,
+		openPanel: openSetup,
+		connecting: connectingSetup,
+	} = useSetupPanel();
 	const [permsOpen, setPermsOpen] = useState(false);
 	const [perms, setPerms] = useState<AppPermission[] | null>(null);
 
@@ -128,7 +134,7 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 			!(catApp?.category === "launcher" && isDefaultLauncher));
 	const handleSetup = () => {
 		if (!setup) return;
-		if (setup.kind === "custom") setSetupOpen(true);
+		if (setup.kind === "custom") openSetup();
 		else actions.runSetup();
 	};
 
@@ -300,14 +306,15 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 						variant="primary"
 						onClick={
 							installViaPanel
-								? () => setSetupOpen(true)
+								? () => openSetup({ packageName, name })
 								: autoSetup
 									? () => setConfirmSetup(true)
 									: actions.install
 						}
-						disabled={actions.busy !== null}
+						disabled={actions.busy !== null || connectingSetup}
+						loading={connectingSetup}
 					>
-						<Download className="h-4 w-4" />
+						{!connectingSetup && <Download className="h-4 w-4" />}
 						{t(
 							installViaPanel || autoSetup ? "installAndConfigure" : "install",
 						)}
