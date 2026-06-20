@@ -124,7 +124,8 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 	const showSetup =
 		actions.isInstalled &&
 		!!setup &&
-		!(catApp?.category === "launcher" && isDefaultLauncher);
+		(setup.kind === "custom" ||
+			!(catApp?.category === "launcher" && isDefaultLauncher));
 	const handleSetup = () => {
 		if (!setup) return;
 		if (setup.kind === "custom") setSetupOpen(true);
@@ -145,6 +146,10 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 	const sourceUrl = catApp ? getSourceUrl(catApp) : undefined;
 	const version = actions.isInstalled ? (liveVersion ?? storeVersion) : null;
 	const autoSetup = setup?.kind === "commands" && setup.auto === true;
+	const installViaPanel =
+		setup?.kind === "custom" && setup.handlesInstall === true;
+	const revertOnUninstall =
+		setup?.kind === "custom" && setup.revertOnUninstall === true;
 
 	return (
 		<div className="mx-auto max-w-4xl space-y-5">
@@ -293,11 +298,19 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 				) : catApp && canAutoInstall(catApp) ? (
 					<Button
 						variant="primary"
-						onClick={autoSetup ? () => setConfirmSetup(true) : actions.install}
+						onClick={
+							installViaPanel
+								? () => setSetupOpen(true)
+								: autoSetup
+									? () => setConfirmSetup(true)
+									: actions.install
+						}
 						disabled={actions.busy !== null}
 					>
 						<Download className="h-4 w-4" />
-						{t(autoSetup ? "installAndConfigure" : "install")}
+						{t(
+							installViaPanel || autoSetup ? "installAndConfigure" : "install",
+						)}
 					</Button>
 				) : (
 					catApp?.downloadUrl && (
@@ -398,7 +411,11 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 				onClose={() => setConfirmUninstall(false)}
 				onConfirm={actions.uninstall}
 				title={t("uninstall")}
-				message={t("uninstallConfirm", { name })}
+				message={
+					revertOnUninstall
+						? t("uninstallRevertConfirm", { name })
+						: t("uninstallConfirm", { name })
+				}
 				confirmLabel={t("uninstall")}
 				danger
 			/>

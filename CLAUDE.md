@@ -49,6 +49,10 @@ All UI text goes through react-i18next (`src/i18n.ts`). Languages: `en`, `fr` (f
 
 Real scrcpy over H.264 → WebCodecs (`src/lib/adb/scrcpy.ts`, decoded via `@yume-chan/scrcpy-decoder-webcodecs`). The server binary is bundled at `public/scrcpy-server` and pushed to the device on demand. The `SERVER_VERSION` constant in `scrcpy.ts` **must match** the bundled binary version (currently `2.3`) — bump both together. Portal runs Android 10, so there is no audio. Use `isScrcpySupported()` to gate (WebCodecs availability).
 
+## Immortal provisioning
+
+The Immortal launcher needs full device provisioning, not just an install, for its on-device App Store to work (disable Meta's package verifier, grant `REQUEST_INSTALL_PACKAGES`, fix the Gen-1 installer dialog, set launcher and screensaver). OpenPortal ports Immortal's `provisioning/provision.sh` 1:1 into `src/lib/adb/provision.ts` (the engine), driven by a typed view of upstream `config.env` in `src/lib/portal/provision-config.ts`, surfaced by the custom setup panel `src/components/apps/setup/ImmortalProvisioning.tsx`. The procedure is the reviewed, pinned part; values are fetched live from Immortal's latest release tag, with a vendored snapshot under `src/lib/portal/provision/upstream/` (Biome-ignored) as the offline fallback and the drift baseline. `scripts/check-provision-drift.mjs` (CI: `.github/workflows/provision-drift.yml`) alerts when upstream `provision.sh` moves so the TS port gets re-reviewed; `scripts/vendor-provision.mjs` re-vendors in one shot. Full detail and the fidelity map live in `docs/provisioning.md`.
+
 ## Conventions
 
 - TypeScript strict mode (plus `noUnusedLocals`, `noUncheckedIndexedAccess`, etc.). Avoid `any`; prefer precise types.

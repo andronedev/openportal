@@ -1,7 +1,9 @@
 import {
 	clearAppData,
 	forceStopApp,
+	getActiveAdminComponent,
 	launchApp,
+	openDeviceAdminDeactivation,
 	runPostInstall,
 } from "@/lib/adb/app-manager";
 import { type InstallStage, installFromUrl } from "@/lib/adb/online-install";
@@ -164,7 +166,39 @@ export function useAppActions(packageName: string, displayName: string) {
 	const uninstall = () =>
 		run("uninstall", async () => {
 			if (!adb) return;
-			await uninstallPackage(packageName);
+			const setup = app?.setup;
+			const lifecycle =
+				setup?.kind === "custom" && setup.revertOnUninstall
+					? (await import("./setup/lifecycle")).SETUP_LIFECYCLE[setup.id]
+					: undefined;
+			if (lifecycle?.beforeUninstall) {
+				toast.info(displayName, { description: t("revertingBeforeUninstall") });
+				await lifecycle.beforeUninstall(adb);
+			}
+			try {
+				await uninstallPackage(packageName);
+			} catch (err) {
+				const message = err instanceof Error ? err.message : String(err);
+				if (/DEVICE_POLICY_MANAGER/.test(message)) {
+					let key = "uninstallDeviceAdmin";
+					if (lifecycle?.onUninstallBlocked) {
+						const hookKey = await lifecycle
+							.onUninstallBlocked(adb)
+							.catch(() => undefined);
+						if (typeof hookKey === "string") key = hookKey;
+					} else {
+						const component = await getActiveAdminComponent(
+							adb,
+							packageName,
+						).catch(() => null);
+						if (component) {
+							await openDeviceAdminDeactivation(adb, component).catch(() => {});
+						}
+					}
+					throw new Error(t(key, { name: displayName }));
+				}
+				throw err;
+			}
 			toast.success(t("uninstalled", { name: displayName }));
 		});
 

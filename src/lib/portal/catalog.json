@@ -12,14 +12,11 @@
 		"downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
 		"iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",
 		"setup": {
-			"kind": "commands",
-			"auto": true,
-			"commands": [
-				"cmd package set-home-activity com.immortal.launcher/.HomeActivity",
-				"cmd overlay disable --user 0 com.facebook.aloha.rro.niu.android",
-				"cmd am start -n com.immortal.launcher/.HomeActivity@"
-			],
-			"labelKey": "setAsDefault"
+			"kind": "custom",
+			"id": "immortal-provision",
+			"labelKey": "provisioning.setupLabel",
+			"handlesInstall": true,
+			"revertOnUninstall": true
 		}
 	},
 	{

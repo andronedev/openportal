@@ -41,11 +41,15 @@ export function AppCard({ app }: { app: CatalogApp }) {
 	const isLauncher = app.category === "launcher";
 	const setup = app.setup;
 	const autoSetup = setup?.kind === "commands" && setup.auto === true;
+	const installViaPanel =
+		setup?.kind === "custom" && setup.handlesInstall === true;
+	const revertOnUninstall =
+		setup?.kind === "custom" && setup.revertOnUninstall === true;
 	const showSetupGear =
 		actions.isInstalled &&
 		!actions.hasUpdate &&
 		!!setup &&
-		!(isLauncher && isDefaultLauncher);
+		(setup.kind === "custom" || !(isLauncher && isDefaultLauncher));
 
 	const handleSetup = () => {
 		if (!setup) return;
@@ -169,11 +173,19 @@ export function AppCard({ app }: { app: CatalogApp }) {
 				) : canAutoInstall(app) ? (
 					<button
 						type="button"
-						onClick={autoSetup ? () => setConfirmSetup(true) : actions.install}
+						onClick={
+							installViaPanel
+								? () => setSetupOpen(true)
+								: autoSetup
+									? () => setConfirmSetup(true)
+									: actions.install
+						}
 						className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
 						<Download className="h-3.5 w-3.5" />
-						{t(autoSetup ? "installAndConfigure" : "install")}
+						{t(
+							installViaPanel || autoSetup ? "installAndConfigure" : "install",
+						)}
 					</button>
 				) : (
 					app.downloadUrl && (
@@ -195,7 +207,11 @@ export function AppCard({ app }: { app: CatalogApp }) {
 				onClose={() => setConfirmUninstall(false)}
 				onConfirm={actions.uninstall}
 				title={t("uninstall")}
-				message={t("uninstallConfirm", { name: app.name })}
+				message={
+					revertOnUninstall
+						? t("uninstallRevertConfirm", { name: app.name })
+						: t("uninstallConfirm", { name: app.name })
+				}
 				confirmLabel={t("uninstall")}
 				danger
 			/>

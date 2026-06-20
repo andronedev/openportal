@@ -22,6 +22,8 @@ entire UI **without a device** using demo mode: `http://localhost:5173/?demo`.
 | `pnpm preview` | Preview the production build locally |
 | `pnpm lint` | Run Biome checks (lint + format + import order) |
 | `pnpm format` | Auto-format the codebase with Biome |
+| `node scripts/check-provision-drift.mjs` | Check Immortal's provisioning kit against the vendored snapshot (see `docs/provisioning.md`) |
+| `node scripts/vendor-provision.mjs [ref]` | Re-vendor Immortal's `provision.sh` and `config.env` from a release tag |
 
 Please make sure `pnpm build` and `pnpm lint` both pass before opening a PR.
 

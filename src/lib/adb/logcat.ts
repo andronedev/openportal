@@ -4,6 +4,7 @@ import {
 	SplitStringStream,
 	TextDecoderStream,
 } from "@yume-chan/stream-extra";
+import { execShell } from "./shell";
 
 export type LogPriority = "V" | "D" | "I" | "W" | "E" | "F";
 
@@ -96,6 +97,23 @@ export async function streamLogcat(
 			await proc.kill();
 		},
 	};
+}
+
+/**
+ * One-shot dump of the current logcat buffer (`logcat -d`). Used by flows that
+ * poll for a specific log marker (e.g. the Alexa connect handshake) instead of
+ * streaming. Returns the raw buffer as text.
+ */
+export async function dumpLogcat(adb: Adb): Promise<string> {
+	const { stdout } = await execShell(adb, "logcat -d -v threadtime", {
+		timeoutMs: 60_000,
+	});
+	return stdout;
+}
+
+/** Clears the logcat buffer (`logcat -c`), so a later dump only sees new lines. */
+export async function clearLogcat(adb: Adb): Promise<void> {
+	await execShell(adb, "logcat -c");
 }
 
 function toLineStream(

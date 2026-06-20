@@ -189,10 +189,13 @@ function InstalledRow({
 	const [setupOpen, setSetupOpen] = useState(false);
 
 	const setup = catApp?.setup;
+	const revertOnUninstall =
+		setup?.kind === "custom" && setup.revertOnUninstall === true;
 	const showSetupGear =
 		!!setup &&
 		!actions.hasUpdate &&
-		!(catApp?.category === "launcher" && isDefaultLauncher);
+		(setup.kind === "custom" ||
+			!(catApp?.category === "launcher" && isDefaultLauncher));
 
 	const handleSetup = () => {
 		if (!setup) return;
@@ -297,7 +300,11 @@ function InstalledRow({
 				onClose={() => setConfirmUninstall(false)}
 				onConfirm={actions.uninstall}
 				title={t("uninstall")}
-				message={t("uninstallConfirm", { name })}
+				message={
+					revertOnUninstall
+						? t("uninstallRevertConfirm", { name })
+						: t("uninstallConfirm", { name })
+				}
 				confirmLabel={t("uninstall")}
 				danger
 			/>

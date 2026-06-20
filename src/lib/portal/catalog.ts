@@ -23,7 +23,23 @@ export type AppSource = "github" | "fdroid" | "url" | "morphe" | "external";
  */
 export type AppSetup =
 	| { kind: "commands"; commands: string[]; auto?: boolean; labelKey?: string }
-	| { kind: "custom"; id: string; labelKey?: string };
+	| {
+			kind: "custom";
+			id: string;
+			labelKey?: string;
+			/**
+			 * The custom panel installs the app itself, so the catalog's Install
+			 * button opens the panel instead of installing directly. Use for apps
+			 * whose install only makes sense as part of a larger setup flow.
+			 */
+			handlesInstall?: boolean;
+			/**
+			 * Run the panel's lifecycle `beforeUninstall` hook (registered in
+			 * `setup/lifecycle.ts`) before uninstalling, e.g. to revert system
+			 * changes the setup made.
+			 */
+			revertOnUninstall?: boolean;
+	  };
 
 export interface CatalogApp {
 	id: string;
