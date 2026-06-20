@@ -49,6 +49,10 @@ All UI text goes through react-i18next (`src/i18n.ts`). Languages: `en`, `fr` (f
 
 Real scrcpy over H.264 → WebCodecs (`src/lib/adb/scrcpy.ts`, decoded via `@yume-chan/scrcpy-decoder-webcodecs`). The server binary is bundled at `public/scrcpy-server` and pushed to the device on demand. The `SERVER_VERSION` constant in `scrcpy.ts` **must match** the bundled binary version (currently `2.3`) — bump both together. Portal runs Android 10, so there is no audio. Use `isScrcpySupported()` to gate (WebCodecs availability).
 
+## Immortal provisioning
+
+The Immortal launcher needs full device provisioning, not just an install, for its on-device App Store to work (disable Meta's package verifier, grant `REQUEST_INSTALL_PACKAGES`, fix the Gen-1 installer dialog, set launcher and screensaver). OpenPortal ports Immortal's `provisioning/provision.sh` 1:1 into `src/lib/adb/provision.ts` (the engine), driven by a typed view of upstream `config.env` in `src/lib/portal/provision-config.ts`, surfaced by the custom setup panel `src/components/apps/setup/ImmortalProvisioning.tsx`. The procedure is the reviewed, pinned part; values are fetched live from Immortal's latest release tag, with a vendored snapshot under `src/lib/portal/provision/upstream/` (Biome-ignored) as the offline fallback and the drift baseline. `scripts/check-provision-drift.mjs` (CI: `.github/workflows/provision-drift.yml`) alerts when upstream `provision.sh` moves so the TS port gets re-reviewed; `scripts/vendor-provision.mjs` re-vendors in one shot. Full detail and the fidelity map live in `docs/provisioning.md`.
+
 ## Conventions
 
 - TypeScript strict mode (plus `noUnusedLocals`, `noUncheckedIndexedAccess`, etc.). Avoid `any`; prefer precise types.
@@ -64,4 +68,4 @@ Installable, offline app shell. The service worker (`public/sw.js`) is a **hand-
 
 ## Deploy
 
-`pnpm build` → static `dist/`. For a GitHub Pages **project** site, set `VITE_BASE=/<repo-name>/` (CI does this automatically) so asset paths resolve under the sub-path; CI also copies `index.html` → `404.html` for SPA deep-link fallback. For a custom domain / root deploy, the default base `/` is correct.
+`pnpm build` → static `dist/`. The site is served at the **custom domain `openportal.cc`** (root), so CI builds with the default base `/`; `public/CNAME` pins the domain across Actions deploys, and CI copies `index.html` → `404.html` for SPA deep-link fallback. GitHub Pages 301-redirects the old project URL `andronedev.github.io/openportal/*` to `openportal.cc/*` with the path preserved, so existing badge embeds keep working. To deploy a fork under a sub-path instead, set `VITE_BASE=/<repo-name>/`.

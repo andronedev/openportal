@@ -6,7 +6,7 @@ Your Meta Portal doesn't have to end up in a drawer. OpenPortal gives it a secon
 
 OpenPortal talks to your Portal over USB using [WebUSB](https://developer.mozilla.org/en-US/docs/Web/API/WebUSB_API) and [ya-webadb](https://github.com/yume-chan/ya-webadb) to speak the ADB protocol straight from a web page.
 
-**[Open the app](https://andronedev.github.io/openportal/)** in a Chromium-based browser, no install required.
+**[Open the app](https://openportal.cc/)** in a Chromium-based browser, no install required.
 
 <!-- Screenshot: drop an image at docs/screenshot.png and uncomment the line below -->
 <!-- ![OpenPortal](docs/screenshot.png) -->
@@ -72,14 +72,14 @@ Built an app that's in the catalog? Link straight to it from your own README or 
 Paste this into your README and replace `YOUR.PACKAGE.NAME` with your app's Android package name (the same `packageName` as in its catalog entry):
 
 ```md
-[![Get it on OpenPortal](https://andronedev.github.io/openportal/openportal-badge.svg)](https://andronedev.github.io/openportal/apps/YOUR.PACKAGE.NAME)
+[![Get it on OpenPortal](https://openportal.cc/openportal-badge.svg)](https://openportal.cc/apps/YOUR.PACKAGE.NAME)
 ```
 
 For example, Portal Calendar (`com.portal.calendar`) renders as:
 
-[![Get it on OpenPortal](https://andronedev.github.io/openportal/openportal-badge.svg)](https://andronedev.github.io/openportal/apps/com.portal.calendar)
+[![Get it on OpenPortal](https://openportal.cc/openportal-badge.svg)](https://openportal.cc/apps/com.portal.calendar)
 
-Just want the plain link? It's `https://andronedev.github.io/openportal/apps/YOUR.PACKAGE.NAME` — you can also grab it straight from the app's detail dialog with the **Copy link** button.
+Just want the plain link? It's `https://openportal.cc/apps/YOUR.PACKAGE.NAME` — you can also grab it straight from the app's detail dialog with the **Copy link** button.
 
 ## Contributing
 

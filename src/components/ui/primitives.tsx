@@ -211,11 +211,11 @@ export function Modal({
 			<div
 				role="dialog"
 				aria-modal="true"
-				className="w-full max-w-md rounded-xl border border-border bg-card text-foreground shadow-xl"
+				className="flex max-h-[88vh] w-full max-w-md flex-col rounded-xl border border-border bg-card text-foreground shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={() => {}}
 			>
-				<div className="flex items-center justify-between border-b border-border px-5 py-4">
+				<div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
 					<h3 className="text-sm font-semibold">{title}</h3>
 					<button
 						type="button"
@@ -225,9 +225,11 @@ export function Modal({
 						<X className="h-4 w-4" />
 					</button>
 				</div>
-				<div className="px-5 py-4 text-sm">{children}</div>
+				<div className="flex-1 overflow-y-auto px-5 py-4 text-sm">
+					{children}
+				</div>
 				{footer && (
-					<div className="flex justify-end gap-2 border-t border-border px-5 py-3">
+					<div className="flex shrink-0 justify-end gap-2 border-t border-border px-5 py-3">
 						{footer}
 					</div>
 				)}

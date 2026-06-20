@@ -11,6 +11,7 @@
 			"node_modules",
 			"pnpm-lock.yaml",
 			"src/lib/portal/catalog.json",
+			"src/lib/portal/provision/upstream",
 			"public/scrcpy-server"
 		]
 	},

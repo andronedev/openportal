@@ -18,4 +18,5 @@ export const SETUP_PANELS: Record<
 > = {
 	gphotos: lazy(() => import("./GPhotosSetup")),
 	"portal-calendar": lazy(() => import("./PortalCalendarSetup")),
+	"immortal-provision": lazy(() => import("./ImmortalProvisioning")),
 };

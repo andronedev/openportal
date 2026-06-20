@@ -22,6 +22,8 @@ entire UI **without a device** using demo mode: `http://localhost:5173/?demo`.
 | `pnpm preview` | Preview the production build locally |
 | `pnpm lint` | Run Biome checks (lint + format + import order) |
 | `pnpm format` | Auto-format the codebase with Biome |
+| `node scripts/check-provision-drift.mjs` | Check Immortal's provisioning kit against the vendored snapshot (see `docs/provisioning.md`) |
+| `node scripts/vendor-provision.mjs [ref]` | Re-vendor Immortal's `provision.sh` and `config.env` from a release tag |
 
 Please make sure `pnpm build` and `pnpm lint` both pass before opening a PR.
 
@@ -99,6 +101,12 @@ Field reference:
 - `skipUpdateCheck` — optional; set `true` to suppress the "update available"
   check when upstream versioning is unreliable (e.g. a release tag that doesn't
   match the APK's embedded versionName, which would flag a phantom update)
+- `customSource` — optional; with `source: "custom"`, the id of a resolver in
+  `src/lib/portal/custom-sources/registry.ts` that fetches the app's latest APK
+  and version with bespoke code. Use it for apps with no standard GitHub/F-Droid
+  release feed (e.g. a self-hosted version manifest whose tags drift from the
+  APK's versionName). Like a custom `setup` panel, this catalog change also needs
+  a matching code change
 - `setup` — optional post-install configuration, one of two shapes:
   - `{ "kind": "commands", "commands": [...], "auto"?: boolean, "labelKey"?: string }`
     — shell commands to finish setup. `auto: true` runs them silently right

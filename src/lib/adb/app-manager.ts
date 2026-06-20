@@ -107,6 +107,35 @@ export async function uninstallPackage(
 	}
 }
 
+/**
+ * Finds a package's active device-admin component (e.g. for an app that can't be
+ * uninstalled until its admin is deactivated). Returns null when none is active.
+ */
+export async function getActiveAdminComponent(
+	adb: Adb,
+	packageName: string,
+): Promise<string | null> {
+	const { stdout } = await execShell(adb, "dumpsys device_policy");
+	const escaped = packageName.replace(/[.$+]/g, "\\$&");
+	const match = new RegExp(`${escaped}/[A-Za-z0-9_.$]+`).exec(stdout);
+	return match ? match[0] : null;
+}
+
+/**
+ * Opens the system screen where the user can deactivate a device admin. Android
+ * blocks uninstalling an active admin and won't let the shell force-remove a
+ * non-test admin, so the user has to tap Deactivate on the device.
+ */
+export async function openDeviceAdminDeactivation(
+	adb: Adb,
+	component: string,
+): Promise<void> {
+	await execShell(
+		adb,
+		`am start -a android.app.action.ADD_DEVICE_ADMIN -e android.app.extra.DEVICE_ADMIN ${component}`,
+	);
+}
+
 export interface InstalledVersion {
 	versionName: string;
 	versionCode: number;

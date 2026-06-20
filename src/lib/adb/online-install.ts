@@ -122,6 +122,7 @@ export async function installFromUrl(
 	urls: string | string[],
 	onProgress?: (stage: InstallStage, percent: number | null) => void,
 	expectedSha256?: string,
+	installFlags = "-r",
 ): Promise<void> {
 	const downloader = await detectDownloader(adb);
 	if (!downloader) {
@@ -172,7 +173,7 @@ export async function installFromUrl(
 	}
 
 	onProgress?.("installing", null);
-	const install = await execShell(adb, `pm install -r "${dest}"`, {
+	const install = await execShell(adb, `pm install ${installFlags} "${dest}"`, {
 		timeoutMs: 180_000,
 	});
 	await execShell(adb, `rm -f "${dest}"`);
