@@ -203,7 +203,7 @@
 			"deviceAdmin": "Impossible d'activer l'admin extinction d'écran ; la veille de l'économiseur ne marchera pas. Relancez la configuration.",
 			"shizukuInstall": "Échec d'installation de Shizuku ; ignoré.",
 			"shizukuStarter": "Démarreur de Shizuku introuvable ; ouvrez l'app Shizuku et appuyez sur Démarrer une fois.",
-			"shizukuStay": "Le serveur Shizuku ne reste pas actif (certains firmwares le tuent). Ouvrez l'app Shizuku et appuyez sur Démarrer.",
+			"shizukuStay": "Le serveur Shizuku ne reste pas actif (certains firmwares le tuent). Ouvrez l'app Shizuku et appuyez sur Démarrer, ou ignorez Shizuku et réglez Aurora Store sur son installeur Session.",
 			"noOverlay": "Aucun overlay d'install à désactiver (déjà réparé, ou pas un Gen-1).",
 			"fleetNoToken": "L'agent fleet n'a pas renvoyé de jeton. Ouvrez Immortal une fois, puis réactivez l'agent fleet.",
 			"alexaA10": "Alexa non pris en charge sur Android 10+ (le micro en arrière-plan est bloqué pour les apps sideloadées).",

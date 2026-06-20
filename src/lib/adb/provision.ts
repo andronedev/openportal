@@ -162,7 +162,7 @@ async function startShizuku(ctx: Ctx): Promise<void> {
 		onStep({ id: "startShizuku", status: "warn", code: "shizukuStarter" });
 		return;
 	}
-	await sh(adb, `sh ${starter}`);
+	await sh(adb, starter);
 	for (let i = 0; i < 6; i++) {
 		const alive = (await sh(adb, "pgrep -f shizuku_server")).stdout.trim();
 		if (alive.length > 0) {
@@ -523,6 +523,7 @@ async function restoreAlexa(ctx: Ctx): Promise<void> {
 		return;
 	}
 	onStep({ id: "restoreAlexa", status: "running" });
+	let installFailed = false;
 	try {
 		await installFromUrl(
 			adb,
@@ -537,8 +538,20 @@ async function restoreAlexa(ctx: Ctx): Promise<void> {
 			"-r",
 		);
 	} catch {
-		onStep({ id: "restoreAlexa", status: "warn", code: "alexaFalconInstall" });
-		return;
+		installFailed = true;
+	}
+	if (installFailed) {
+		const present = (await sh(adb, `pm path ${fp}`)).stdout.includes(
+			"package:",
+		);
+		if (!present) {
+			onStep({
+				id: "restoreAlexa",
+				status: "warn",
+				code: "alexaFalconInstall",
+			});
+			return;
+		}
 	}
 	await sh(adb, `pm grant ${fp} android.permission.READ_PHONE_STATE`);
 	await sh(adb, `pm grant ${fp} android.permission.INTERACT_ACROSS_USERS`);
@@ -583,7 +596,6 @@ async function restoreAlexa(ctx: Ctx): Promise<void> {
 	}
 }
 
-/** Full provision, mirroring `do_provision` in `provision.sh`. */
 export async function provision(
 	adb: Adb,
 	cfg: ProvisionConfig,
@@ -615,7 +627,6 @@ export async function provision(
 	return { fleet };
 }
 
-/** Full restore, mirroring `do_restore`. */
 export async function restore(
 	adb: Adb,
 	cfg: ProvisionConfig,
@@ -694,7 +705,6 @@ export async function restore(
 	onStep({ id: "finish", status: "ok" });
 }
 
-/** Reads current device state, mirroring `do_status`. */
 export async function status(
 	adb: Adb,
 	cfg: ProvisionConfig,
@@ -736,7 +746,6 @@ export async function status(
 	};
 }
 
-/** Re-runnable sub-modes, mirroring the script's flags. */
 export async function runApps(
 	adb: Adb,
 	cfg: ProvisionConfig,

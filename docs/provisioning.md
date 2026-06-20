@@ -109,6 +109,12 @@ script's own `>/dev/null 2>&1` posture.
 3. **The fleet inventory is offered as a download.** A browser cannot write
    `fleet/<serial>.json` to the user's disk, so the panel rebuilds that JSON (token
    and IP read back from the device) and offers it for download.
+4. **Live config values are validated before use.** `provision.sh` sources a local
+   `config.env` the operator controls; OpenPortal fetches it live from the latest
+   release tag, so `loadProvisionConfig` allowlist-checks every value that reaches a
+   device command (package and component names, permissions, F-Droid ids, `https`
+   URLs) and falls back to the vendored snapshot on any violation, so a compromised
+   upstream value cannot inject shell into an ADB command.
 
 ## Verifying
 

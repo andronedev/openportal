@@ -203,7 +203,7 @@
 			"deviceAdmin": "Couldn't enable screen-off device admin; screensaver sleep won't work. Re-run setup.",
 			"shizukuInstall": "Shizuku install failed; skipped.",
 			"shizukuStarter": "Couldn't find Shizuku's starter; open the Shizuku app and tap Start once.",
-			"shizukuStay": "Shizuku server didn't stay up (some firmware kills it). Open the Shizuku app and tap Start.",
+			"shizukuStay": "Shizuku server didn't stay up (some firmware kills it). Open the Shizuku app and tap Start, or skip Shizuku and set Aurora Store to its Session installer.",
 			"noOverlay": "No installer overlay to disable (already fixed, or not a Gen-1).",
 			"fleetNoToken": "Fleet agent didn't report a token. Open Immortal once, then enable the fleet agent again.",
 			"alexaA10": "Alexa not supported on Android 10+ (background mic is blocked for sideloaded apps).",

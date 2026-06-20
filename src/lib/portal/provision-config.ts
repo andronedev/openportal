@@ -2,16 +2,6 @@ import { deviceFetchText } from "@/lib/adb/online-install";
 import type { Adb } from "@yume-chan/adb";
 import { CONFIG_ENV_RAW, UPSTREAM_META } from "./provision/upstream/snapshot";
 
-/**
- * Typed view of Immortal's `provisioning/config.env`. The provisioning engine
- * (`src/lib/adb/provision.ts`) is a 1:1 port of `provision.sh`; everything that
- * varies per release (package names, URLs, checksums, package lists, toggles)
- * lives here so it can be sourced from the upstream file rather than hardcoded.
- *
- * Host-kit-only keys (`APK_GLOB`, `ASSET_DIR`, the `*_LOCAL` test overrides,
- * `BSPATCH_EXE`) are intentionally not modelled: OpenPortal replaces those with
- * native behaviour (release resolved via GitHub, photos picked by the user).
- */
 export interface ProvisionConfig {
 	pkg: string;
 	homeActivity: string;
@@ -27,7 +17,6 @@ export interface ProvisionConfig {
 	disableVerifier: boolean;
 	presencePkg: string;
 	disablePresence: boolean;
-	/** Tri-state: `null` means "ask" (the script defaults to blocking). */
 	disableOta: boolean | null;
 	otaPackages: string[];
 	permissions: string[];
@@ -40,20 +29,17 @@ export interface ProvisionConfig {
 	releaseRepo: string;
 	releaseApkUrl: string;
 	shizukuApkUrl: string;
-	/** Tri-state: `null` means "ask" (the script defaults to skipping). */
 	restoreAlexa: boolean | null;
 	falconPkg: string;
 	falconPatchedUrl: string;
 	falconResultSha256: string;
 	millenniumPkg: string;
 	millenniumApkUrl: string;
-	/** Every parsed key, for steps that need a value not promoted above. */
 	raw: Record<string, string>;
 }
 
 export const IMMORTAL_REPO = UPSTREAM_META.repo;
 
-/** Parses the flat `KEY=VALUE` shell file into a map (comments and blanks skipped). */
 export function parseConfigEnvRaw(text: string): Record<string, string> {
 	const out: Record<string, string> = {};
 	for (const line of text.split("\n")) {
@@ -63,7 +49,6 @@ export function parseConfigEnvRaw(text: string): Record<string, string> {
 		if (!match) continue;
 		const key = match[1];
 		let value = (match[2] ?? "").trim();
-		// Strip one layer of matching surrounding quotes, like shell sourcing does.
 		if (
 			value.length >= 2 &&
 			((value.startsWith('"') && value.endsWith('"')) ||
@@ -97,7 +82,6 @@ const list = (raw: Record<string, string>, key: string): string[] => {
 const str = (raw: Record<string, string>, key: string, fallback = "") =>
 	raw[key] ?? fallback;
 
-/** Maps the raw key/value map onto the typed config, applying script defaults. */
 export function toProvisionConfig(
 	raw: Record<string, string>,
 ): ProvisionConfig {
@@ -142,11 +126,73 @@ export function parseConfigEnv(text: string): ProvisionConfig {
 	return toProvisionConfig(parseConfigEnvRaw(text));
 }
 
+const PKG_RE = /^[A-Za-z0-9_.]+$/;
+const COMPONENT_RE = /^[A-Za-z0-9_.]+\/[A-Za-z0-9_.$]+$/;
+const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const VERSION_CODE_RE = /^[0-9]+$/;
+const SHELL_UNSAFE_RE = /[\s"'`$;|&<>(){}\\]/;
+
+function isSafeUrl(value: string): boolean {
+	if (value.length === 0) return true;
+	if (!value.startsWith("https://")) return false;
+	if (SHELL_UNSAFE_RE.test(value)) return false;
+	try {
+		new URL(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+const pkgOk = (v: string) => v.length === 0 || PKG_RE.test(v);
+const componentOk = (v: string) => v.length === 0 || COMPONENT_RE.test(v);
+
+export function findConfigViolations(cfg: ProvisionConfig): string[] {
+	const out: string[] = [];
+	const pkg = (label: string, v: string) => {
+		if (!pkgOk(v)) out.push(`${label}=${v}`);
+	};
+	const component = (label: string, v: string) => {
+		if (!componentOk(v)) out.push(`${label}=${v}`);
+	};
+	const url = (label: string, v: string) => {
+		if (!isSafeUrl(v)) out.push(`${label}=${v}`);
+	};
+
+	pkg("PKG", cfg.pkg);
+	pkg("VERIFIER_PKG", cfg.verifierPkg);
+	pkg("PRESENCE_PKG", cfg.presencePkg);
+	pkg("FALCON_PKG", cfg.falconPkg);
+	pkg("MILLENNIUM_PKG", cfg.millenniumPkg);
+	component("HOME_ACTIVITY", cfg.homeActivity);
+	component("DREAM_SERVICE", cfg.dreamService);
+	component("STOCK_HOME", cfg.stockHome);
+	component("STOCK_DREAM", cfg.stockDream);
+	component("STOCK_DEFAULT_DREAM", cfg.stockDefaultDream);
+	for (const p of cfg.installerOverlayPkgs) pkg("INSTALLER_OVERLAY_PKGS", p);
+	for (const p of cfg.otaPackages) pkg("OTA_PACKAGES", p);
+	for (const p of cfg.bootApps) pkg("BOOT_APPS", p);
+	for (const p of cfg.permissions) pkg("PERMISSIONS", p);
+	for (const spec of cfg.preinstallFdroid) {
+		const [id, vc] = spec.split(":");
+		if (id === undefined || !PKG_RE.test(id))
+			out.push(`PREINSTALL_FDROID=${spec}`);
+		else if (vc !== undefined && vc.length > 0 && !VERSION_CODE_RE.test(vc))
+			out.push(`PREINSTALL_FDROID=${spec}`);
+	}
+	if (!REPO_RE.test(cfg.releaseRepo))
+		out.push(`RELEASE_REPO=${cfg.releaseRepo}`);
+	url("RELEASE_APK_URL", cfg.releaseApkUrl);
+	url("SHIZUKU_APK_URL", cfg.shizukuApkUrl);
+	url("FALCON_PATCHED_URL", cfg.falconPatchedUrl);
+	url("MILLENNIUM_APK_URL", cfg.millenniumApkUrl);
+	for (const u of cfg.preinstallApks) url("PREINSTALL_APKS", u);
+	return out;
+}
+
 export interface LoadedProvisionConfig {
 	cfg: ProvisionConfig;
-	/** The git ref the config was read from (a release tag, or the vendored commit). */
 	ref: string;
-	/** `live` = fetched from upstream this session; `vendored` = offline fallback. */
 	source: "live" | "vendored";
 }
 
@@ -154,7 +200,6 @@ interface GithubRelease {
 	tag_name?: string;
 }
 
-/** Resolves the latest published release tag (CORS-friendly api.github.com). */
 async function resolveLatestTag(repo: string): Promise<string | null> {
 	try {
 		const res = await fetch(
@@ -173,14 +218,6 @@ function vendored(ref: string): LoadedProvisionConfig {
 	return { cfg: parseConfigEnv(CONFIG_ENV_RAW), ref, source: "vendored" };
 }
 
-/**
- * Loads the provisioning config, preferring the live upstream `config.env` at the
- * latest release tag so value changes (URLs, checksums, package lists) flow in
- * without an OpenPortal change. Falls back to the vendored snapshot when offline
- * or when there is no device to fetch through. The fetch is done device-side
- * (CORS-free) and verified only by being valid `KEY=VALUE` text; the engine that
- * consumes it is the reviewed, pinned part.
- */
 export async function loadProvisionConfig(
 	adb: Adb | null,
 ): Promise<LoadedProvisionConfig> {
@@ -193,7 +230,14 @@ export async function loadProvisionConfig(
 		const text = await deviceFetchText(adb, url);
 		const raw = parseConfigEnvRaw(text);
 		if (!raw.PKG) throw new Error("config.env missing PKG");
-		return { cfg: toProvisionConfig(raw), ref: tag, source: "live" };
+		const cfg = toProvisionConfig(raw);
+		const violations = findConfigViolations(cfg);
+		if (violations.length > 0) {
+			throw new Error(
+				`config.env failed validation: ${violations.slice(0, 5).join(", ")}`,
+			);
+		}
+		return { cfg, ref: tag, source: "live" };
 	} catch {
 		return vendored(tag);
 	}
