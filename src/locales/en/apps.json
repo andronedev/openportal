@@ -142,6 +142,9 @@
 		"running": "Working…",
 		"done": "Portal provisioned.",
 		"restoreDone": "Stock Portal settings restored.",
+		"resetLauncher": "Reset to stock launcher",
+		"resetLauncherHint": "Immortal is your Portal's home screen.",
+		"resetLauncherDone": "Stock launcher restored.",
 		"close": "Done",
 		"fleetDownload": "Download fleet record",
 		"fleetDownloadHint": "Save this device's fleet record (name, IP, agent token) for the laptop fleet tool. It replaces the file the kit writes locally.",
@@ -167,6 +170,8 @@
 			"enableFleet": "Enable Wi-Fi fleet agent",
 			"enableFleetHint": "Runs Immortal's in-app agent so you can manage this Portal over Wi-Fi. Survives reboot.",
 			"fleetNamePlaceholder": "Name this Portal (e.g. Living Room)",
+			"setLauncher": "Set as default launcher",
+			"setLauncherHint": "Makes Immortal the Portal's home screen. Turn off to keep Meta's launcher (e.g. Calls); you can still open Immortal manually. Reversible with Restore.",
 			"restoreAlexa": "Restore Amazon Alexa",
 			"restoreAlexaHint": "Revives the original on-device Alexa client (hands-free \"Hey Alexa\"). Downloads ~115 MB.",
 			"restoreAlexaA10": "Not supported on this Portal (Android 10+ blocks background mic for sideloaded apps)."

@@ -27,6 +27,7 @@ export interface ProvisionOptions {
 	disablePresence: boolean;
 	installShizuku: boolean;
 	runPreinstalls: boolean;
+	setLauncher: boolean;
 	enableFleet: boolean;
 	fleetName?: string;
 	restoreAlexa: boolean;
@@ -89,6 +90,7 @@ export function defaultOptions(
 		disablePresence: cfg.disablePresence,
 		installShizuku: cfg.shizukuApkUrl.length > 0,
 		runPreinstalls: true,
+		setLauncher: cfg.setLauncher,
 		enableFleet: cfg.enableFleet,
 		fleetName: cfg.fleetName,
 		restoreAlexa: (cfg.restoreAlexa ?? false) && sdk < 29,
@@ -391,9 +393,9 @@ async function loadState(ctx: Ctx): Promise<{
 	};
 }
 
-async function setLauncher(ctx: Ctx): Promise<void> {
+async function setLauncher(ctx: Ctx, enabled: boolean): Promise<void> {
 	const { adb, cfg, onStep } = ctx;
-	if (!cfg.setLauncher) {
+	if (!enabled) {
 		onStep({ id: "setLauncher", status: "skip" });
 		return;
 	}
@@ -617,7 +619,7 @@ export async function provision(
 	await disableOta(ctx, opts.disableOta);
 	await disablePresence(ctx, opts.disablePresence);
 	await snapshotStock(ctx);
-	await setLauncher(ctx);
+	await setLauncher(ctx, opts.setLauncher);
 	await setScreensaver(ctx);
 	const fleet = await enableFleet(ctx, opts.enableFleet, opts.fleetName);
 	await configureBootApps(ctx);
@@ -790,4 +792,15 @@ export async function runAlexa(
 ): Promise<void> {
 	const sdk = await readSdk(adb);
 	await restoreAlexa({ adb, cfg, sdk, onStep });
+}
+
+export async function resetLauncher(
+	adb: Adb,
+	cfg: ProvisionConfig,
+): Promise<string> {
+	const sdk = await readSdk(adb);
+	const stock = await loadState({ adb, cfg, sdk, onStep: () => {} });
+	await sh(adb, `cmd package set-home-activity ${stock.home}`);
+	await sh(adb, "input keyevent KEYCODE_HOME");
+	return stock.home;
 }

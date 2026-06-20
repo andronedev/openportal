@@ -83,7 +83,7 @@ and the runtime fallback never diverge.
 | `disable_ota` | `disableOta` | `pm disable-user` OTA packages | interactive prompt -> a UI toggle (default on) |
 | `disable_presence` | `disablePresence` | `pm disable-user <presence>` | UI toggle (default off) |
 | `snapshot_stock` / `load_state` | `snapshotStock` / `loadState` | `cmd package query-activities`, `settings get`; `/sdcard/immortal_restore.env` | snapshot written via file push |
-| `set_launcher` | `setLauncher` | `cmd package set-home-activity` | |
+| `set_launcher` | `setLauncher` | `cmd package set-home-activity` | UI toggle (default from `SET_LAUNCHER`, on); off keeps the stock launcher |
 | `set_screensaver` | `setScreensaver` | `settings put secure screensaver_*` | |
 | `enable_fleet` | `enableFleet` | push `provision.json`, relaunch, poll `agent.json`, read wlan0 IP | host inventory file becomes a **download** |
 | `configure_boot_apps` | `configureBootApps` | write `boot_apps.txt` | |

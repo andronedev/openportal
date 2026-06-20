@@ -142,6 +142,9 @@
 		"running": "En cours…",
 		"done": "Portal provisionné.",
 		"restoreDone": "Réglages d'origine du Portal restaurés.",
+		"resetLauncher": "Remettre le launcher d'origine",
+		"resetLauncherHint": "Immortal est l'écran d'accueil de votre Portal.",
+		"resetLauncherDone": "Launcher d'origine restauré.",
 		"close": "Terminé",
 		"fleetDownload": "Télécharger la fiche fleet",
 		"fleetDownloadHint": "Enregistrez la fiche fleet de cet appareil (nom, IP, jeton d'agent) pour l'outil fleet du PC. Elle remplace le fichier que le kit écrit en local.",
@@ -167,6 +170,8 @@
 			"enableFleet": "Activer l'agent fleet Wi-Fi",
 			"enableFleetHint": "Lance l'agent intégré d'Immortal pour gérer ce Portal en Wi-Fi. Survit au redémarrage.",
 			"fleetNamePlaceholder": "Nommer ce Portal (ex. Salon)",
+			"setLauncher": "Définir comme launcher par défaut",
+			"setLauncherHint": "Fait d'Immortal l'écran d'accueil du Portal. Désactivez pour garder le launcher de Meta (ex. Calls) ; vous pourrez toujours ouvrir Immortal manuellement. Réversible avec Restaurer.",
 			"restoreAlexa": "Restaurer Amazon Alexa",
 			"restoreAlexaHint": "Ravive le client Alexa d'origine sur l'appareil (« Hey Alexa » mains libres). Télécharge ~115 Mo.",
 			"restoreAlexaA10": "Non pris en charge sur ce Portal (Android 10+ bloque le micro en arrière-plan pour les apps sideloadées)."

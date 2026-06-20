@@ -8,6 +8,7 @@ import {
 	provision,
 	readSdk,
 	status as readStatus,
+	resetLauncher,
 	restore,
 } from "@/lib/adb/provision";
 import {
@@ -89,6 +90,7 @@ export default function ImmortalProvisioning({
 	const [working, setWorking] = useState(false);
 	const [mode, setMode] = useState<"provision" | "restore">("provision");
 	const [confirmRestore, setConfirmRestore] = useState(false);
+	const [resettingLauncher, setResettingLauncher] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -168,6 +170,26 @@ export default function ImmortalProvisioning({
 			setPhase("done");
 		} finally {
 			setWorking(false);
+		}
+	};
+
+	const handleResetLauncher = async () => {
+		if (!adb || !loaded) return;
+		setResettingLauncher(true);
+		try {
+			await resetLauncher(adb, loaded.cfg);
+			const st = await readStatus(adb, loaded.cfg).catch(() => null);
+			setDeviceStatus(st);
+			await refreshDefaultLauncher();
+			toast.success(app.name, {
+				description: t("provisioning.resetLauncherDone"),
+			});
+		} catch (err) {
+			toast.error(app.name, {
+				description: err instanceof Error ? err.message : t("actionFailed"),
+			});
+		} finally {
+			setResettingLauncher(false);
 		}
 	};
 
@@ -327,6 +349,22 @@ export default function ImmortalProvisioning({
 				</div>
 			)}
 
+			{deviceStatus?.home === cfg.pkg && (
+				<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background/50 p-3 text-xs">
+					<span className="text-muted-foreground">
+						{t("provisioning.resetLauncherHint")}
+					</span>
+					<Button
+						variant="secondary"
+						onClick={handleResetLauncher}
+						disabled={working || resettingLauncher}
+						loading={resettingLauncher}
+					>
+						{t("provisioning.resetLauncher")}
+					</Button>
+				</div>
+			)}
+
 			{advanced && (
 				<details className="group rounded-lg border border-border bg-background/50 text-xs">
 					<summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground">
@@ -378,6 +416,12 @@ export default function ImmortalProvisioning({
 			)}
 
 			<div className="rounded-lg border border-border bg-background/50 p-1">
+				<OptionToggle
+					checked={options.setLauncher}
+					onChange={(v) => set({ setLauncher: v })}
+					label={t("provisioning.opt.setLauncher")}
+					hint={t("provisioning.opt.setLauncherHint")}
+				/>
 				<OptionToggle
 					checked={options.restoreAlexa}
 					disabled={alexaBlocked}
