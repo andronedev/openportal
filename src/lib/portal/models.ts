@@ -1,11 +1,11 @@
 export type PortalModel =
 	| "omni"
-	| "portal-2019"
+	| "portal-1"
 	| "portal-plus-1"
+	| "portal-2019"
 	| "portal-plus-2"
 	| "portal-go"
 	| "portal-tv"
-	| "portal-1"
 	| "unknown";
 
 // Marketing/topology metadata only — anything the device reports itself
@@ -19,7 +19,29 @@ export interface PortalModelInfo {
 	hasScreen: boolean;
 }
 
+/**
+ * Map of internal device codenames (from `ro.product.device`) to Portal model
+ * metadata. Gen 1 devices use the Google ADB VID (0x18d1) while Gen 2+
+ * devices use Meta's own VID (0x2ec6).
+ */
 const MODELS: Record<string, PortalModelInfo> = {
+	// ── Gen 1 ────────────────────────────────────────────────────────────
+	aloha: {
+		codename: "portal-1",
+		displayName: "Portal (1st Gen)",
+		generation: 1,
+		screenSize: '10.1"',
+		hasScreen: true,
+	},
+	portopalma: {
+		codename: "portal-plus-1",
+		displayName: "Portal+ (1st Gen)",
+		generation: 1,
+		screenSize: '15.6"',
+		hasScreen: true,
+	},
+
+	// ── Gen 2 ────────────────────────────────────────────────────────────
 	omni: {
 		codename: "omni",
 		displayName: "Portal Mini",
@@ -27,7 +49,7 @@ const MODELS: Record<string, PortalModelInfo> = {
 		screenSize: '8"',
 		hasScreen: true,
 	},
-	aloha: {
+	"aloha-2": {
 		codename: "portal-2019",
 		displayName: "Portal (2nd Gen)",
 		generation: 2,

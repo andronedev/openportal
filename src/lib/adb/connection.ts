@@ -5,7 +5,17 @@ import {
 } from "@yume-chan/adb-daemon-webusb";
 import { credentialStore } from "./credential-store";
 
-const USB_FILTER = { vendorId: 0x2ec6 };
+/**
+ * WebUSB vendor-ID filters for Meta Portal devices.
+ *
+ * - 0x2ec6  Meta Platforms USB VID (Portal Gen 2+, Portal Go, Portal TV)
+ * - 0x18d1  Google ADB VID (Portal Gen 1 — codename "aloha" uses product ID
+ *           0x1804)
+ */
+const USB_FILTERS: USBDeviceFilter[] = [
+	{ vendorId: 0x2ec6 },
+	{ vendorId: 0x18d1, productId: 0x1804 },
+];
 
 let manager: AdbDaemonWebUsbDeviceManager | undefined;
 
@@ -29,13 +39,13 @@ export async function requestDevice(): Promise<
 > {
 	const mgr = getManager();
 	if (!mgr) return undefined;
-	return mgr.requestDevice({ filters: [USB_FILTER] });
+	return mgr.requestDevice({ filters: USB_FILTERS });
 }
 
 export async function getPairedDevices(): Promise<AdbDaemonWebUsbDevice[]> {
 	const mgr = getManager();
 	if (!mgr) return [];
-	return mgr.getDevices({ filters: [USB_FILTER] });
+	return mgr.getDevices({ filters: USB_FILTERS });
 }
 
 export async function connectDevice(
