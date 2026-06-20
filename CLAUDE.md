@@ -64,4 +64,4 @@ Installable, offline app shell. The service worker (`public/sw.js`) is a **hand-
 
 ## Deploy
 
-`pnpm build` → static `dist/`. For a GitHub Pages **project** site, set `VITE_BASE=/<repo-name>/` (CI does this automatically) so asset paths resolve under the sub-path; CI also copies `index.html` → `404.html` for SPA deep-link fallback. For a custom domain / root deploy, the default base `/` is correct.
+`pnpm build` → static `dist/`. The site is served at the **custom domain `openportal.cc`** (root), so CI builds with the default base `/`; `public/CNAME` pins the domain across Actions deploys, and CI copies `index.html` → `404.html` for SPA deep-link fallback. GitHub Pages 301-redirects the old project URL `andronedev.github.io/openportal/*` to `openportal.cc/*` with the path preserved, so existing badge embeds keep working. To deploy a fork under a sub-path instead, set `VITE_BASE=/<repo-name>/`.

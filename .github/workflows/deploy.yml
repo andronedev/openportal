@@ -34,10 +34,8 @@ jobs:
 
       - run: pnpm lint
 
-      # Base path must match the repository name for project Pages sites.
+      # Served from the custom domain root (openportal.cc), so build with base "/".
       - run: pnpm build
-        env:
-          VITE_BASE: /${{ github.event.repository.name }}/
 
       # SPA fallback so deep links resolve to index.html.
       - run: cp dist/index.html dist/404.html
