@@ -25,6 +25,14 @@ async function blobSha(path) {
 	return (await res.json()).sha;
 }
 
+async function tryBlobSha(path) {
+	const url = `https://api.github.com/repos/${meta.repo}/contents/${path}?ref=${REF}`;
+	const res = await fetch(url, { headers });
+	return res.ok ? (await res.json()).sha : null;
+}
+
+const PROGRAM_PATH = "provisioning/openportal.program.js";
+
 const files = [
 	{
 		path: "provisioning/provision.sh",
@@ -56,16 +64,34 @@ for (const f of files) {
 		else dataDrift = true;
 	}
 }
+
+// The provisioning program is the procedure once Immortal publishes one.
+const programUpstream = await tryBlobSha(PROGRAM_PATH);
+if (programUpstream) {
+	if (meta.programBlob === programUpstream) {
+		console.log(`  ok    ${PROGRAM_PATH} (${programUpstream.slice(0, 9)})`);
+	} else {
+		console.log(
+			`  DRIFT ${PROGRAM_PATH}\n        vendored ${meta.programBlob ? meta.programBlob.slice(0, 9) : "(none)"} -> upstream ${programUpstream.slice(0, 9)}`,
+		);
+		procedureDrift = true;
+	}
+} else {
+	console.log(
+		`  n/a   ${PROGRAM_PATH} (not published upstream; using built-in)`,
+	);
+}
 console.log("");
 
 if (procedureDrift) {
+	console.log("The procedure changed. Re-review the built-in program in");
 	console.log(
-		"provision.sh changed. Re-review the TS port in src/lib/adb/provision.ts and the",
+		"src/lib/portal/provision/program/default.program.js against provision.sh",
 	);
-	console.log("fidelity table in docs/provisioning.md, then re-vendor with:");
+	console.log("(and openportal.program.js if published), then re-vendor with:");
 	console.log(`  node scripts/vendor-provision.mjs ${REF}`);
 	console.log(
-		`Diff: https://github.com/${meta.repo}/commits/${REF}/provisioning/provision.sh`,
+		`Diff: https://github.com/${meta.repo}/commits/${REF}/provisioning`,
 	);
 	process.exit(1);
 }

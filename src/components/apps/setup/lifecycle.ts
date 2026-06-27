@@ -1,5 +1,5 @@
 import { launchApp } from "@/lib/adb/app-manager";
-import { restore } from "@/lib/adb/provision";
+import { restore } from "@/lib/portal/provision";
 import { loadProvisionConfig } from "@/lib/portal/provision-config";
 import type { Adb } from "@yume-chan/adb";
 

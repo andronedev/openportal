@@ -200,7 +200,7 @@ interface GithubRelease {
 	tag_name?: string;
 }
 
-async function resolveLatestTag(repo: string): Promise<string | null> {
+export async function resolveLatestTag(repo: string): Promise<string | null> {
 	try {
 		const res = await fetch(
 			`https://api.github.com/repos/${repo}/releases/latest`,

@@ -134,6 +134,10 @@
 		"connect": "Connecter le Portal",
 		"optionsTitle": "Options avancées",
 		"commandsTitle": "Afficher les commandes qui seront exécutées",
+		"viewProgram": "Examiner le programme de provisioning",
+		"auditTitle": "Commandes ({{count}})",
+		"stop": "Arrêter",
+		"incompatible": "Ce programme nécessite une version plus récente d'OpenPortal. Utilisation de la version intégrée.",
 		"needDevice": "Connectez un Portal pour lancer le provisioning.",
 		"provision": "Provisionner",
 		"restore": "Restaurer",
@@ -161,6 +165,8 @@
 		"opt": {
 			"blockOta": "Bloquer les mises à jour système",
 			"blockOtaHint": "Empêche une future OTA de Meta d'annuler cette configuration. Renonce aux mises à jour ; réversible.",
+			"disableOta": "Bloquer les mises à jour système",
+			"disableOtaHint": "Empêche une future OTA de Meta d'annuler cette configuration. Renonce aux mises à jour ; réversible.",
 			"installShizuku": "Installer Shizuku",
 			"installShizukuHint": "Broker privilégié utilisé par certaines apps (ex. installs silencieuses d'Aurora). Utile sur chaque Portal.",
 			"runPreinstalls": "Pré-installer les apps incluses",
@@ -170,11 +176,12 @@
 			"enableFleet": "Activer l'agent fleet Wi-Fi",
 			"enableFleetHint": "Lance l'agent intégré d'Immortal pour gérer ce Portal en Wi-Fi. Survit au redémarrage.",
 			"fleetNamePlaceholder": "Nommer ce Portal (ex. Salon)",
+			"fleetName": "Nom de l'appareil fleet",
 			"setLauncher": "Définir comme launcher par défaut",
 			"setLauncherHint": "Fait d'Immortal l'écran d'accueil du Portal. Désactivez pour garder le launcher de Meta (ex. Calls) ; vous pourrez toujours ouvrir Immortal manuellement. Réversible avec Restaurer.",
 			"restoreAlexa": "Restaurer Amazon Alexa",
 			"restoreAlexaHint": "Ravive le client Alexa d'origine sur l'appareil (« Hey Alexa » mains libres). Télécharge ~115 Mo.",
-			"restoreAlexaA10": "Non pris en charge sur ce Portal (Android 10+ bloque le micro en arrière-plan pour les apps sideloadées)."
+			"restoreAlexaDisabled": "Non pris en charge sur ce Portal (Android 10+ bloque le micro en arrière-plan pour les apps sideloadées)."
 		},
 		"steps": {
 			"installClient": "Installer Immortal",

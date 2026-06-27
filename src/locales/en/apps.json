@@ -134,6 +134,10 @@
 		"connect": "Connect Portal",
 		"optionsTitle": "Advanced options",
 		"commandsTitle": "Show the commands that will run",
+		"viewProgram": "Review the provisioning program",
+		"auditTitle": "Commands ({{count}})",
+		"stop": "Stop",
+		"incompatible": "This program needs a newer OpenPortal. Using the built-in version instead.",
 		"needDevice": "Connect a Portal to run provisioning.",
 		"provision": "Provision device",
 		"restore": "Restore",
@@ -161,6 +165,8 @@
 		"opt": {
 			"blockOta": "Block OS updates",
 			"blockOtaHint": "Stops a future Meta OTA from undoing this setup. Forgoes OS updates; reversible.",
+			"disableOta": "Block OS updates",
+			"disableOtaHint": "Stops a future Meta OTA from undoing this setup. Forgoes OS updates; reversible.",
 			"installShizuku": "Install Shizuku",
 			"installShizukuHint": "Privileged broker used by some apps (e.g. Aurora's silent installs). Useful on every Portal.",
 			"runPreinstalls": "Pre-install bundled apps",
@@ -170,11 +176,12 @@
 			"enableFleet": "Enable Wi-Fi fleet agent",
 			"enableFleetHint": "Runs Immortal's in-app agent so you can manage this Portal over Wi-Fi. Survives reboot.",
 			"fleetNamePlaceholder": "Name this Portal (e.g. Living Room)",
+			"fleetName": "Fleet device name",
 			"setLauncher": "Set as default launcher",
 			"setLauncherHint": "Makes Immortal the Portal's home screen. Turn off to keep Meta's launcher (e.g. Calls); you can still open Immortal manually. Reversible with Restore.",
 			"restoreAlexa": "Restore Amazon Alexa",
 			"restoreAlexaHint": "Revives the original on-device Alexa client (hands-free \"Hey Alexa\"). Downloads ~115 MB.",
-			"restoreAlexaA10": "Not supported on this Portal (Android 10+ blocks background mic for sideloaded apps)."
+			"restoreAlexaDisabled": "Not supported on this Portal (Android 10+ blocks background mic for sideloaded apps)."
 		},
 		"steps": {
 			"installClient": "Install Immortal",

@@ -1,16 +1,24 @@
 import { Button, ConfirmDialog } from "@/components/ui/primitives";
 import {
+	type AuditEntry,
+	type FieldCondition,
 	type FleetInventory,
-	type ProvisionOptions,
+	type LoadedProvisionProgram,
+	type ManifestField,
+	PORTAL_API_VERSION,
+	type ProvisionAnswers,
+	type ProvisionManifest,
 	type ProvisionStatus,
 	type StepEvent,
-	defaultOptions,
+	describe,
+	loadProvisionProgram,
+	loadVendoredProgram,
 	provision,
 	readSdk,
 	status as readStatus,
 	resetLauncher,
 	restore,
-} from "@/lib/adb/provision";
+} from "@/lib/portal/provision";
 import {
 	type LoadedProvisionConfig,
 	loadProvisionConfig,
@@ -27,33 +35,29 @@ import {
 	ExternalLink,
 	Loader2,
 	Minus,
+	Square,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { SetupPanelProps } from "./registry";
 
 type Phase = "loading" | "review" | "running" | "done";
 
-const PROVISION_STEPS = [
-	"installClient",
-	"startShizuku",
-	"installApps",
-	"pushAssets",
-	"grantPerms",
-	"applySystemTweaks",
-	"disableVerifier",
-	"disableInstallerOverlay",
-	"disableOta",
-	"disablePresence",
-	"snapshotStock",
-	"setLauncher",
-	"setScreensaver",
-	"enableFleet",
-	"configureBootApps",
-	"restoreAlexa",
-	"finish",
-];
+function evalCondition(
+	cond: FieldCondition | undefined,
+	sdk: number,
+	answers: ProvisionAnswers,
+): boolean {
+	if (!cond) return true;
+	if (cond.sdkLessThan !== undefined && !(sdk < cond.sdkLessThan)) return false;
+	if (cond.sdkAtLeast !== undefined && !(sdk >= cond.sdkAtLeast)) return false;
+	if (cond.whenOption !== undefined) {
+		const expected = cond.equals ?? true;
+		if (answers[cond.whenOption] !== expected) return false;
+	}
+	return true;
+}
 
 function StepIcon({ status }: { status: StepEvent["status"] }) {
 	if (status === "running")
@@ -80,34 +84,56 @@ export default function ImmortalProvisioning({
 
 	const [phase, setPhase] = useState<Phase>("loading");
 	const [loaded, setLoaded] = useState<LoadedProvisionConfig | null>(null);
+	const [program, setProgram] = useState<LoadedProvisionProgram | null>(null);
+	const [manifest, setManifest] = useState<ProvisionManifest | null>(null);
+	const [incompatible, setIncompatible] = useState(false);
 	const [sdk, setSdk] = useState(99);
 	const [deviceStatus, setDeviceStatus] = useState<ProvisionStatus | null>(
 		null,
 	);
-	const [options, setOptions] = useState<ProvisionOptions | null>(null);
+	const [answers, setAnswers] = useState<ProvisionAnswers>({});
 	const [events, setEvents] = useState<StepEvent[]>([]);
+	const [audit, setAudit] = useState<AuditEntry[]>([]);
 	const [fleet, setFleet] = useState<FleetInventory | null>(null);
 	const [working, setWorking] = useState(false);
 	const [mode, setMode] = useState<"provision" | "restore">("provision");
 	const [confirmRestore, setConfirmRestore] = useState(false);
 	const [resettingLauncher, setResettingLauncher] = useState(false);
+	const abortRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
 		let cancelled = false;
 		(async () => {
-			const result = await loadProvisionConfig(adb);
-			const currentSdk = adb ? await readSdk(adb) : 99;
+			const [config, currentSdk, loadedProgram] = await Promise.all([
+				loadProvisionConfig(adb),
+				adb ? readSdk(adb) : Promise.resolve(99),
+				loadProvisionProgram(adb),
+			]);
+			let prog = loadedProgram;
+			let desc = await describe(adb, config.cfg, { program: prog });
+			let incompat = false;
+			if (
+				prog.source === "live" &&
+				(desc.manifest.apiVersion ?? 1) > PORTAL_API_VERSION
+			) {
+				incompat = true;
+				prog = loadVendoredProgram(prog.ref);
+				desc = await describe(adb, config.cfg, { program: prog });
+			}
 			let st: ProvisionStatus | null = null;
 			if (adb) {
 				try {
-					st = await readStatus(adb, result.cfg);
+					st = await readStatus(adb, config.cfg, { program: prog });
 				} catch {}
 			}
 			if (cancelled) return;
-			setLoaded(result);
+			setLoaded(config);
+			setProgram(prog);
+			setManifest(desc.manifest);
+			setIncompatible(incompat);
 			setSdk(currentSdk);
 			setDeviceStatus(st);
-			setOptions(defaultOptions(result.cfg, currentSdk));
+			setAnswers(desc.defaults);
 			setPhase("review");
 		})();
 		return () => {
@@ -126,15 +152,24 @@ export default function ImmortalProvisioning({
 			return [...prev, event];
 		});
 
+	const onCommand = (entry: AuditEntry) => setAudit((prev) => [...prev, entry]);
+
 	const runProvision = async () => {
-		if (!adb || !loaded || !options) return;
+		if (!adb || !loaded || !program) return;
 		setMode("provision");
 		setEvents([]);
+		setAudit([]);
 		setFleet(null);
 		setWorking(true);
 		setPhase("running");
+		const controller = new AbortController();
+		abortRef.current = controller;
 		try {
-			const result = await provision(adb, loaded.cfg, options, onStep);
+			const result = await provision(adb, loaded.cfg, answers, onStep, {
+				signal: controller.signal,
+				onCommand,
+				program,
+			});
 			setFleet(result.fleet);
 			await refreshInstalled();
 			await refreshDefaultLauncher();
@@ -147,18 +182,26 @@ export default function ImmortalProvisioning({
 			setPhase("done");
 		} finally {
 			setWorking(false);
+			abortRef.current = null;
 		}
 	};
 
 	const runRestore = async () => {
-		if (!adb || !loaded) return;
+		if (!adb || !loaded || !program) return;
 		setMode("restore");
 		setEvents([]);
+		setAudit([]);
 		setFleet(null);
 		setWorking(true);
 		setPhase("running");
+		const controller = new AbortController();
+		abortRef.current = controller;
 		try {
-			await restore(adb, loaded.cfg, onStep);
+			await restore(adb, loaded.cfg, onStep, {
+				signal: controller.signal,
+				onCommand,
+				program,
+			});
 			await refreshInstalled();
 			await refreshDefaultLauncher();
 			toast.success(app.name, { description: t("provisioning.restoreDone") });
@@ -170,6 +213,7 @@ export default function ImmortalProvisioning({
 			setPhase("done");
 		} finally {
 			setWorking(false);
+			abortRef.current = null;
 		}
 	};
 
@@ -177,8 +221,12 @@ export default function ImmortalProvisioning({
 		if (!adb || !loaded) return;
 		setResettingLauncher(true);
 		try {
-			await resetLauncher(adb, loaded.cfg);
-			const st = await readStatus(adb, loaded.cfg).catch(() => null);
+			await resetLauncher(adb, loaded.cfg, program ? { program } : undefined);
+			const st = await readStatus(
+				adb,
+				loaded.cfg,
+				program ? { program } : undefined,
+			).catch(() => null);
 			setDeviceStatus(st);
 			await refreshDefaultLauncher();
 			toast.success(app.name, {
@@ -206,7 +254,7 @@ export default function ImmortalProvisioning({
 		URL.revokeObjectURL(url);
 	};
 
-	if (phase === "loading" || !loaded || !options) {
+	if (phase === "loading" || !loaded || !program || !manifest) {
 		return (
 			<div className="flex justify-center py-8">
 				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -216,7 +264,9 @@ export default function ImmortalProvisioning({
 
 	if (phase === "running" || phase === "done") {
 		const orderedIds =
-			mode === "provision" ? PROVISION_STEPS : events.map((e) => e.id);
+			mode === "provision"
+				? (manifest.steps ?? events.map((e) => e.id))
+				: events.map((e) => e.id);
 		const seen = new Set(events.map((e) => e.id));
 		const display =
 			mode === "provision"
@@ -226,6 +276,17 @@ export default function ImmortalProvisioning({
 				: events;
 		return (
 			<div className="flex flex-col gap-4">
+				{phase === "running" && working && (
+					<div className="flex justify-end">
+						<Button
+							variant="secondary"
+							onClick={() => abortRef.current?.abort()}
+						>
+							<Square className="h-4 w-4" />
+							{t("provisioning.stop")}
+						</Button>
+					</div>
+				)}
 				<ul className="flex flex-col gap-1.5">
 					{display.map((e) => (
 						<li key={e.id} className="flex items-start gap-2.5 text-sm">
@@ -262,6 +323,25 @@ export default function ImmortalProvisioning({
 					)}
 				</ul>
 
+				{audit.length > 0 && (
+					<details className="group rounded-lg border border-border bg-background/50 text-xs">
+						<summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground">
+							<span className="flex-1">
+								{t("provisioning.auditTitle", { count: audit.length })}
+							</span>
+							<ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+						</summary>
+						<ul className="max-h-48 overflow-y-auto border-t border-border p-2 font-mono text-[11px] text-muted-foreground">
+							{audit.map((entry, i) => (
+								<li key={`${i}-${entry.method}`} className="break-all">
+									<span className="text-sky-500">{entry.method}</span>{" "}
+									{entry.detail}
+								</li>
+							))}
+						</ul>
+					</details>
+				)}
+
 				{phase === "done" && fleet && (
 					<div className="rounded-lg border border-border bg-background/50 p-3">
 						<p className="mb-2 text-xs text-muted-foreground">
@@ -286,12 +366,73 @@ export default function ImmortalProvisioning({
 	}
 
 	const cfg = loaded.cfg;
-	const alexaBlocked = sdk >= 29;
 	const connecting =
 		deviceState === "connecting" || deviceState === "authenticating";
 
-	const set = (patch: Partial<ProvisionOptions>) =>
-		setOptions((prev) => (prev ? { ...prev, ...patch } : prev));
+	const setAnswer = (key: string, value: boolean | string) =>
+		setAnswers((prev) => ({ ...prev, [key]: value }));
+
+	const renderField = (f: ManifestField) => {
+		const enabled = evalCondition(f.enabledWhen, sdk, answers);
+		const label = t(`provisioning.opt.${f.key}`, f.label ?? f.key);
+		const hint = enabled
+			? t(`provisioning.opt.${f.key}Hint`, f.hint ?? "")
+			: t(`provisioning.opt.${f.key}Disabled`, f.disabledHint ?? f.hint ?? "");
+		if (f.type === "boolean") {
+			return (
+				<OptionToggle
+					key={f.key}
+					checked={answers[f.key] === true}
+					disabled={!enabled}
+					onChange={(v) => setAnswer(f.key, v)}
+					label={label}
+					hint={hint}
+				/>
+			);
+		}
+		const value = answers[f.key];
+		const text = typeof value === "string" ? value : "";
+		return (
+			<div key={f.key} className="flex flex-col gap-1 px-2 py-1.5">
+				<span className="text-sm font-medium">{label}</span>
+				{hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+				{f.type === "select" ? (
+					<select
+						aria-label={label}
+						value={text}
+						disabled={!enabled}
+						onChange={(e) => setAnswer(f.key, e.target.value)}
+						className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+					>
+						{(f.choices ?? []).map((c) => (
+							<option key={c.value} value={c.value}>
+								{c.label}
+							</option>
+						))}
+					</select>
+				) : (
+					<input
+						type="text"
+						aria-label={label}
+						value={text}
+						disabled={!enabled}
+						onChange={(e) => setAnswer(f.key, e.target.value)}
+						placeholder={t(
+							`provisioning.opt.${f.key}Placeholder`,
+							f.placeholder ?? "",
+						)}
+						className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+					/>
+				)}
+			</div>
+		);
+	};
+
+	const shownFields = manifest.fields.filter((f) =>
+		evalCondition(f.showWhen, sdk, answers),
+	);
+	const mainFields = shownFields.filter((f) => !f.advanced);
+	const advancedFields = shownFields.filter((f) => f.advanced);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -304,15 +445,27 @@ export default function ImmortalProvisioning({
 						: t("provisioning.sourceVendored", { ref: loaded.ref })}
 				</span>
 				<a
-					href={`https://github.com/${cfg.releaseRepo}/blob/${loaded.ref}/provisioning/provision.sh`}
+					href={
+						program.source === "live"
+							? `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/openportal.program.js`
+							: `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/provision.sh`
+					}
 					target="_blank"
 					rel="noreferrer"
 					className="inline-flex items-center gap-1.5 font-medium text-sky-500 hover:underline"
 				>
 					<ExternalLink className="h-3.5 w-3.5" />
-					{t("provisioning.viewSource")}
+					{program.source === "live"
+						? t("provisioning.viewProgram")
+						: t("provisioning.viewSource")}
 				</a>
 			</div>
+
+			{incompatible && (
+				<p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-600 dark:text-amber-400">
+					{t("provisioning.incompatible")}
+				</p>
+			)}
 
 			{deviceStatus && (
 				<div className="rounded-lg border border-border bg-background/50 p-3 text-xs">
@@ -365,75 +518,23 @@ export default function ImmortalProvisioning({
 				</div>
 			)}
 
-			{advanced && (
+			{advanced && advancedFields.length > 0 && (
 				<details className="group rounded-lg border border-border bg-background/50 text-xs">
 					<summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground">
 						<span className="flex-1">{t("provisioning.optionsTitle")}</span>
 						<ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
 					</summary>
 					<div className="flex flex-col gap-1 border-t border-border p-2">
-						<OptionToggle
-							checked={options.disableOta}
-							onChange={(v) => set({ disableOta: v })}
-							label={t("provisioning.opt.blockOta")}
-							hint={t("provisioning.opt.blockOtaHint")}
-						/>
-						<OptionToggle
-							checked={options.installShizuku}
-							onChange={(v) => set({ installShizuku: v })}
-							label={t("provisioning.opt.installShizuku")}
-							hint={t("provisioning.opt.installShizukuHint")}
-						/>
-						<OptionToggle
-							checked={options.runPreinstalls}
-							onChange={(v) => set({ runPreinstalls: v })}
-							label={t("provisioning.opt.runPreinstalls")}
-							hint={t("provisioning.opt.runPreinstallsHint")}
-						/>
-						<OptionToggle
-							checked={options.disablePresence}
-							onChange={(v) => set({ disablePresence: v })}
-							label={t("provisioning.opt.disablePresence")}
-							hint={t("provisioning.opt.disablePresenceHint")}
-						/>
-						<OptionToggle
-							checked={options.enableFleet}
-							onChange={(v) => set({ enableFleet: v })}
-							label={t("provisioning.opt.enableFleet")}
-							hint={t("provisioning.opt.enableFleetHint")}
-						/>
-						{options.enableFleet && (
-							<input
-								type="text"
-								value={options.fleetName ?? ""}
-								onChange={(e) => set({ fleetName: e.target.value })}
-								placeholder={t("provisioning.opt.fleetNamePlaceholder")}
-								className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-							/>
-						)}
+						{advancedFields.map(renderField)}
 					</div>
 				</details>
 			)}
 
-			<div className="rounded-lg border border-border bg-background/50 p-1">
-				<OptionToggle
-					checked={options.setLauncher}
-					onChange={(v) => set({ setLauncher: v })}
-					label={t("provisioning.opt.setLauncher")}
-					hint={t("provisioning.opt.setLauncherHint")}
-				/>
-				<OptionToggle
-					checked={options.restoreAlexa}
-					disabled={alexaBlocked}
-					onChange={(v) => set({ restoreAlexa: v })}
-					label={t("provisioning.opt.restoreAlexa")}
-					hint={
-						alexaBlocked
-							? t("provisioning.opt.restoreAlexaA10")
-							: t("provisioning.opt.restoreAlexaHint")
-					}
-				/>
-			</div>
+			{mainFields.length > 0 && (
+				<div className="rounded-lg border border-border bg-background/50 p-1">
+					{mainFields.map(renderField)}
+				</div>
+			)}
 
 			<div className="sticky bottom-0 -mx-5 -mb-4 flex items-center justify-between gap-2 border-t border-border bg-card px-5 py-3">
 				{!adb ? (
@@ -521,7 +622,7 @@ function OptionToggle({
 			/>
 			<span className="flex flex-col gap-0.5">
 				<span className="text-sm font-medium">{label}</span>
-				<span className="text-xs text-muted-foreground">{hint}</span>
+				{hint && <span className="text-xs text-muted-foreground">{hint}</span>}
 			</span>
 		</label>
 	);
