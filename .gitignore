@@ -7,5 +7,8 @@ dist
 .env
 *.log
 
+# Rust bridge build output
+bridge/target/
+
 # Local AI / editor tooling
 .claude/

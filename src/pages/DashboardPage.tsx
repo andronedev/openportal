@@ -1,4 +1,5 @@
 import { ConnectPanel } from "@/components/connection/ConnectPanel";
+import { WirelessSetup } from "@/components/connection/WirelessPanel";
 import { DeviceCard } from "@/components/dashboard/DeviceCard";
 import { DeviceHero } from "@/components/dashboard/DeviceHero";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -56,6 +57,7 @@ export function DashboardPage() {
 			<div className="mx-auto max-w-4xl space-y-6">
 				<DeviceHero />
 				<SetupGuide />
+				<WirelessSetup />
 			</div>
 		);
 	}
@@ -67,6 +69,7 @@ export function DashboardPage() {
 			<DeviceCard />
 			<StorageBar />
 			<QuickActions />
+			<WirelessSetup />
 		</div>
 	);
 }

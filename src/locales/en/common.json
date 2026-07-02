@@ -65,5 +65,14 @@
 	"shortcutNavigate": "Navigate",
 	"adbAlreadyRunningHint": "If you have ADB running, stop it first with:",
 	"usbGuideTitle": "Can't find the USB port?",
-	"usbGuideBody": "On some Portal models the USB-C port is tucked away on the back. You may need to remove a small cover or flip out the stand to reach it."
+	"usbGuideBody": "On some Portal models the USB-C port is tucked away on the back. You may need to remove a small cover or flip out the stand to reach it.",
+	"wirelessTitle": "Wireless ADB",
+	"wirelessEnableHint": "Switch this Portal to network mode so you can manage it over Wi-Fi without a cable.",
+	"wirelessEnable": "Enable wireless ADB",
+	"wirelessEnabling": "Enabling...",
+	"wirelessEnabledAt": "Wireless enabled. Your Portal is reachable at {{address}}.",
+	"wirelessNoIp": "Could not read the Portal Wi-Fi address. Make sure it is connected to Wi-Fi.",
+	"wirelessReconnect": "Reconnect over Wi-Fi",
+	"wirelessBridgeNeeded": "Install the OpenPortal Bridge to connect over Wi-Fi.",
+	"wirelessLastKnown": "Last known address: {{address}}"
 }

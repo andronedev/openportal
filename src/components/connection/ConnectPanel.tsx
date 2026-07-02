@@ -5,6 +5,7 @@ import { useDeviceStore } from "@/store/device-store";
 import { ArrowRight, Usb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BrowserCheck } from "./BrowserCheck";
+import { WirelessConnect } from "./WirelessPanel";
 
 export function ConnectPanel() {
 	const { t } = useTranslation();
@@ -59,6 +60,8 @@ export function ConnectPanel() {
 				<Step number={2} text={t("step2")} />
 				<Step number={3} text={t("step3")} />
 			</div>
+
+			<WirelessConnect />
 		</Card>
 	);
 }

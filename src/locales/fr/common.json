@@ -65,5 +65,14 @@
 	"shortcutNavigate": "Naviguer",
 	"adbAlreadyRunningHint": "Si vous avez ADB en cours d'exécution, arrêtez-le d'abord avec :",
 	"usbGuideTitle": "Vous ne trouvez pas le port USB ?",
-	"usbGuideBody": "Sur certains modèles de Portal, le port USB-C est dissimulé à l'arrière. Il faut parfois retirer un petit cache ou déplier le pied pour y accéder."
+	"usbGuideBody": "Sur certains modèles de Portal, le port USB-C est dissimulé à l'arrière. Il faut parfois retirer un petit cache ou déplier le pied pour y accéder.",
+	"wirelessTitle": "ADB sans fil",
+	"wirelessEnableHint": "Basculez ce Portal en mode réseau pour le gérer en Wi-Fi sans câble.",
+	"wirelessEnable": "Activer l'ADB sans fil",
+	"wirelessEnabling": "Activation…",
+	"wirelessEnabledAt": "Sans fil activé. Votre Portal est joignable à {{address}}.",
+	"wirelessNoIp": "Impossible de lire l'adresse Wi-Fi du Portal. Vérifiez qu'il est connecté au Wi-Fi.",
+	"wirelessReconnect": "Reconnecter en Wi-Fi",
+	"wirelessBridgeNeeded": "Installez OpenPortal Bridge pour vous connecter en Wi-Fi.",
+	"wirelessLastKnown": "Dernière adresse connue : {{address}}"
 }
