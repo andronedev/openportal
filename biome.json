@@ -12,6 +12,7 @@
 			"pnpm-lock.yaml",
 			"catalog",
 			"sdk",
+			"src/lib/programs/morphe/program.js",
 			"public/scrcpy-server"
 		]
 	},

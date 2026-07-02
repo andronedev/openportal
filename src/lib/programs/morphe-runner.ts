@@ -1,8 +1,8 @@
 import { MORPHE_MANIFEST_URLS } from "@/lib/catalog/morphe";
 import type { Adb } from "@yume-chan/adb";
-import morpheProgramCode from "../../../catalog/programs/morphe/program.js?raw";
 import { provision } from "./broker";
 import { parseConfigEnv } from "./config";
+import morpheProgramCode from "./morphe/program.js?raw";
 import type { LoadedProgram, OnStep } from "./types";
 
 const MORPHE_PROGRAM: LoadedProgram = {

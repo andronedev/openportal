@@ -1,4 +1,4 @@
-/// <reference path="../../../sdk/program-sdk.d.ts" />
+/// <reference path="../../../../sdk/program-sdk.d.ts" />
 
 export const manifest = {
 	apiVersion: 1,
