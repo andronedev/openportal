@@ -11,7 +11,7 @@
 	"program": {
 		"kind": "sandboxed",
 		"repo": "starbrightlab/immortal",
-		"trust": "verified",
+		"trust": "first-party",
 		"labelKey": "provisioning.setupLabel",
 		"handlesInstall": true,
 		"revertOnUninstall": true

@@ -60,26 +60,27 @@ function looksLikeProgram(code: string): boolean {
 }
 
 /**
- * Loads a sandboxed provisioning program. Live path fetches it from the
- * partner's latest release tag (device-side, CORS-free). Only trusted programs
- * run; on any failure, or with no device, it falls back to the vendored built-in
- * program when we ship one for that repo, otherwise it throws.
+ * Loads a sandboxed program. `first-party` programs ship bundled in the app's
+ * own catalog folder and are used as-is, even when a `repo` is set (the repo is
+ * then only for config.env and the source link, e.g. Immortal, whose partner
+ * repo does not publish the program). `verified` programs are fetched live from
+ * the partner's latest release, with the vendored snapshot as the offline
+ * fallback for the one repo we ship one for.
  */
 export async function loadProgram(
 	adb: Adb | null,
 	spec: ProgramSpec,
 	appId: string,
 ): Promise<LoadedProgram> {
-	// First-party program bundled in the app's own folder (no partner repo).
-	if (!spec.repo) {
+	if (spec.trust === "first-party") {
+		if (spec.repo && hasVendoredSnapshot(spec.repo))
+			return loadVendoredProgram();
 		const code = bundledCode(appId);
 		if (!code) throw new Error("No program is bundled for this app");
 		return { code, ref: "bundled", source: "vendored" };
 	}
-	// A partner repo: fetch the program live, with the vendored snapshot as the
-	// offline/failure fallback for the one repo we ship one for (Immortal).
-	const trusted = spec.trust === "verified" || spec.trust === "first-party";
-	if (!adb || !trusted) {
+	if (!spec.repo) throw new Error("A verified program needs a repo");
+	if (!adb) {
 		if (hasVendoredSnapshot(spec.repo)) return loadVendoredProgram();
 		throw new Error("No provisioning program is available for this app");
 	}
