@@ -1,0 +1,19 @@
+{
+	"id": "immortal-launcher",
+	"name": "Immortal Launcher",
+	"packageName": "com.immortal.launcher",
+	"description": "Full replacement home screen with app store, photo frame screensaver, weather, and folders",
+	"category": "launcher",
+	"version": "latest",
+	"repo": "starbrightlab/immortal",
+	"downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",
+	"program": {
+		"kind": "sandboxed",
+		"repo": "starbrightlab/immortal",
+		"trust": "verified",
+		"labelKey": "provisioning.setupLabel",
+		"handlesInstall": true,
+		"revertOnUninstall": true
+	}
+}

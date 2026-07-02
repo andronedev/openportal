@@ -1,0 +1,12 @@
+{
+	"id": "stremio",
+	"name": "Stremio",
+	"packageName": "com.stremio.one",
+	"description": "Media center for streaming movies and series through add-ons",
+	"category": "media",
+	"version": "2.2.3",
+	"source": "url",
+	"apkUrl": "https://dl.strem.io/android/v2.2.3-android/com.stremio.one-2.2.3-6145731-arm64-v8a.apk",
+	"downloadUrl": "https://www.stremio.com/downloads",
+	"iconUrl": "https://www.stremio.com/website/stremio-logo-small.png"
+}

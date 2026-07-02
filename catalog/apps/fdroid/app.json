@@ -1,0 +1,10 @@
+{
+	"id": "fdroid",
+	"name": "F-Droid",
+	"packageName": "org.fdroid.fdroid",
+	"description": "Open-source app store with free and open-source apps",
+	"category": "store",
+	"version": "1.21.0",
+	"source": "fdroid",
+	"iconUrl": "https://f-droid.org/repo/org.fdroid.fdroid/en-US/icon.png"
+}

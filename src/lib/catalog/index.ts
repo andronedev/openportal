@@ -1,11 +1,36 @@
-import rawCatalog from "./catalog.json";
+import catalogIndex from "../../../catalog/index.json";
 import type { CatalogApp } from "./types";
 
 export * from "./types";
 
-// The catalog is data-only and lives in catalog.json so the community can submit
-// new apps via simple PRs. See CONTRIBUTING.md for the submission format.
-export const APP_CATALOG: CatalogApp[] = rawCatalog as CatalogApp[];
+// The catalog is data-only and lives at the repo root in `catalog/`: one folder
+// per app under `catalog/apps/<id>/app.json`, discovered here at build time. The
+// community submits an app with a PR that adds one folder, no code change. See
+// catalog/README.md and CONTRIBUTING.md for the format.
+const appModules = import.meta.glob<{ default: CatalogApp }>(
+	"/catalog/apps/*/app.json",
+	{ eager: true },
+);
+
+// `catalog/index.json` curates the list: `order` fixes the display order (the
+// folder glob is unordered) and `featured` pins the "Made for Portal" section.
+function loadCatalog(): CatalogApp[] {
+	const featured = new Set<string>(catalogIndex.featured);
+	const rank = new Map(catalogIndex.order.map((id, i) => [id, i]));
+	return Object.values(appModules)
+		.map((mod) =>
+			featured.has(mod.default.id)
+				? { ...mod.default, madeForPortal: true }
+				: mod.default,
+		)
+		.sort(
+			(a, b) =>
+				(rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+				(rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+		);
+}
+
+export const APP_CATALOG: CatalogApp[] = loadCatalog();
 
 export function getCatalogByCategory(): Map<string, CatalogApp[]> {
 	const map = new Map<string, CatalogApp[]>();

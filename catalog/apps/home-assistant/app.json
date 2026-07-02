@@ -1,0 +1,11 @@
+{
+	"id": "home-assistant",
+	"name": "Home Assistant",
+	"packageName": "io.homeassistant.companion.android.minimal",
+	"description": "Companion app for the Home Assistant smart home platform",
+	"category": "smartHome",
+	"version": "2026.4.4-minimal",
+	"source": "fdroid",
+	"repo": "home-assistant/android",
+	"iconUrl": "https://f-droid.org/repo/io.homeassistant.companion.android.minimal/en-US/icon.png"
+}

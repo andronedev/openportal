@@ -1,0 +1,11 @@
+{
+	"id": "libretube",
+	"name": "LibreTube",
+	"packageName": "com.github.libretube",
+	"description": "Privacy-focused YouTube client with SponsorBlock built in",
+	"category": "media",
+	"version": "31.4",
+	"source": "fdroid",
+	"repo": "libre-tube/LibreTube",
+	"iconUrl": "https://f-droid.org/repo/com.github.libretube/en-US/icon.png"
+}

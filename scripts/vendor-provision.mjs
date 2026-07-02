@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const dir = join(here, "..", "src/lib/portal/provision/upstream");
+const dir = join(here, "..", "catalog/apps/immortal-launcher/upstream");
 const meta = JSON.parse(readFileSync(join(dir, "meta.json"), "utf8"));
 const repo = meta.repo;
 
@@ -67,7 +67,7 @@ writeFileSync(join(dir, "config.env"), configEnv);
 // replacing the built-in seed. Until then, keep the seed in place.
 if (programFile && programJs) {
 	writeFileSync(
-		join(here, "..", "src/lib/portal/provision/program/default.program.js"),
+		join(here, "..", "catalog/apps/immortal-launcher/program.js"),
 		programJs,
 	);
 }
@@ -102,5 +102,5 @@ export const CONFIG_ENV_RAW = ${JSON.stringify(configEnv)};
 writeFileSync(join(dir, "snapshot.ts"), snapshot);
 
 console.log(
-	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update src/lib/adb/provision.ts if provision.sh changed.`,
+	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update catalog/apps/immortal-launcher/program.js if provision.sh changed.`,
 );

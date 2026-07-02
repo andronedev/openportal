@@ -1,0 +1,11 @@
+{
+	"id": "vlc",
+	"name": "VLC",
+	"packageName": "org.videolan.vlc",
+	"description": "Free and open-source media player for video and audio",
+	"category": "media",
+	"version": "3.6.4",
+	"source": "fdroid",
+	"repo": "videolan/vlc-android",
+	"iconUrl": "https://f-droid.org/repo/org.videolan.vlc/en-US/icon.png"
+}

@@ -7,7 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const metaPath = join(
 	here,
 	"..",
-	"src/lib/portal/provision/upstream/meta.json",
+	"catalog/apps/immortal-launcher/upstream/meta.json",
 );
 const meta = JSON.parse(readFileSync(metaPath, "utf8"));
 
@@ -85,9 +85,7 @@ console.log("");
 
 if (procedureDrift) {
 	console.log("The procedure changed. Re-review the built-in program in");
-	console.log(
-		"src/lib/portal/provision/program/default.program.js against provision.sh",
-	);
+	console.log("catalog/apps/immortal-launcher/program.js against provision.sh");
 	console.log("(and openportal.program.js if published), then re-vendor with:");
 	console.log(`  node scripts/vendor-provision.mjs ${REF}`);
 	console.log(

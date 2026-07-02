@@ -2,9 +2,9 @@ import { deviceFetchText } from "@/lib/adb/online-install";
 import type { ProgramTrust } from "@/lib/catalog";
 import { resolveLatestTag } from "@/lib/programs/config";
 import type { Adb } from "@yume-chan/adb";
-import defaultProgram from "./default.program.js?raw";
+import defaultProgram from "../../../catalog/apps/immortal-launcher/program.js?raw";
+import { UPSTREAM_META } from "../../../catalog/apps/immortal-launcher/upstream/snapshot";
 import type { LoadedProgram } from "./types";
-import { UPSTREAM_META } from "./upstream/snapshot";
 
 const DEFAULT_PROGRAM_PATH = "provisioning/openportal.program.js";
 const MAX_PROGRAM_BYTES = 512_000;

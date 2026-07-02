@@ -1,0 +1,12 @@
+{
+	"id": "newpipe",
+	"name": "NewPipe",
+	"packageName": "org.schabi.newpipe",
+	"description": "Lightweight YouTube client with background play and downloads",
+	"category": "media",
+	"version": "latest",
+	"source": "github",
+	"repo": "TeamNewPipe/NewPipe",
+	"downloadUrl": "https://github.com/TeamNewPipe/NewPipe/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/TeamNewPipe/NewPipe/dev/fastlane/metadata/android/en-US/images/icon.png"
+}

@@ -1,0 +1,11 @@
+{
+	"id": "kodi",
+	"name": "Kodi",
+	"packageName": "org.xbmc.kodi",
+	"description": "Open-source media center for videos, music, and streaming add-ons",
+	"category": "media",
+	"version": "21.3",
+	"source": "fdroid",
+	"repo": "xbmc/xbmc",
+	"iconUrl": "https://raw.githubusercontent.com/xbmc/xbmc/master/media/icon256x256.png"
+}

@@ -1,0 +1,13 @@
+{
+	"id": "morphe-youtube-music",
+	"name": "YouTube Music (Morphe)",
+	"packageName": "app.morphe.android.apps.youtube.music",
+	"description": "Modded YouTube Music with no ads, background playback, and a nodpi build tuned for Portal (requires GmsCore)",
+	"category": "media",
+	"version": "latest",
+	"source": "morphe",
+	"requires": [
+		"app.revanced.android.gms"
+	],
+	"iconUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg"
+}

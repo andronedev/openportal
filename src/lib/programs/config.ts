@@ -1,6 +1,9 @@
 import { deviceFetchText } from "@/lib/adb/online-install";
 import type { Adb } from "@yume-chan/adb";
-import { CONFIG_ENV_RAW, UPSTREAM_META } from "./upstream/snapshot";
+import {
+	CONFIG_ENV_RAW,
+	UPSTREAM_META,
+} from "../../../catalog/apps/immortal-launcher/upstream/snapshot";
 
 export interface ProgramConfig {
 	pkg: string;
