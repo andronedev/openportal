@@ -107,7 +107,7 @@ export default function SandboxedProgramPanel({
 			const [config, currentSdk, loadedProgram] = await Promise.all([
 				loadProgramConfig(adb, spec.repo),
 				adb ? readSdk(adb) : Promise.resolve(99),
-				loadProgram(adb, spec),
+				loadProgram(adb, spec, app.id),
 			]);
 			let prog = loadedProgram;
 			let desc = await describe(adb, config.cfg, { program: prog });
@@ -139,7 +139,7 @@ export default function SandboxedProgramPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [adb, spec]);
+	}, [adb, spec, app.id]);
 
 	const onStep = (event: StepEvent) =>
 		setEvents((prev) => {

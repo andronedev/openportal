@@ -22,7 +22,7 @@ export function getSetupLifecycle(app: CatalogApp): SetupLifecycle | undefined {
 			beforeUninstall: async (adb) => {
 				const [{ cfg }, loaded] = await Promise.all([
 					loadProgramConfig(adb, program.repo),
-					loadProgram(adb, program),
+					loadProgram(adb, program, app.id),
 				]);
 				await restore(adb, cfg, () => {}, { program: loaded });
 			},

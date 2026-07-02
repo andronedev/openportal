@@ -221,8 +221,12 @@ function vendored(ref: string): LoadedProgramConfig {
 
 export async function loadProgramConfig(
 	adb: Adb | null,
-	repo: string = IMMORTAL_REPO,
+	repo?: string,
 ): Promise<LoadedProgramConfig> {
+	// A program without a launcher config.env (anything but Immortal) gets an
+	// empty view, with no network, so it never fetches Immortal's config.
+	if (!repo)
+		return { cfg: parseConfigEnv(""), ref: "none", source: "vendored" };
 	if (!adb) return vendored(UPSTREAM_META.latestReleaseTag);
 
 	const tag = (await resolveLatestTag(repo)) ?? UPSTREAM_META.latestReleaseTag;

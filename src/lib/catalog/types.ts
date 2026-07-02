@@ -53,8 +53,12 @@ export type AppProgram =
 	  }
 	| {
 			kind: "sandboxed";
-			/** `owner/repo` that publishes the program module + its `config.env`. */
-			repo: string;
+			/**
+			 * `owner/repo` that publishes the program module + its `config.env`.
+			 * Omit it for a first-party program bundled in the app's own folder
+			 * (`catalog/apps/<id>/program.js`), which OpenPortal loads directly.
+			 */
+			repo?: string;
 			/**
 			 * Path to the program ES module in the repo. Defaults to
 			 * `provisioning/openportal.program.js`.
