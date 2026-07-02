@@ -22,9 +22,11 @@ import type {
 	ProgramContext,
 	ProgramDescription,
 	ProgramEntry,
+	ProgramPresentation,
 	ProgramResult,
 	ProgramRun,
 	ProgramStatus,
+	ResultView,
 	SettingsNamespace,
 	WorkerToBroker,
 } from "./types";
@@ -103,6 +105,22 @@ function reqPackage(value: unknown): string {
 	return pkg;
 }
 
+/**
+ * A URL safe to render as an `<a href>` in the panel: http(s) only, so a program
+ * cannot return a `javascript:`/`data:` link. Distinct from `reqHttpsUrl` (which
+ * is https-only, for device fetches) because result links may be LAN `http://`.
+ */
+function safeExternalUrl(value: unknown): string | null {
+	if (typeof value !== "string") return null;
+	let url: URL;
+	try {
+		url = new URL(value);
+	} catch {
+		return null;
+	}
+	return url.protocol === "http:" || url.protocol === "https:" ? value : null;
+}
+
 async function pushUserPhotos(
 	adb: Adb,
 	directory: string,
@@ -122,6 +140,19 @@ async function pushUserPhotos(
 		} catch {}
 	}
 	return n;
+}
+
+async function pushUploadedFile(
+	adb: Adb,
+	field: string,
+	directory: string,
+	name: string,
+	files: Record<string, File> | undefined,
+): Promise<void> {
+	const file = files?.[field];
+	if (!file) throw new Error(`No uploaded file for field: ${field}`);
+	await makeDirectory(adb, directory).catch(() => {});
+	await pushFile(adb, directory, new File([file], name, { type: file.type }));
 }
 
 async function dispatch(
@@ -192,6 +223,13 @@ async function dispatch(
 			const directory = reqDevicePath(args[0]);
 			audit(directory);
 			return pushUserPhotos(adb, directory, run?.photos);
+		}
+		case "pushUploadedFile": {
+			const field = reqString(args[0], "field");
+			const directory = reqDevicePath(args[1]);
+			const name = reqFileName(args[2]);
+			audit(`${directory}/${name}`);
+			return pushUploadedFile(adb, field, directory, name, run?.files);
 		}
 		case "getSetting":
 			return getSetting(adb, reqNamespace(args[0]), reqString(args[1], "key"));
@@ -309,6 +347,7 @@ function runEntry(
 				programCode: program.code,
 				sdk,
 				cfg,
+				app: run?.app ?? { packageName: "", name: "" },
 				answers,
 			};
 			worker.postMessage({ kind: "start", ctx });
@@ -323,6 +362,66 @@ function isManifestField(value: unknown): value is ManifestField {
 		typeof f.key === "string" &&
 		(f.type === "boolean" || f.type === "text" || f.type === "select")
 	);
+}
+
+function normalizePresentation(
+	value: unknown,
+): ProgramPresentation | undefined {
+	if (!value || typeof value !== "object") return undefined;
+	const p = value as Record<string, unknown>;
+	const out: ProgramPresentation = {};
+	if (typeof p.intro === "string") out.intro = p.intro;
+	if (Array.isArray(p.steps)) {
+		const steps = p.steps.filter((s): s is string => typeof s === "string");
+		if (steps.length > 0) out.steps = steps;
+	}
+	if (p.link && typeof p.link === "object") {
+		const l = p.link as Record<string, unknown>;
+		const url = safeExternalUrl(l.url);
+		if (url && typeof l.label === "string") out.link = { label: l.label, url };
+	}
+	return out.intro || out.steps || out.link ? out : undefined;
+}
+
+const RESULT_TEXT_MAX = 4096;
+const RESULT_JSON_MAX = 256_000;
+
+/** Sanitizes the untrusted `view` a program returns before the panel renders it. */
+function normalizeResultView(value: unknown): ResultView | undefined {
+	if (!value || typeof value !== "object") return undefined;
+	const v = value as Record<string, unknown>;
+	const out: ResultView = {};
+	if (Array.isArray(v.links)) {
+		const links = v.links
+			.map((raw) => {
+				if (!raw || typeof raw !== "object") return null;
+				const l = raw as Record<string, unknown>;
+				const url = safeExternalUrl(l.url);
+				if (!url || typeof l.label !== "string") return null;
+				return { label: l.label, url, copy: l.copy === true };
+			})
+			.filter((l): l is NonNullable<typeof l> => l !== null);
+		if (links.length > 0) out.links = links;
+	}
+	if (typeof v.text === "string") out.text = v.text.slice(0, RESULT_TEXT_MAX);
+	if (v.download && typeof v.download === "object") {
+		const d = v.download as Record<string, unknown>;
+		try {
+			const json = JSON.stringify(d.json ?? null);
+			if (typeof d.name === "string" && json.length <= RESULT_JSON_MAX) {
+				out.download = { name: reqFileName(d.name), json: d.json };
+			}
+		} catch {}
+	}
+	return out.links || out.text || out.download ? out : undefined;
+}
+
+/** The `fleet` path is immortal's frozen contract, passed through untouched. */
+function normalizeResult(value: unknown): ProgramResult {
+	const v = (value ?? {}) as Record<string, unknown>;
+	const fleet = (v.fleet ?? null) as ProgramResult["fleet"];
+	const view = normalizeResultView(v.view);
+	return view ? { fleet, view } : { fleet };
 }
 
 /** Defensive normalization: the manifest is untrusted remote data rendered in the UI. */
@@ -349,6 +448,7 @@ function normalizeDescription(value: unknown): ProgramDescription {
 			name: typeof m.name === "string" ? m.name : undefined,
 			fields,
 			steps,
+			presentation: normalizePresentation(m.presentation),
 		},
 		defaults,
 	};
@@ -379,21 +479,16 @@ export function status(
 	) as Promise<ProgramStatus>;
 }
 
-export function provision(
+export async function provision(
 	adb: Adb,
 	cfg: ProgramConfig,
 	answers: ProgramAnswers,
 	onStep: OnStep,
 	run?: ProgramRun,
 ): Promise<ProgramResult> {
-	return runEntry(
-		adb,
-		cfg,
-		"provision",
-		answers,
-		onStep,
-		run,
-	) as Promise<ProgramResult>;
+	return normalizeResult(
+		await runEntry(adb, cfg, "provision", answers, onStep, run),
+	);
 }
 
 export function restore(

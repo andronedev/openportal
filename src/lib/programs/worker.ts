@@ -80,10 +80,15 @@ function callInstall(
 	});
 }
 
-function makePortal(sdk: number, cfg: Portal["cfg"]): Portal {
+function makePortal(
+	sdk: number,
+	cfg: Portal["cfg"],
+	app: Portal["app"],
+): Portal {
 	return {
 		sdk,
 		cfg,
+		app,
 		shell: (command, opts) =>
 			call("shell", [command, opts?.timeoutMs ?? null]) as Promise<{
 				stdout: string;
@@ -105,6 +110,8 @@ function makePortal(sdk: number, cfg: Portal["cfg"]): Portal {
 			call("pushText", [directory, name, text]) as Promise<void>,
 		pushUserPhotos: (directory) =>
 			call("pushUserPhotos", [directory]) as Promise<number>,
+		pushUploadedFile: (field, directory, name) =>
+			call("pushUploadedFile", [field, directory, name]) as Promise<void>,
 		getSetting: (namespace, key) =>
 			call("getSetting", [namespace, key]) as Promise<string>,
 		putSetting: (namespace, key, value) =>
@@ -150,7 +157,7 @@ async function invoke(
 
 async function runStart(ctx: ProgramContext): Promise<void> {
 	try {
-		const portal = makePortal(ctx.sdk, ctx.cfg);
+		const portal = makePortal(ctx.sdk, ctx.cfg, ctx.app);
 		const blobUrl = URL.createObjectURL(
 			new Blob([ctx.programCode], { type: "text/javascript" }),
 		);

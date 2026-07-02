@@ -50,7 +50,12 @@ steps without any OpenPortal change. The program's `repo`, its path, and its
 Immortal (see Trust below).
 
 The panel form is driven by a **manifest** the program declares, so a new
-question (a toggle, a text field, a select) appears with no front-end change.
+question (a toggle, a text field, a select, a file upload) appears with no
+front-end change. A program can also declare static `presentation` (an intro,
+numbered steps, a link) and return a `view` from `provision()` (links, text, a
+download) so an app that only needs configuration, not full provisioning, drives
+its whole UI from the catalog. Uploaded files are placed with
+`portal.pushUploadedFile` and, like photos, never enter the worker.
 
 ## Where the code lives
 
@@ -65,7 +70,7 @@ question (a toggle, a text field, a select) appears with no front-end change.
 | Config (typed view of `config.env`, live fetch + fallback) | `src/lib/programs/config.ts` |
 | Vendored upstream snapshot + pinned ref | `catalog/apps/immortal-launcher/upstream/` |
 | Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
-| First-party Morphe program + headless runner | `catalog/programs/morphe/program.js`, `src/lib/programs/morphe-runner.ts` |
+| First-party Morphe program + headless runner | `src/lib/programs/morphe/program.js`, `src/lib/programs/morphe-runner.ts` |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |

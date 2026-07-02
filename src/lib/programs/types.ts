@@ -33,8 +33,22 @@ export interface FleetInventory {
 	token: string;
 }
 
+/**
+ * Optional display a program returns from `provision()` for the panel to render.
+ * All of it is untrusted and normalized by the broker before it reaches the UI:
+ * `links[].url` is validated as an http(s) URL, `text` is length-capped, and
+ * `download.json` is serialized defensively. Additive: immortal's `fleet` path is
+ * untouched, so its frozen live contract keeps working.
+ */
+export interface ResultView {
+	links?: { label: string; url: string; copy?: boolean }[];
+	text?: string;
+	download?: { name: string; json: unknown };
+}
+
 export interface ProgramResult {
 	fleet: FleetInventory | null;
+	view?: ResultView;
 }
 
 export interface ProgramStatus {
@@ -55,7 +69,7 @@ export interface ProgramStatus {
  */
 export type ProgramAnswers = Record<string, boolean | string>;
 
-export type FieldType = "boolean" | "text" | "select";
+export type FieldType = "boolean" | "text" | "select" | "file";
 
 /** Declarative gating predicate, ANDed when several keys are present. */
 export interface FieldCondition {
@@ -74,9 +88,22 @@ export interface ManifestField {
 	default?: boolean | string;
 	advanced?: boolean;
 	choices?: { value: string; label: string }[];
+	/** For `type: "file"`: the file input's `accept` attribute (e.g. ".json"). */
+	accept?: string;
 	enabledWhen?: FieldCondition;
 	disabledHint?: string;
 	showWhen?: FieldCondition;
+}
+
+/**
+ * Static presentation a program can declare for the panel: an intro line, a
+ * numbered how-to list, and one external link. Lets a program render guidance
+ * (what a bespoke React panel used to hard-code) without shipping any UI code.
+ */
+export interface ProgramPresentation {
+	intro?: string;
+	steps?: string[];
+	link?: { label: string; url: string };
 }
 
 export interface ProgramManifest {
@@ -84,6 +111,7 @@ export interface ProgramManifest {
 	name?: string;
 	fields: ManifestField[];
 	steps?: string[];
+	presentation?: ProgramPresentation;
 }
 
 export interface ProgramDescription {
@@ -104,17 +132,26 @@ export interface AuditEntry {
 	detail: string;
 }
 
+/** Minimal identity of the catalog app a program is running for. */
+export interface ProgramApp {
+	packageName: string;
+	name: string;
+}
+
 /**
  * Per-run controls for the broker. `signal` aborts the run (terminates the
  * worker); `onCommand` receives each audited device operation; `program` lets
- * the caller reuse an already-loaded program instead of re-fetching it;
- * `photos` are pushed by `pushUserPhotos` and never enter the worker.
+ * the caller reuse an already-loaded program instead of re-fetching it; `app`
+ * identifies the catalog app (surfaced as `portal.app`); `photos` and `files`
+ * are pushed on the main thread and never enter the worker.
  */
 export interface ProgramRun {
 	signal?: AbortSignal;
 	onCommand?: (entry: AuditEntry) => void;
 	program?: LoadedProgram;
+	app?: ProgramApp;
 	photos?: File[];
+	files?: Record<string, File>;
 }
 
 export interface LoadedProgram {
@@ -140,6 +177,8 @@ export type SettingsNamespace = "global" | "secure" | "system";
 export interface Portal {
 	readonly sdk: number;
 	readonly cfg: ProgramConfig;
+	/** The catalog app this program runs for (package name, display name). */
+	readonly app: ProgramApp;
 	shell(
 		command: string,
 		opts?: { timeoutMs?: number },
@@ -160,6 +199,17 @@ export interface Portal {
 	removePath(path: string): Promise<void>;
 	pushText(directory: string, name: string, text: string): Promise<void>;
 	pushUserPhotos(directory: string): Promise<number>;
+	/**
+	 * Pushes a file the user picked in a `file` manifest field, by that field's
+	 * key, to `directory/name`. The bytes stay on the main thread (held in the
+	 * run, like photos) and never enter the worker, so a program can place a
+	 * user's credential file without ever seeing its contents.
+	 */
+	pushUploadedFile(
+		field: string,
+		directory: string,
+		name: string,
+	): Promise<void>;
 	getSetting(namespace: SettingsNamespace, key: string): Promise<string>;
 	putSetting(
 		namespace: SettingsNamespace,
@@ -179,6 +229,7 @@ export interface ProgramContext {
 	programCode: string;
 	sdk: number;
 	cfg: ProgramConfig;
+	app: ProgramApp;
 	answers: ProgramAnswers | null;
 }
 

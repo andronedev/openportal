@@ -79,6 +79,12 @@ interface InstallOptions {
 	onProgress?: (stage: InstallStage, percent: number | null) => void;
 }
 
+/** Identity of the catalog app your program runs for. */
+interface ProgramApp {
+	packageName: string;
+	name: string;
+}
+
 /**
  * The capability surface. Paths for file ops must live under /sdcard or
  * /data/local/tmp. URLs must be https. `shell` runs raw, but every command is
@@ -87,7 +93,10 @@ interface InstallOptions {
 interface Portal {
 	/** Android API level of the connected device (e.g. 28 for A9, 29 for A10). */
 	readonly sdk: number;
+	/** A launcher's config.env (Immortal-shaped); empty for other programs. */
 	readonly cfg: ProgramConfig;
+	/** The catalog app this program runs for (package name, display name). */
+	readonly app: ProgramApp;
 	shell(
 		command: string,
 		opts?: { timeoutMs?: number },
@@ -114,6 +123,12 @@ interface Portal {
 	pushText(directory: string, name: string, text: string): Promise<void>;
 	/** Push the user-selected photos (if any) and return how many were written. */
 	pushUserPhotos(directory: string): Promise<number>;
+	/**
+	 * Push the file the user picked in a `file` manifest field (by its key) to
+	 * `directory/name`. The bytes stay on the host and never enter the worker, so
+	 * you can place a user's credential file without ever reading it.
+	 */
+	pushUploadedFile(field: string, directory: string, name: string): Promise<void>;
 	getSetting(namespace: SettingsNamespace, key: string): Promise<string>;
 	putSetting(
 		namespace: SettingsNamespace,
@@ -139,8 +154,20 @@ interface FleetInventory {
 	token: string;
 }
 
+/**
+ * Optional content your `provision()` can return for the panel to render: LAN or
+ * web links (with an optional copy button), a text block, and a downloadable
+ * JSON file. The host validates it (links must be http(s)) before display.
+ */
+interface ResultView {
+	links?: { label: string; url: string; copy?: boolean }[];
+	text?: string;
+	download?: { name: string; json: unknown };
+}
+
 interface ProgramResult {
 	fleet: FleetInventory | null;
+	view?: ResultView;
 }
 
 interface ProgramStatus {
@@ -157,7 +184,7 @@ interface ProgramStatus {
 /** The user's answers to the manifest fields, keyed by field key. */
 type ProgramAnswers = Record<string, boolean | string>;
 
-type FieldType = "boolean" | "text" | "select";
+type FieldType = "boolean" | "text" | "select" | "file";
 
 /** Gating predicate, ANDed when several keys are present. */
 interface FieldCondition {
@@ -180,11 +207,24 @@ interface ManifestField {
 	advanced?: boolean;
 	/** Options for a `select` field. */
 	choices?: { value: string; label: string }[];
+	/** For a `file` field: the file input's `accept` attribute (e.g. ".json"). */
+	accept?: string;
 	/** When false, the field is shown but disabled. */
 	enabledWhen?: FieldCondition;
 	disabledHint?: string;
 	/** When false, the field is hidden entirely. */
 	showWhen?: FieldCondition;
+}
+
+/**
+ * Static guidance the panel renders above the form: an intro line, a numbered
+ * how-to, and one external link. Lets a program show instructions without any UI
+ * code (what a bespoke React panel used to hard-code).
+ */
+interface ProgramPresentation {
+	intro?: string;
+	steps?: string[];
+	link?: { label: string; url: string };
 }
 
 interface ProgramManifest {
@@ -194,17 +234,20 @@ interface ProgramManifest {
 	/** Step ids in display order, matching the ids you pass to portal.step(). */
 	steps?: string[];
 	fields: ManifestField[];
+	presentation?: ProgramPresentation;
 }
 
 /**
- * The exports your program module must provide. `manifest` and `defaultOptions`
- * power the panel form; the rest are the actions OpenPortal runs.
+ * The exports your program module provides. `manifest` and `provision` are
+ * required (with `defaultOptions` to seed the form); `restore`, `status`, and
+ * `resetLauncher` are optional. A config-only program (no device teardown, no
+ * launcher) can export just `manifest`, `defaultOptions`, and `provision`.
  */
 interface ProgramModule {
 	manifest: ProgramManifest | (() => ProgramManifest);
 	defaultOptions(portal: Portal): ProgramAnswers | Promise<ProgramAnswers>;
 	provision(portal: Portal, answers: ProgramAnswers): Promise<ProgramResult>;
-	restore(portal: Portal): Promise<void>;
-	status(portal: Portal): Promise<ProgramStatus>;
-	resetLauncher(portal: Portal): Promise<string>;
+	restore?(portal: Portal): Promise<void>;
+	status?(portal: Portal): Promise<ProgramStatus>;
+	resetLauncher?(portal: Portal): Promise<string>;
 }

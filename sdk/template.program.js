@@ -6,7 +6,7 @@
 // sandboxed worker. See sdk/README.md for the full contract, and
 // catalog/apps/immortal-launcher/program.js for a complete example.
 
-/** @type {ProvisionManifest} */
+/** @type {ProgramManifest} */
 export const manifest = {
 	// Bump only when you rely on host features newer than the user's OpenPortal.
 	apiVersion: 1,
@@ -29,7 +29,7 @@ export const manifest = {
 /**
  * Initial answers, computed from the live config and the device.
  * @param {Portal} portal
- * @returns {ProvisionAnswers}
+ * @returns {ProgramAnswers}
  */
 export function defaultOptions(portal) {
 	return {
@@ -40,8 +40,8 @@ export function defaultOptions(portal) {
 
 /**
  * @param {Portal} portal
- * @param {ProvisionAnswers} answers
- * @returns {Promise<ProvisionResult>}
+ * @param {ProgramAnswers} answers
+ * @returns {Promise<ProgramResult>}
  */
 export async function provision(portal, answers) {
 	portal.step("installClient", "running");
@@ -71,7 +71,7 @@ export async function restore(portal) {
 
 /**
  * @param {Portal} portal
- * @returns {Promise<ProvisionStatus>}
+ * @returns {Promise<ProgramStatus>}
  */
 export async function status(portal) {
 	const installed = (
