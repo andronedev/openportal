@@ -3,7 +3,7 @@
 // This is the built-in reference program: a faithful translation of Immortal's
 // provisioning/provision.sh against the OpenPortal `portal` capability API. It
 // is the offline fallback and the example for the SDK in /sdk. When Immortal
-// publishes provisioning/openportal.program.js in a release, OpenPortal fetches
+// publishes provisioning/openportal.js in a release, OpenPortal fetches
 // that one live instead. See sdk/README.md for the contract.
 
 const STATE_FILE = "/sdcard/immortal_restore.env";

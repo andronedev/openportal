@@ -10,5 +10,5 @@
 	"programBlob": null,
 	"programSha256": null,
 	"capturedAt": "2026-06-27",
-	"note": "Vendored snapshot of Immortal's provisioning kit (provisioning/provision.sh + config.env). The procedure is ported as the built-in program at catalog/apps/immortal-launcher/program.js; provision.sh here is the fidelity reference and drift-check baseline against upstream main. At runtime the panel fetches config.env live from the latest release tag for value auto-sync; this snapshot is the offline fallback. latestReleaseTag is that offline fallback ref (a pinned release), distinct from the main-tracking drift baseline. Regenerate with: node scripts/vendor-provision.mjs <ref>"
+	"note": "Vendored snapshot of Immortal's provisioning kit (provisioning/provision.sh + config.env). The procedure is ported as the built-in program at catalog/apps/immortal-launcher/openportal.js; provision.sh here is the fidelity reference and drift-check baseline against upstream main. At runtime the panel fetches config.env live from the latest release tag for value auto-sync; this snapshot is the offline fallback. latestReleaseTag is that offline fallback ref (a pinned release), distinct from the main-tracking drift baseline. Regenerate with: node scripts/vendor-provision.mjs <ref>"
 }

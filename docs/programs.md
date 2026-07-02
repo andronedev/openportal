@@ -41,9 +41,9 @@ src/lib/adb wrappers           ◄── RPC ──►   provision / restore / s
 kill switch = worker.terminate()             portal.* (no Adb, no creds, no net)
 ```
 
-The built-in program (`catalog/apps/immortal-launcher/program.js`) is
+The built-in program (`catalog/apps/immortal-launcher/openportal.js`) is
 a faithful translation of Immortal's `provision.sh` and is the offline fallback
-for that one repo. When Immortal publishes `provisioning/openportal.program.js`
+for that one repo. When Immortal publishes `provisioning/openportal.js`
 in a release, OpenPortal runs that one instead, so the maintainer can change the
 steps without any OpenPortal change. The program's `repo`, its path, and its
 `trust` tier all come from the catalog entry, so the loader is not hardcoded to
@@ -65,12 +65,12 @@ its whole UI from the catalog. Uploaded files are placed with
 | Capability broker (validation, audit, dispatch) | `src/lib/programs/broker.ts` |
 | Shared types + `PORTAL_API_VERSION` | `src/lib/programs/types.ts` |
 | Program loader (spec-driven fetch, trust gate, vendored fallback) | `src/lib/programs/loader.ts` |
-| Built-in program (1:1 of Immortal's `provision.sh`) | `catalog/apps/immortal-launcher/program.js` |
+| Built-in program (1:1 of Immortal's `provision.sh`) | `catalog/apps/immortal-launcher/openportal.js` |
 | Public barrel | `src/lib/programs/index.ts` |
 | Config (typed view of `config.env`, live fetch + fallback) | `src/lib/programs/config.ts` |
 | Vendored upstream snapshot + pinned ref | `catalog/apps/immortal-launcher/upstream/` |
 | Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
-| First-party Morphe program + headless runner | `src/lib/programs/morphe/program.js`, `src/lib/programs/morphe-runner.ts` |
+| First-party Morphe program + headless runner | `src/lib/programs/morphe/openportal.js`, `src/lib/programs/morphe-runner.ts` |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |
@@ -162,7 +162,7 @@ The script splits into two things, treated differently:
   reaches users with no OpenPortal change. The vendored copy is the offline
   fallback only.
 - **Procedure** (the program). Until Immortal publishes
-  `openportal.program.js`, the built-in program is the procedure, authored from
+  `openportal.js`, the built-in program is the procedure, authored from
   `provision.sh` and kept in lockstep with it. Once Immortal publishes one,
   OpenPortal runs that live and the built-in is just the fallback.
 
@@ -174,15 +174,15 @@ blob SHAs against the vendored snapshot in `meta.json`.
 1. **`config.env` changed (data only).** Notice, passes. Runtime already serves
    the new release-tag values. Refresh the fallback when convenient:
    `node scripts/vendor-provision.mjs`.
-2. **`provision.sh` changed, or `openportal.program.js` changed/was published.**
+2. **`provision.sh` changed, or `openportal.js` changed/was published.**
    Fails with a link to the upstream diff. Re-review the built-in program in
-   `catalog/apps/immortal-launcher/program.js` against `provision.sh`
+   `catalog/apps/immortal-launcher/openportal.js` against `provision.sh`
    (the 1:1 naming makes it mechanical), then re-vendor:
    `node scripts/vendor-provision.mjs`. When upstream ships
-   `openportal.program.js`, the vendor script vendors it as the fallback and
+   `openportal.js`, the vendor script vendors it as the fallback and
    records `programBlob`/`programSha256` in `meta.json`.
 
-## Fidelity map (provision.sh -> program.js)
+## Fidelity map (provision.sh -> openportal.js)
 
 | Bash function | Program step | Key commands | Notes |
 |---|---|---|---|

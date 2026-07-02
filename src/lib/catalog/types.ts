@@ -38,12 +38,12 @@ export type AppProgram =
 			/**
 			 * `owner/repo` that publishes the program module + its `config.env`.
 			 * Omit it for a first-party program bundled in the app's own folder
-			 * (`catalog/apps/<id>/program.js`), which OpenPortal loads directly.
+			 * (`catalog/apps/<id>/openportal.js`), which OpenPortal loads directly.
 			 */
 			repo?: string;
 			/**
 			 * Path to the program ES module in the repo. Defaults to
-			 * `provisioning/openportal.program.js`.
+			 * `provisioning/openportal.js`.
 			 */
 			programPath?: string;
 			/** Only `verified`/`first-party` programs are fetched live and run. */

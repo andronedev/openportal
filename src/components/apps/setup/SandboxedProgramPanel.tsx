@@ -594,7 +594,7 @@ export default function SandboxedProgramPanel({
 					<a
 						href={
 							program.source === "live"
-								? `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/openportal.program.js`
+								? `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/openportal.js`
 								: `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/provision.sh`
 						}
 						target="_blank"

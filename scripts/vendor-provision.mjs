@@ -46,7 +46,7 @@ async function tryRaw(ref, path) {
 	return res.ok ? res.text() : null;
 }
 
-const PROGRAM_PATH = "provisioning/openportal.program.js";
+const PROGRAM_PATH = "provisioning/openportal.js";
 
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
@@ -67,7 +67,7 @@ writeFileSync(join(dir, "config.env"), configEnv);
 // replacing the built-in seed. Until then, keep the seed in place.
 if (programFile && programJs) {
 	writeFileSync(
-		join(here, "..", "catalog/apps/immortal-launcher/program.js"),
+		join(here, "..", "catalog/apps/immortal-launcher/openportal.js"),
 		programJs,
 	);
 }
@@ -102,5 +102,5 @@ export const CONFIG_ENV_RAW = ${JSON.stringify(configEnv)};
 writeFileSync(join(dir, "snapshot.ts"), snapshot);
 
 console.log(
-	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update catalog/apps/immortal-launcher/program.js if provision.sh changed.`,
+	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update catalog/apps/immortal-launcher/openportal.js if provision.sh changed.`,
 );

@@ -1,7 +1,7 @@
 name: Provisioning drift
 
 # Alerts when Immortal's upstream provisioning kit moves away from the vendored
-# snapshot that catalog/apps/immortal-launcher/program.js was ported against. A
+# snapshot that catalog/apps/immortal-launcher/openportal.js was ported against. A
 # change to provision.sh (the procedure) fails the job so the program gets
 # re-reviewed; a change to config.env alone (data) just prints a notice, since
 # the runtime reads release-tag values live.

@@ -76,7 +76,7 @@ it when a `program` drives the install); curation (`order`, `featured` for the
 "Made for Portal" pins) lives in `catalog/index.json`, not the app files. There
 is no per-app "custom source" — anything non-standard is a `program`.
 
-The `program` field is data too (a JSON block, plus a `program.js` for the
+The `program` field is data too (a JSON block, plus an `openportal.js` for the
 sandboxed kind), so it needs no `src/` change:
 
 - `program` — optional lifecycle program: everything the app needs beyond a
@@ -91,10 +91,10 @@ sandboxed kind), so it needs no `src/` change:
     — a JavaScript program run in a sandboxed worker via the `portal` capability
     API, which declares its own UI (a manifest form, a `file` field, static
     presentation, a returned result view), so setup that needs configuration is
-    data, not code. A first-party program is bundled as `program.js` in the app's
+    data, not code. A first-party program is bundled as `openportal.js` in the app's
     own folder (omit `repo`); a partner ships one in **their own** repo, fetched
-    from their latest release (default path `provisioning/openportal.program.js`)
-    with a bundled `program.js` as the offline fallback. `handlesInstall` makes
+    from their latest release (default path `provisioning/openportal.js`)
+    with a bundled `openportal.js` as the offline fallback. `handlesInstall` makes
     the Install button open the panel instead of installing directly;
     `revertOnUninstall` runs the program's revert before uninstall. See
     `docs/programs.md` and `sdk/`.

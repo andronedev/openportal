@@ -5,7 +5,7 @@ import type { Adb } from "@yume-chan/adb";
 import { UPSTREAM_META } from "../../../catalog/apps/immortal-launcher/upstream/snapshot";
 import type { LoadedProgram } from "./types";
 
-const DEFAULT_PROGRAM_PATH = "provisioning/openportal.program.js";
+const DEFAULT_PROGRAM_PATH = "provisioning/openportal.js";
 const MAX_PROGRAM_BYTES = 512_000;
 const IMMORTAL_APP_ID = "immortal-launcher";
 
@@ -14,14 +14,17 @@ const IMMORTAL_APP_ID = "immortal-launcher";
  * keyed by app id. This is how first-party programs (Morphe aside, which runs
  * headlessly) ship, and the offline fallback for partner programs we vendor.
  */
-const bundledPrograms = import.meta.glob<string>("/catalog/apps/*/program.js", {
-	query: "?raw",
-	import: "default",
-	eager: true,
-});
+const bundledPrograms = import.meta.glob<string>(
+	"/catalog/apps/*/openportal.js",
+	{
+		query: "?raw",
+		import: "default",
+		eager: true,
+	},
+);
 
 function bundledCode(appId: string): string | undefined {
-	return bundledPrograms[`/catalog/apps/${appId}/program.js`];
+	return bundledPrograms[`/catalog/apps/${appId}/openportal.js`];
 }
 
 /**

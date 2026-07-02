@@ -9,13 +9,13 @@ change to OpenPortal.
 
 - **Contract / types:** [`program-sdk.d.ts`](./program-sdk.d.ts)
 - **Starter:** [`template.program.js`](./template.program.js)
-- **Full reference example:** `catalog/apps/immortal-launcher/program.js` (the built-in Immortal program)
+- **Full reference example:** `catalog/apps/immortal-launcher/openportal.js` (the built-in Immortal program)
 
 ## How it works
 
 1. Your app has a catalog entry with `program: { kind: "sandboxed", repo: "<you>/<repo>", trust: "verified" }`.
-2. You publish `provisioning/openportal.program.js` in your release (an ES module).
-3. OpenPortal reads it from `https://raw.githubusercontent.com/<repo>/<tag>/provisioning/openportal.program.js` (device-side, no CORS).
+2. You publish `provisioning/openportal.js` in your release (an ES module).
+3. OpenPortal reads it from `https://raw.githubusercontent.com/<repo>/<tag>/provisioning/openportal.js` (device-side, no CORS).
 4. It runs your program in a **sandboxed Web Worker**: no DOM, no credentials, and no network (`fetch`/`XHR`/`WebSocket` are removed). The device is reachable only through the `portal` object.
 5. Every `portal` call is validated on the main thread (https-only URLs, paths under `/sdcard` or `/data/local/tmp`, safe install flags) and shown in a user-visible audit log. The user can stop a run at any time.
 
