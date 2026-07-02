@@ -16,6 +16,7 @@ export function WirelessSetup() {
 	const { t } = useTranslation();
 	const adb = useDeviceStore((s) => s.adb);
 	const transport = useDeviceStore((s) => s.transport);
+	const disconnect = useDeviceStore((s) => s.disconnect);
 	const lastEndpoint = useWirelessStore((s) => s.lastEndpoint);
 	const setEndpoint = useWirelessStore((s) => s.setEndpoint);
 	const [busy, setBusy] = useState(false);
@@ -36,6 +37,7 @@ export function WirelessSetup() {
 					address: formatAddress(endpoint.ip, endpoint.port),
 				}),
 			);
+			await disconnect();
 		} catch (err) {
 			toast.error(t("operationFailed"), {
 				description: err instanceof Error ? err.message : undefined,

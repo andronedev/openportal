@@ -21,9 +21,9 @@ function makeEndpoint(ip: string, port: number): WirelessEndpoint {
 export async function enableWireless(
 	adb: Adb,
 ): Promise<WirelessEndpoint | null> {
-	await adb.tcpip.setPort(WIRELESS_ADB_PORT);
 	const ip = await getIpAddress(adb);
 	if (!ip) return null;
+	await adb.tcpip.setPort(WIRELESS_ADB_PORT);
 	return makeEndpoint(ip, WIRELESS_ADB_PORT);
 }
 
