@@ -1,7 +1,6 @@
 import type {
 	BrokerToWorker,
 	InstallOptions,
-	MorpheManifest,
 	Portal,
 	ProgramContext,
 	StepStatus,
@@ -94,36 +93,19 @@ function makePortal(
 				stdout: string;
 				exitCode: number;
 			}>,
-		getprop: (key) => call("getprop", [key]) as Promise<string>,
-		getIpAddress: () => call("getIpAddress", []) as Promise<string | null>,
-		deviceFetchText: (url) => call("deviceFetchText", [url]) as Promise<string>,
-		verifyMorpheManifest: (text) =>
-			call("verifyMorpheManifest", [text]) as Promise<MorpheManifest>,
 		installFromUrl: callInstall,
 		resolveGithubLatest: (repo) =>
 			call("resolveGithubLatest", [repo]) as Promise<string[]>,
 		resolveFdroidLatest: (packageName) =>
 			call("resolveFdroidLatest", [packageName]) as Promise<string[]>,
-		makeDirectory: (path) => call("makeDirectory", [path]) as Promise<void>,
-		removePath: (path) => call("removePath", [path]) as Promise<void>,
 		pushText: (directory, name, text) =>
 			call("pushText", [directory, name, text]) as Promise<void>,
 		pushUserPhotos: (directory) =>
 			call("pushUserPhotos", [directory]) as Promise<number>,
 		pushUploadedFile: (field, directory, name) =>
 			call("pushUploadedFile", [field, directory, name]) as Promise<void>,
-		getSetting: (namespace, key) =>
-			call("getSetting", [namespace, key]) as Promise<string>,
-		putSetting: (namespace, key, value) =>
-			call("putSetting", [namespace, key, value]) as Promise<void>,
-		dumpLogcat: () => call("dumpLogcat", []) as Promise<string>,
-		clearLogcat: () => call("clearLogcat", []) as Promise<void>,
-		launchApp: (packageName) =>
-			call("launchApp", [packageName]) as Promise<void>,
 		step: (id: string, status: StepStatus, detail?: string, code?: string) =>
 			scope.postMessage({ kind: "event", event: { id, status, detail, code } }),
-		log: (message: string) => scope.postMessage({ kind: "log", message }),
-		sleep: (ms: number) => new Promise((r) => setTimeout(r, ms)),
 	};
 }
 

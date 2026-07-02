@@ -9,7 +9,7 @@
 const GUIDE_URL = "https://github.com/ram-nat/portal-gphotos#readme";
 
 export const manifest = {
-	apiVersion: 1,
+	apiVersion: 2,
 	name: "Google Photos screensaver",
 	steps: ["pushCredentials", "grant", "screensaver", "launch"],
 	presentation: {
@@ -62,16 +62,14 @@ export async function provision(portal, answers) {
 	portal.step("grant", "ok");
 
 	portal.step("screensaver", "running");
-	await portal.putSetting(
-		"secure",
-		"screensaver_components",
-		`${pkg}/${pkg}.PhotoDreamService`,
+	await portal.shell(
+		`settings put secure screensaver_components ${pkg}/${pkg}.PhotoDreamService`,
 	);
-	await portal.putSetting("secure", "screensaver_activate_on_sleep", "1");
+	await portal.shell("settings put secure screensaver_activate_on_sleep 1");
 	portal.step("screensaver", "ok");
 
 	portal.step("launch", "running");
-	await portal.launchApp(pkg);
+	await portal.shell(`monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`);
 	portal.step("launch", "ok");
 
 	return { fleet: null };

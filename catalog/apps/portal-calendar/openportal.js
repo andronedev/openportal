@@ -7,8 +7,22 @@
 
 const CONFIG_PORT = 8090;
 
+/** The Portal's LAN IPv4 (prefer Wi-Fi), read from the device shell. */
+async function deviceIp(portal) {
+	const { stdout } = await portal.shell("ip -o -4 addr show");
+	const entries = [];
+	for (const line of stdout.split("\n")) {
+		const m = /^\d+:\s+(\S+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/.exec(line.trim());
+		if (m && m[1] && m[2] && m[1] !== "lo" && !m[2].startsWith("127.")) {
+			entries.push({ iface: m[1], ip: m[2] });
+		}
+	}
+	const wifi = entries.find((e) => e.iface.startsWith("wlan"));
+	return wifi?.ip ?? entries[0]?.ip ?? null;
+}
+
 export const manifest = {
-	apiVersion: 1,
+	apiVersion: 2,
 	name: "Portal Calendar",
 	steps: ["launch", "address"],
 	presentation: {
@@ -33,14 +47,14 @@ export async function provision(portal) {
 
 	portal.step("launch", "running");
 	try {
-		await portal.launchApp(pkg);
+		await portal.shell(`monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`);
 		portal.step("launch", "ok");
 	} catch {
 		portal.step("launch", "warn");
 	}
 
 	portal.step("address", "running");
-	const ip = await portal.getIpAddress();
+	const ip = await deviceIp(portal);
 	if (!ip) {
 		portal.step("address", "error", "No network address");
 		throw new Error(

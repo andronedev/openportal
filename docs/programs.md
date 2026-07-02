@@ -70,7 +70,7 @@ its whole UI from the catalog. Uploaded files are placed with
 | Config (typed view of `config.env`, live fetch + fallback) | `src/lib/programs/config.ts` |
 | Vendored upstream snapshot + pinned ref | `catalog/apps/immortal-launcher/upstream/` |
 | Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
-| First-party Morphe program + headless runner | `src/lib/programs/morphe/openportal.js`, `src/lib/programs/morphe-runner.ts` |
+| Morphe (modded-app) host-side installer | `src/lib/programs/morphe-runner.ts` (+ Ed25519 verify in `src/lib/catalog/morphe.ts`) |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |
@@ -106,18 +106,29 @@ reviewer must not merge a `"verified"` entry for an unvetted repo.
 types and no build step), and `README.md` (the API reference, manifest schema,
 versioning, and testing). The built-in program is the full worked example.
 
-A program is an ES module exporting `manifest`, `defaultOptions(portal)`,
-`provision(portal, answers)`, `restore(portal)`, `status(portal)`, and
-`resetLauncher(portal)`.
+A program is an ES module exporting `manifest`, `defaultOptions(portal)`, and
+`provision(portal, answers)` (required), plus an optional `restore(portal)`.
+Launcher programs may also export `status(portal)` and `resetLauncher(portal)`,
+which the launcher panel calls; these are launcher-only, not part of the generic
+contract.
 
 ### API versioning
 
-`PORTAL_API_VERSION` (in `types.ts`, currently **1**) is the host contract
+`PORTAL_API_VERSION` (in `types.ts`, currently **2**) is the host contract
 version. A program declares the version it targets in `manifest.apiVersion`.
 OpenPortal runs a live program only when `apiVersion <=` the host version;
 otherwise it falls back to the built-in program and tells the user to update.
 Adding fields or calling existing `portal` methods needs no bump; bump only on a
 breaking change to the contract.
+
+**v2** slimmed the `portal` surface to a general core — `shell`, `installFromUrl`,
+`resolveGithubLatest`/`resolveFdroidLatest`, `pushText`/`pushUserPhotos`/`pushUploadedFile`,
+`step` — and dropped the thin device-utility wrappers that a single `shell(...)`
+reproduces (`getprop`, `getIpAddress`, `deviceFetchText`, `makeDirectory`,
+`removePath`, `getSetting`/`putSetting`, `dumpLogcat`/`clearLogcat`, `launchApp`,
+`log`, `sleep`). Morphe's `verifyMorpheManifest` also left the surface: Morphe now
+installs entirely host-side (`morphe-runner.ts`), since it is first-party and the
+Ed25519 check was already on the host, so the sandbox added nothing.
 
 ## Security model
 
@@ -126,8 +137,8 @@ The boundary is the **broker capability allowlist**, not the sandbox alone.
 1. **Capability broker (primary control).** The worker can only request methods
    in a fixed `portal.*` set. The broker validates arguments before touching the
    device: `https`-only URLs, paths under `/sdcard` or `/data/local/tmp` with no
-   `..`, install flags matched against `/^[-a-zA-Z0-9 ]*$/`, package-name and
-   settings-namespace checks. The `cfg` handed to the program is already
+   `..`, install flags matched against `/^[-a-zA-Z0-9 ]*$/`, and file-name checks
+   for pushes. The `cfg` handed to the program is already
    allowlist-validated by `findConfigViolations`. Every shell command, fetch,
    install, push, and setting write is shown in the panel's audit log, and the
    user can stop the run at any time (`worker.terminate()` + an overall timeout).

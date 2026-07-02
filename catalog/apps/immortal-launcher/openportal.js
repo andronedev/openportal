@@ -1,4 +1,4 @@
-// OpenPortal provisioning program (API v1).
+// OpenPortal provisioning program (API v2).
 //
 // This is the built-in reference program: a faithful translation of Immortal's
 // provisioning/provision.sh against the OpenPortal `portal` capability API. It
@@ -19,6 +19,19 @@ async function sh(portal, command, timeoutMs = 30000) {
 	} catch {
 		return { stdout: "", exitCode: 1 };
 	}
+}
+
+async function deviceIp(portal) {
+	const { stdout } = await sh(portal, "ip -o -4 addr show");
+	const entries = [];
+	for (const line of stdout.split("\n")) {
+		const m = /^\d+:\s+(\S+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/.exec(line.trim());
+		if (m && m[1] && m[2] && m[1] !== "lo" && !m[2].startsWith("127.")) {
+			entries.push({ iface: m[1], ip: m[2] });
+		}
+	}
+	const wifi = entries.find((e) => e.iface.startsWith("wlan"));
+	return wifi?.ip ?? entries[0]?.ip ?? null;
 }
 
 async function installClient(portal) {
@@ -323,7 +336,7 @@ async function enableFleet(portal, enabled, fleetName) {
 	}
 	portal.step("enableFleet", "running");
 	const dir = `/sdcard/Android/data/${cfg.pkg}/files/fleet`;
-	await portal.makeDirectory(dir).catch(() => {});
+	await sh(portal, `mkdir -p "${dir}"`);
 	const name = (fleetName ?? cfg.fleetName ?? "").trim();
 	const json = name
 		? `{"enabled":true,"name":${JSON.stringify(name)}}`
@@ -346,7 +359,7 @@ async function enableFleet(portal, enabled, fleetName) {
 	}
 	const port =
 		/"port":(\d+)/.exec(agentJson)?.[1] ?? String(cfg.fleetAgentPort);
-	const ip = (await portal.getIpAddress().catch(() => null)) ?? "";
+	const ip = (await deviceIp(portal)) ?? "";
 	const serial = (await sh(portal, "getprop ro.serialno")).stdout.trim();
 	const model = (await sh(portal, "getprop ro.product.model")).stdout.trim();
 	const resolvedName = name || /"name":"([^"]*)"/.exec(agentJson)?.[1] || model;
@@ -368,7 +381,7 @@ async function enableFleet(portal, enabled, fleetName) {
 async function configureBootApps(portal) {
 	const cfg = portal.cfg;
 	const dir = `/sdcard/Android/data/${cfg.pkg}/files`;
-	await portal.makeDirectory(dir).catch(() => {});
+	await sh(portal, `mkdir -p "${dir}"`);
 	if (cfg.bootApps.length > 0) {
 		portal.step("configureBootApps", "running");
 		try {
@@ -422,7 +435,7 @@ async function restoreAlexa(portal) {
 	await sh(portal, `pm grant ${fp} android.permission.RECORD_AUDIO`);
 	await sh(portal, "settings put secure user_setup_complete 1");
 	await sh(portal, `appops set ${fp} SYSTEM_ALERT_WINDOW allow`);
-	await portal.clearLogcat().catch(() => {});
+	await sh(portal, "logcat -c");
 	await sh(portal, `dumpsys deviceidle whitelist +${fp}`);
 	await sh(portal, `am start -n ${setup}`);
 	const mp = cfg.millenniumPkg;
@@ -436,7 +449,7 @@ async function restoreAlexa(portal) {
 	let regAt = -1;
 	let lastKick = -100;
 	for (let i = 0; i < 72; i++) {
-		const log = await portal.dumpLogcat().catch(() => "");
+		const log = (await sh(portal, "logcat -d -v threadtime", 60000)).stdout;
 		if (log.includes("in ReadyState")) {
 			ready = true;
 			break;
@@ -461,7 +474,7 @@ async function restoreAlexa(portal) {
 }
 
 export const manifest = {
-	apiVersion: 1,
+	apiVersion: 2,
 	name: "Immortal launcher",
 	steps: [
 		"installClient",

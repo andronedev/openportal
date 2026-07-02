@@ -1,12 +1,6 @@
-import { launchApp } from "@/lib/adb/app-manager";
-import { getIpAddress } from "@/lib/adb/device-info";
-import { makeDirectory, pushFile, removePath } from "@/lib/adb/file-system";
+import { makeDirectory, pushFile } from "@/lib/adb/file-system";
 import { installApp } from "@/lib/adb/install";
-import { clearLogcat, dumpLogcat } from "@/lib/adb/logcat";
-import { deviceFetchText } from "@/lib/adb/online-install";
-import { getSetting, putSetting } from "@/lib/adb/settings";
 import { execShell, getprop } from "@/lib/adb/shell";
-import { verifyAndParseManifest } from "@/lib/catalog/morphe";
 import {
 	resolveFdroidLatest,
 	resolveGithubLatest,
@@ -27,14 +21,12 @@ import type {
 	ProgramRun,
 	ProgramStatus,
 	ResultView,
-	SettingsNamespace,
 	WorkerToBroker,
 } from "./types";
 
 const WORKER_TIMEOUT_MS = 20 * 60 * 1000;
 const HTTPS_UNSAFE = /[\s"'`$;|&<>(){}\\]/;
 const FLAGS_RE = /^[-a-zA-Z0-9 ]*$/;
-const PKG_RE = /^[A-Za-z0-9_.]+$/;
 const DEVICE_ROOTS = ["/sdcard/", "/data/local/tmp/"];
 
 export async function readSdk(adb: Adb): Promise<number> {
@@ -90,19 +82,6 @@ function reqFileName(value: unknown): string {
 		throw new Error(`Unsafe file name: ${name}`);
 	}
 	return name;
-}
-
-function reqNamespace(value: unknown): SettingsNamespace {
-	if (value === "global" || value === "secure" || value === "system") {
-		return value;
-	}
-	throw new Error(`Invalid settings namespace: ${String(value)}`);
-}
-
-function reqPackage(value: unknown): string {
-	const pkg = reqString(value, "package");
-	if (!PKG_RE.test(pkg)) throw new Error(`Invalid package: ${pkg}`);
-	return pkg;
 }
 
 /**
@@ -170,17 +149,6 @@ async function dispatch(
 			audit(command);
 			return execShell(adb, command, timeoutMs != null ? { timeoutMs } : {});
 		}
-		case "getprop":
-			return getprop(adb, reqString(args[0], "key"));
-		case "getIpAddress":
-			return getIpAddress(adb);
-		case "deviceFetchText": {
-			const url = reqHttpsUrl(args[0]);
-			audit(url);
-			return deviceFetchText(adb, url);
-		}
-		case "verifyMorpheManifest":
-			return verifyAndParseManifest(reqString(args[0], "manifest"));
 		case "installFromUrl": {
 			const urls = reqUrlList(args[0]);
 			const opts = args[1] as
@@ -198,16 +166,6 @@ async function dispatch(
 		case "resolveFdroidLatest":
 			return (await resolveFdroidLatest(adb, reqString(args[0], "packageName")))
 				.urls;
-		case "makeDirectory": {
-			const path = reqDevicePath(args[0]);
-			audit(path);
-			return makeDirectory(adb, path);
-		}
-		case "removePath": {
-			const path = reqDevicePath(args[0]);
-			audit(path);
-			return removePath(adb, path);
-		}
 		case "pushText": {
 			const directory = reqDevicePath(args[0]);
 			const name = reqFileName(args[1]);
@@ -230,24 +188,6 @@ async function dispatch(
 			const name = reqFileName(args[2]);
 			audit(`${directory}/${name}`);
 			return pushUploadedFile(adb, field, directory, name, run?.files);
-		}
-		case "getSetting":
-			return getSetting(adb, reqNamespace(args[0]), reqString(args[1], "key"));
-		case "putSetting": {
-			const ns = reqNamespace(args[0]);
-			const key = reqString(args[1], "key");
-			const value = reqString(args[2], "value");
-			audit(`${ns} ${key}=${value}`);
-			return putSetting(adb, ns, key, value);
-		}
-		case "dumpLogcat":
-			return dumpLogcat(adb);
-		case "clearLogcat":
-			return clearLogcat(adb);
-		case "launchApp": {
-			const pkg = reqPackage(args[0]);
-			audit(pkg);
-			return launchApp(adb, pkg);
 		}
 		default:
 			throw new Error(`Blocked provisioning method: ${method}`);
@@ -330,9 +270,6 @@ function runEntry(
 					}
 					case "event":
 						onStep(msg.event);
-						break;
-					case "log":
-						run?.onCommand?.({ method: "log", detail: msg.message });
 						break;
 					case "done":
 						finish(() => resolve(msg.value));

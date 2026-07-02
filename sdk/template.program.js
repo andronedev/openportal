@@ -1,41 +1,39 @@
 /// <reference path="./program-sdk.d.ts" />
 //
-// Starter OpenPortal provisioning program. Copy this to
-// provisioning/openportal.js in your release, then fill in the steps.
-// OpenPortal fetches it live from your latest release tag and runs it in a
-// sandboxed worker. See sdk/README.md for the full contract, and
+// Starter OpenPortal setup program. Copy this to provisioning/openportal.js in
+// your release (verified partner) or to your app's catalog folder (first-party),
+// then fill in the steps. OpenPortal runs it in a sandboxed worker. See
+// sdk/README.md for the full contract, and
 // catalog/apps/immortal-launcher/openportal.js for a complete example.
 
 /** @type {ProgramManifest} */
 export const manifest = {
 	// Bump only when you rely on host features newer than the user's OpenPortal.
-	apiVersion: 1,
-	name: "My launcher",
+	apiVersion: 2,
+	name: "My app setup",
 	// Step ids in display order (must match the ids you pass to portal.step()).
-	steps: ["installClient", "grantPerms", "finish"],
+	steps: ["install", "configure", "finish"],
+	// Optional guidance rendered above the form.
+	presentation: {
+		intro: "What this setup does, in one line.",
+	},
 	fields: [
-		{ key: "setLauncher", type: "boolean", label: "Set as the home launcher" },
 		{
-			key: "restoreAlexa",
+			key: "enableThing",
 			type: "boolean",
-			label: "Restore on-device Alexa",
-			// Shown but disabled on Android 10+.
-			enabledWhen: { sdkLessThan: 29 },
-			disabledHint: "Only available on Portals running Android 9.",
+			label: "Enable the thing",
+			default: true,
 		},
 	],
 };
 
 /**
- * Initial answers, computed from the live config and the device.
+ * Initial answers, computed from the device.
  * @param {Portal} portal
  * @returns {ProgramAnswers}
  */
 export function defaultOptions(portal) {
-	return {
-		setLauncher: portal.cfg.setLauncher,
-		restoreAlexa: false,
-	};
+	return { enableThing: portal.sdk >= 29 };
 }
 
 /**
@@ -44,56 +42,33 @@ export function defaultOptions(portal) {
  * @returns {Promise<ProgramResult>}
  */
 export async function provision(portal, answers) {
-	portal.step("installClient", "running");
-	const urls = await portal.resolveGithubLatest(portal.cfg.releaseRepo);
-	await portal.installFromUrl(urls, { flags: "-r -d" });
-	portal.step("installClient", "ok", portal.cfg.pkg);
+	const pkg = portal.app.packageName;
 
-	portal.step("grantPerms", "running");
-	await portal.shell(
-		`appops set ${portal.cfg.pkg} REQUEST_INSTALL_PACKAGES allow`,
-	);
-	portal.step("grantPerms", "ok");
+	portal.step("install", "running");
+	// Install from your latest GitHub release (or call installFromUrl directly).
+	const urls = await portal.resolveGithubLatest("owner/repo");
+	await portal.installFromUrl(urls, { flags: "-r" });
+	portal.step("install", "ok", pkg);
 
-	if (answers.setLauncher) {
-		await portal.shell(`cmd package set-home-activity ${portal.cfg.homeActivity}`);
+	portal.step("configure", "running");
+	if (answers.enableThing) {
+		// `shell` is the escape hatch: grant a permission, flip a setting, launch…
+		await portal.shell(`pm grant ${pkg} android.permission.WRITE_SECURE_SETTINGS`);
+		await portal.shell("settings put secure some_flag 1");
+		await portal.shell(`monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`);
 	}
+	portal.step("configure", "ok");
 
 	portal.step("finish", "ok");
+	// Optionally return links/text/JSON for the panel to render after the run.
 	return { fleet: null };
 }
 
-/** @param {Portal} portal */
+/**
+ * Optional: undo the setup (run before uninstall).
+ * @param {Portal} portal
+ */
 export async function restore(portal) {
-	await portal.shell("settings put global package_verifier_enable 1");
+	await portal.shell("settings put secure some_flag 0");
 	portal.step("finish", "ok");
-}
-
-/**
- * @param {Portal} portal
- * @returns {Promise<ProgramStatus>}
- */
-export async function status(portal) {
-	const installed = (
-		await portal.shell(`pm list packages ${portal.cfg.pkg}`)
-	).stdout.includes(`package:${portal.cfg.pkg}`);
-	return {
-		statusBar: "stock",
-		darkMode: false,
-		home: "",
-		screensaver: "",
-		verifier: "enabled",
-		installerDialog: "stock",
-		osUpdates: "enabled",
-		client: installed ? "installed" : "not installed",
-	};
-}
-
-/**
- * @param {Portal} portal
- * @returns {Promise<string>}
- */
-export async function resetLauncher(portal) {
-	await portal.shell(`cmd package set-home-activity ${portal.cfg.stockHome}`);
-	return portal.cfg.stockHome;
 }

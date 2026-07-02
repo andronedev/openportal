@@ -1,8 +1,7 @@
 import type { InstallStage } from "@/lib/adb/install";
-import type { MorpheManifest } from "@/lib/catalog/morphe";
 import type { ProgramConfig } from "@/lib/programs/config";
 
-export type { InstallStage, MorpheManifest };
+export type { InstallStage };
 
 /**
  * Major version of the host <-> program contract (the `Portal` surface, the
@@ -10,8 +9,13 @@ export type { InstallStage, MorpheManifest };
  * targets via `manifest.apiVersion`; the host runs it only when that value is
  * <= PORTAL_API_VERSION, and otherwise falls back to the vendored program.
  * Bump this on any breaking change to the contract.
+ *
+ * v2: dropped the device-utility wrappers that a single `shell(...)` reproduces
+ * (getprop, settings, logcat, mkdir, launch, …) and the Morphe-specific
+ * `verifyMorpheManifest` (Morphe now runs host-side). The surface is a general
+ * core: `shell`, `installFromUrl`, the source resolvers, the file pushes, `step`.
  */
-export const PORTAL_API_VERSION = 1;
+export const PORTAL_API_VERSION = 2;
 
 export type StepStatus = "running" | "ok" | "warn" | "skip" | "error";
 
@@ -166,13 +170,17 @@ export interface InstallOptions {
 	onProgress?: (stage: InstallStage, percent: number | null) => void;
 }
 
-export type SettingsNamespace = "global" | "secure" | "system";
-
 /**
  * The capability surface handed to a provisioning program inside the sandboxed
  * worker. Every method round-trips to the main-thread broker, which holds the
  * live Adb handle, validates the request, and runs it through an `src/lib/adb`
  * wrapper. The worker never sees the Adb handle or the credential store.
+ *
+ * The surface is deliberately small: `shell` is the escape hatch (any device
+ * command a program needs), and the rest are the things a raw shell can't do
+ * cleanly — a verified/staged install, source resolution, and file pushes whose
+ * bytes never enter the worker. There are no thin wrappers over single shell
+ * commands (getprop, settings, logcat, mkdir, launch, …); use `shell` for those.
  */
 export interface Portal {
 	readonly sdk: number;
@@ -183,20 +191,9 @@ export interface Portal {
 		command: string,
 		opts?: { timeoutMs?: number },
 	): Promise<{ stdout: string; exitCode: number }>;
-	getprop(key: string): Promise<string>;
-	getIpAddress(): Promise<string | null>;
-	deviceFetchText(url: string): Promise<string>;
-	/**
-	 * Verifies a Morphe manifest envelope (Ed25519, against OpenPortal's pinned
-	 * key) and returns the parsed manifest. The key and verification stay on the
-	 * host: a program can orchestrate a modded-app install but cannot forge one.
-	 */
-	verifyMorpheManifest(text: string): Promise<MorpheManifest>;
 	installFromUrl(urls: string | string[], opts?: InstallOptions): Promise<void>;
 	resolveGithubLatest(repo: string): Promise<string[]>;
 	resolveFdroidLatest(packageName: string): Promise<string[]>;
-	makeDirectory(path: string): Promise<void>;
-	removePath(path: string): Promise<void>;
 	pushText(directory: string, name: string, text: string): Promise<void>;
 	pushUserPhotos(directory: string): Promise<number>;
 	/**
@@ -210,18 +207,7 @@ export interface Portal {
 		directory: string,
 		name: string,
 	): Promise<void>;
-	getSetting(namespace: SettingsNamespace, key: string): Promise<string>;
-	putSetting(
-		namespace: SettingsNamespace,
-		key: string,
-		value: string,
-	): Promise<void>;
-	dumpLogcat(): Promise<string>;
-	clearLogcat(): Promise<void>;
-	launchApp(packageName: string): Promise<void>;
 	step(id: string, status: StepStatus, detail?: string, code?: string): void;
-	log(message: string): void;
-	sleep(ms: number): Promise<void>;
 }
 
 export interface ProgramContext {
@@ -247,6 +233,5 @@ export type BrokerToWorker =
 export type WorkerToBroker =
 	| { kind: "rpc"; id: number; method: string; args: unknown[] }
 	| { kind: "event"; event: StepEvent }
-	| { kind: "log"; message: string }
 	| { kind: "done"; value: unknown }
 	| { kind: "fail"; message: string };

@@ -1,4 +1,4 @@
-// OpenPortal program SDK — type definitions (API v1).
+// OpenPortal program SDK — type definitions (API v2).
 //
 // These types describe the contract between OpenPortal (the host) and a setup
 // program. Reference this file from your program to get editor autocomplete and
@@ -13,63 +13,14 @@
 // the `portal` object below. Every `portal` call is validated by the host on
 // the main thread, where the live ADB connection lives.
 
-/** A live, allowlist-validated view of a launcher's config.env (Immortal-shaped). */
-interface ProgramConfig {
-	pkg: string;
-	homeActivity: string;
-	dreamService: string;
-	stockHome: string;
-	stockDream: string;
-	stockDefaultDream: string;
-	verifierPkg: string;
-	disableInstallerOverlay: boolean;
-	installerOverlayPkgs: string[];
-	setLauncher: boolean;
-	setScreensaver: boolean;
-	disableVerifier: boolean;
-	presencePkg: string;
-	disablePresence: boolean;
-	disableOta: boolean | null;
-	otaPackages: string[];
-	permissions: string[];
-	preinstallFdroid: string[];
-	preinstallApks: string[];
-	bootApps: string[];
-	enableFleet: boolean;
-	fleetName: string;
-	fleetAgentPort: number;
-	releaseRepo: string;
-	releaseApkUrl: string;
-	shizukuApkUrl: string;
-	restoreAlexa: boolean | null;
-	falconPkg: string;
-	falconPatchedUrl: string;
-	falconResultSha256: string;
-	millenniumPkg: string;
-	millenniumApkUrl: string;
-	/** Every raw KEY=value from config.env, for fields not modelled above. */
-	raw: Record<string, string>;
-}
+/**
+ * The launcher config the host loaded for this app, as raw KEY=value strings.
+ * Empty for programs that aren't a launcher. Read whichever keys you need.
+ */
+type ProgramConfig = Record<string, string>;
 
 type StepStatus = "running" | "ok" | "warn" | "skip" | "error";
-type SettingsNamespace = "global" | "secure" | "system";
 type InstallStage = "downloading" | "installing" | "done";
-
-interface MorpheManifestApp {
-	id: string;
-	packageName: string;
-	version: string;
-	arch?: string;
-	sha256: string;
-	size?: number;
-	urls: string[];
-}
-
-interface MorpheManifest {
-	version: number;
-	generatedAt: string;
-	apps: MorpheManifestApp[];
-}
 
 interface InstallOptions {
 	/** If set, the host verifies the downloaded APK's sha256 on the device. */
@@ -86,39 +37,31 @@ interface ProgramApp {
 }
 
 /**
- * The capability surface. Paths for file ops must live under /sdcard or
- * /data/local/tmp. URLs must be https. `shell` runs raw, but every command is
- * shown in the user's audit log.
+ * The capability surface. It is deliberately small: `shell` runs any device
+ * command (and every command is shown in the user's audit log), and the rest
+ * cover what a raw shell can't do cleanly — a verified/staged install, source
+ * resolution, and file pushes whose bytes never enter the sandbox. For anything
+ * else (settings, getprop, logcat, launching an app, mkdir, …) use `shell`.
+ * Paths for file ops must live under /sdcard or /data/local/tmp; URLs must be https.
  */
 interface Portal {
 	/** Android API level of the connected device (e.g. 28 for A9, 29 for A10). */
 	readonly sdk: number;
-	/** A launcher's config.env (Immortal-shaped); empty for other programs. */
+	/** The launcher config.env as raw KEY=value strings; empty for other programs. */
 	readonly cfg: ProgramConfig;
 	/** The catalog app this program runs for (package name, display name). */
 	readonly app: ProgramApp;
+	/** Run a shell command on the device. Every command shows in the audit log. */
 	shell(
 		command: string,
 		opts?: { timeoutMs?: number },
 	): Promise<{ stdout: string; exitCode: number }>;
-	getprop(key: string): Promise<string>;
-	getIpAddress(): Promise<string | null>;
-	/** Fetch a URL from the device shell (no browser CORS). */
-	deviceFetchText(url: string): Promise<string>;
-	/**
-	 * Verify a Morphe manifest envelope (Ed25519, against OpenPortal's pinned
-	 * key) and return the parsed manifest. The key and verification stay on the
-	 * host: a program can orchestrate a modded-app install but cannot forge one.
-	 */
-	verifyMorpheManifest(text: string): Promise<MorpheManifest>;
-	/** Download an APK on the device and install it. */
+	/** Download an APK on the device and install it (optionally sha256-verified). */
 	installFromUrl(urls: string | string[], opts?: InstallOptions): Promise<void>;
-	/** Resolve the latest GitHub release APK URLs for a repo. */
+	/** Resolve the latest GitHub release APK URLs for a repo (e.g. "owner/name"). */
 	resolveGithubLatest(repo: string): Promise<string[]>;
 	/** Resolve the latest F-Droid APK URLs for a package. */
 	resolveFdroidLatest(packageName: string): Promise<string[]>;
-	makeDirectory(path: string): Promise<void>;
-	removePath(path: string): Promise<void>;
 	/** Write a UTF-8 text file to a device directory. */
 	pushText(directory: string, name: string, text: string): Promise<void>;
 	/** Push the user-selected photos (if any) and return how many were written. */
@@ -129,20 +72,8 @@ interface Portal {
 	 * you can place a user's credential file without ever reading it.
 	 */
 	pushUploadedFile(field: string, directory: string, name: string): Promise<void>;
-	getSetting(namespace: SettingsNamespace, key: string): Promise<string>;
-	putSetting(
-		namespace: SettingsNamespace,
-		key: string,
-		value: string,
-	): Promise<void>;
-	dumpLogcat(): Promise<string>;
-	clearLogcat(): Promise<void>;
-	launchApp(packageName: string): Promise<void>;
 	/** Report a step to the panel's progress list. */
 	step(id: string, status: StepStatus, detail?: string, code?: string): void;
-	/** Free-text log line (shown in the audit view). */
-	log(message: string): void;
-	sleep(ms: number): Promise<void>;
 }
 
 interface FleetInventory {
@@ -168,17 +99,6 @@ interface ResultView {
 interface ProgramResult {
 	fleet: FleetInventory | null;
 	view?: ResultView;
-}
-
-interface ProgramStatus {
-	statusBar: string;
-	darkMode: boolean;
-	home: string;
-	screensaver: string;
-	verifier: "disabled" | "enabled";
-	installerDialog: "fixed" | "stock";
-	osUpdates: "disabled" | "enabled";
-	client: "installed" | "not installed";
 }
 
 /** The user's answers to the manifest fields, keyed by field key. */
@@ -219,7 +139,7 @@ interface ManifestField {
 /**
  * Static guidance the panel renders above the form: an intro line, a numbered
  * how-to, and one external link. Lets a program show instructions without any UI
- * code (what a bespoke React panel used to hard-code).
+ * code.
  */
 interface ProgramPresentation {
 	intro?: string;
@@ -239,15 +159,13 @@ interface ProgramManifest {
 
 /**
  * The exports your program module provides. `manifest` and `provision` are
- * required (with `defaultOptions` to seed the form); `restore`, `status`, and
- * `resetLauncher` are optional. A config-only program (no device teardown, no
- * launcher) can export just `manifest`, `defaultOptions`, and `provision`.
+ * required (with `defaultOptions` to seed the form); `restore` is optional (run
+ * to undo the setup, e.g. before uninstall). A config-only program (no device
+ * teardown) can export just `manifest`, `defaultOptions`, and `provision`.
  */
 interface ProgramModule {
 	manifest: ProgramManifest | (() => ProgramManifest);
 	defaultOptions(portal: Portal): ProgramAnswers | Promise<ProgramAnswers>;
 	provision(portal: Portal, answers: ProgramAnswers): Promise<ProgramResult>;
 	restore?(portal: Portal): Promise<void>;
-	status?(portal: Portal): Promise<ProgramStatus>;
-	resetLauncher?(portal: Portal): Promise<string>;
 }

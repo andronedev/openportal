@@ -38,13 +38,16 @@ Copy `template.program.js`. Your module must export:
 | `manifest` | Object (or function returning one) declaring `apiVersion`, `fields`, `steps`, and optional `presentation`. Drives the panel form. |
 | `defaultOptions(portal)` | Initial answers, computed from `portal.cfg` / `portal.sdk` / `portal.app`. |
 | `provision(portal, answers)` | The setup. May return `{ fleet }` and/or a `{ view }` for the panel to render (links, text, a download). |
-| `restore(portal)` | Optional. Undo provisioning. |
-| `status(portal)` | Optional. Read current device state for the panel. |
-| `resetLauncher(portal)` | Optional. Restore the stock launcher. |
+| `restore(portal)` | Optional. Undo the setup (run before uninstall). |
 
 Only `manifest`, `defaultOptions`, and `provision` are required. A config-only
 program (a screensaver, a URL to open, no device teardown) can export just those
 three.
+
+> Launcher programs may additionally export `status(portal)` and
+> `resetLauncher(portal)` — advanced, launcher-only hooks the launcher panel
+> calls. They are not part of the generic contract above; see the Immortal
+> reference program if you are building a launcher.
 
 Get editor types with no build step by referencing the SDK at the top of your file:
 
@@ -56,17 +59,30 @@ export async function provision(portal, answers) { /* ... */ }
 
 ### The `portal` API
 
-`portal.sdk` (Android API level), `portal.cfg` (a launcher's validated
-`config.env`, empty for other programs), and `portal.app` (`{ packageName, name }`
-of the catalog app) are provided. Methods: `shell`, `getprop`, `getIpAddress`,
-`deviceFetchText`, `installFromUrl`, `resolveGithubLatest`, `resolveFdroidLatest`,
-`makeDirectory`, `removePath`, `pushText`, `pushUserPhotos`, `pushUploadedFile`,
-`getSetting`, `putSetting`, `dumpLogcat`, `clearLogcat`, `launchApp`, `step`,
-`log`, `sleep`. See the d.ts for exact signatures.
+Provided: `portal.sdk` (Android API level), `portal.cfg` (the launcher's
+`config.env` as raw KEY=value strings, empty for other programs), and
+`portal.app` (`{ packageName, name }` of the catalog app).
+
+The surface is deliberately small — `shell` plus the things a raw shell can't do
+cleanly:
+
+- `shell(command, opts?)` — run any device command. This is the escape hatch:
+  settings, `getprop`, `pm`/`appops`, `logcat`, `mkdir`, launching an app, and
+  anything else you discover all go through here.
+- `installFromUrl(urls, opts?)` — download an APK on the device and install it,
+  with optional `sha256` verification and `onProgress`.
+- `resolveGithubLatest(repo)` / `resolveFdroidLatest(pkg)` — resolve the latest
+  release APK URLs for a source.
+- `pushText(dir, name, text)` — write a text file to the device.
+- `pushUserPhotos(dir)` / `pushUploadedFile(field, dir, name)` — place
+  user-supplied files; their bytes never enter the sandbox.
+- `step(id, status, detail?, code?)` — report progress to the panel.
+
+See the d.ts for exact signatures.
 
 `shell` runs raw, so you can run any command you discover. It is bounded to the
 connected device and logged for the user; it cannot reach the credential store,
-other devices, or the network.
+other devices, or the browser network.
 
 ### The manifest form
 
@@ -75,11 +91,11 @@ Each field is rendered automatically. Field types: `boolean`, `text`, `select`,
 
 ```js
 fields: [
-  { key: "setLauncher", type: "boolean", label: "Set as the home launcher" },
-  { key: "restoreAlexa", type: "boolean", label: "Restore Alexa",
+  { key: "setAsDefault", type: "boolean", label: "Set as the default" },
+  { key: "legacyMode", type: "boolean", label: "Legacy mode",
     enabledWhen: { sdkLessThan: 29 }, disabledHint: "Android 9 only." },
-  { key: "fleetName", type: "text", label: "Device name",
-    showWhen: { whenOption: "enableFleet", equals: true } },
+  { key: "deviceName", type: "text", label: "Device name",
+    showWhen: { whenOption: "enableSync", equals: true } },
   { key: "creds", type: "file", label: "OAuth credentials", accept: ".json" },
 ]
 ```
@@ -114,12 +130,17 @@ length-capped, and a `download` is serialized defensively.
 
 ## API versioning
 
-`PORTAL_API_VERSION` is the host contract version (currently **1**). Declare the
+`PORTAL_API_VERSION` is the host contract version (currently **2**). Declare the
 version your program targets in `manifest.apiVersion`. OpenPortal runs your
 program only when `apiVersion <= ` the user's host version; otherwise it falls
 back to the built-in program and asks the user to update. Adding fields or
 calling existing `portal` methods does not need a bump; only bump when you rely
 on capabilities introduced by a newer host.
+
+> **v2** trimmed the surface: the thin device-utility wrappers (`getprop`,
+> `getIpAddress`, `deviceFetchText`, `makeDirectory`, `removePath`,
+> `getSetting`/`putSetting`, `dumpLogcat`/`clearLogcat`, `launchApp`) and
+> `verifyMorpheManifest` were removed — use `shell` for device utilities.
 
 ## Testing
 
