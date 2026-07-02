@@ -1,0 +1,11 @@
+{
+	"id": "antennapod",
+	"name": "AntennaPod",
+	"packageName": "de.danoeh.antennapod",
+	"description": "Open-source podcast manager and player",
+	"category": "media",
+	"version": "3.11.4",
+	"source": "fdroid",
+	"repo": "AntennaPod/AntennaPod",
+	"iconUrl": "https://f-droid.org/repo/de.danoeh.antennapod/en-US/icon.png"
+}

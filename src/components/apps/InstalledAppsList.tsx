@@ -4,9 +4,9 @@ import {
 	EmptyState,
 	Segmented,
 } from "@/components/ui/primitives";
-import { installFromUrl } from "@/lib/adb/online-install";
+import { installApp } from "@/lib/adb/install";
 import type { InstalledPackage } from "@/lib/adb/types";
-import { getAppIconUrl, getCatalogApp } from "@/lib/portal/catalog";
+import { getAppIconUrl, getCatalogApp, isPanelProgram } from "@/lib/catalog";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";
@@ -85,7 +85,11 @@ export function InstalledAppsList() {
 			for (const [packageName, update] of Object.entries(updates)) {
 				const name = getCatalogApp(packageName)?.name ?? packageName;
 				try {
-					await installFromUrl(adb, update.urls, undefined, update.sha256);
+					await installApp(adb, {
+						kind: "url",
+						urls: update.urls,
+						sha256: update.sha256,
+					});
 					clearUpdate(packageName);
 					toast.success(name, { description: t("updated") });
 				} catch (err) {
@@ -188,18 +192,18 @@ function InstalledRow({
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [setupOpen, setSetupOpen] = useState(false);
 
-	const setup = catApp?.setup;
+	const program = catApp?.program;
 	const revertOnUninstall =
-		setup?.kind === "custom" && setup.revertOnUninstall === true;
+		isPanelProgram(program) && program.revertOnUninstall === true;
 	const showSetupGear =
-		!!setup &&
+		!!program &&
 		!actions.hasUpdate &&
-		(setup.kind === "custom" ||
+		(isPanelProgram(program) ||
 			!(catApp?.category === "launcher" && isDefaultLauncher));
 
 	const handleSetup = () => {
-		if (!setup) return;
-		if (setup.kind === "custom") setSetupOpen(true);
+		if (!program) return;
+		if (isPanelProgram(program)) setSetupOpen(true);
 		else actions.runSetup();
 	};
 
@@ -273,9 +277,9 @@ function InstalledRow({
 						{t("update")}
 					</button>
 				)}
-				{showSetupGear && setup && (
+				{showSetupGear && program && (
 					<IconAction
-						title={t(setup.labelKey ?? "runSetup")}
+						title={t(program.labelKey ?? "runSetup")}
 						onClick={handleSetup}
 					>
 						<Settings className="h-4 w-4" />

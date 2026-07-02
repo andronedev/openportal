@@ -1,12 +1,13 @@
 import { Modal, Spinner } from "@/components/ui/primitives";
-import type { CatalogApp } from "@/lib/portal/catalog";
-import { Suspense } from "react";
-import { SETUP_PANELS } from "./registry";
+import type { CatalogApp } from "@/lib/catalog";
+import { Suspense, lazy } from "react";
+
+const SandboxedProgramPanel = lazy(() => import("./SandboxedProgramPanel"));
 
 /**
- * Hosts the custom setup panel for an app inside a modal. Looks the panel up by
- * its `setup.id` and lazy-loads it; renders nothing when the app has no custom
- * setup or no panel is registered for its id.
+ * Hosts an app's setup inside a modal. Every app that needs a setup UI declares
+ * a `sandboxed` program, so this renders the one generic program runner; it
+ * renders nothing for apps with no (or a declarative `commands`) program.
  */
 export function AppSetupPanel({
 	app,
@@ -17,12 +18,11 @@ export function AppSetupPanel({
 	open: boolean;
 	onClose: () => void;
 }) {
-	const id = app.setup?.kind === "custom" ? app.setup.id : undefined;
-	const Panel = id ? SETUP_PANELS[id] : undefined;
+	const isSandboxed = app.program?.kind === "sandboxed";
 
 	return (
-		<Modal open={open && !!Panel} onClose={onClose} title={app.name}>
-			{Panel && (
+		<Modal open={open && isSandboxed} onClose={onClose} title={app.name}>
+			{isSandboxed && (
 				<Suspense
 					fallback={
 						<div className="flex justify-center py-6">
@@ -30,7 +30,7 @@ export function AppSetupPanel({
 						</div>
 					}
 				>
-					<Panel app={app} onClose={onClose} />
+					<SandboxedProgramPanel app={app} onClose={onClose} />
 				</Suspense>
 			)}
 		</Modal>

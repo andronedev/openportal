@@ -22,7 +22,7 @@ entire UI **without a device** using demo mode: `http://localhost:5173/?demo`.
 | `pnpm preview` | Preview the production build locally |
 | `pnpm lint` | Run Biome checks (lint + format + import order) |
 | `pnpm format` | Auto-format the codebase with Biome |
-| `node scripts/check-provision-drift.mjs` | Check Immortal's provisioning kit against the vendored snapshot (see `docs/provisioning.md`) |
+| `node scripts/check-provision-drift.mjs` | Check Immortal's provisioning kit against the vendored snapshot (see `docs/programs.md`) |
 | `node scripts/vendor-provision.mjs [ref]` | Re-vendor Immortal's `provision.sh` and `config.env` from a release tag |
 
 Please make sure `pnpm build` and `pnpm lint` both pass before opening a PR.
@@ -49,10 +49,11 @@ Please make sure `pnpm build` and `pnpm lint` both pass before opening a PR.
 
 ## Adding an app to the catalog
 
-The catalog is data-only and lives in
-[`src/lib/portal/catalog.json`](src/lib/portal/catalog.json) so apps can be
-submitted with a simple PR — no code changes required. Add an object to the
-array:
+The catalog is data-only and lives at the repo root in
+[`catalog/`](catalog/): one folder per app under `catalog/apps/<id>/app.json`,
+so apps can be submitted with a simple PR — no code changes required. Copy
+`catalog/_template/app.json`, fill it in, and add your id to `catalog/index.json`
+`order`:
 
 ```json
 {
@@ -62,61 +63,47 @@ array:
   "description": "What it does, in one sentence.",
   "category": "utility",
   "version": "1.0.0",
-  "downloadUrl": "https://...",
-  "iconUrl": "https://...",
-  "setup": {
-    "kind": "commands",
-    "commands": ["settings put secure ..."],
-    "labelKey": "setAsDefault"
-  }
+  "source": "github",
+  "repo": "owner/repo",
+  "iconUrl": "https://..."
 }
 ```
 
-Field reference:
+**The full field reference lives in [`catalog/README.md`](catalog/README.md).**
+In short: `id`/`name`/`packageName`/`description`/`category`/`version` are
+required; `source` is `github` | `fdroid` | `url` | `morphe` | `external` (omit
+it when a `program` drives the install); curation (`order`, `featured` for the
+"Made for Portal" pins) lives in `catalog/index.json`, not the app files. There
+is no per-app "custom source" — anything non-standard is a `program`.
 
-- `id` — unique kebab-case identifier
-- `packageName` — exact Android package name
-- `category` — one of `launcher`, `store`, `media`, `photo`, `smartHome`,
-  `assistant`, `utility`
-- `madeForPortal` — optional; `true` for apps built specifically for the Portal.
-  They get a "Made for Portal" badge and a pinned section at the top of the catalog
-- `advancedOnly` — optional; `true` restricts the app to Advanced mode. By default
-  (omitted) every app is listed in Classic mode too
-- `downloadUrl`, `iconUrl` — optional
-- `repo` — optional `owner/repo` on GitHub. Required for `source: "github"` (the
-  APK is resolved from its releases); for any source it also renders that repo's
-  README on the app's detail page, so pointing an F-Droid or URL app at its GitHub
-  mirror gives it a rich description
-- `assetPattern` — optional, `source: "github"` only; a case-insensitive regex
-  matched against release asset file names to pick the right APK when a release
-  ships several variants (per-ABI splits, signed vs unsigned flavors, TV builds).
-  The first match wins. Omit it to take the first `.apk` asset; set it when that
-  default would grab an unsigned or off-target build (e.g.
-  `"^app-mobile-universal-release\\.apk$"` for a signed universal build). The
-  Portal is arm64, so prefer a `universal` or `arm64` asset
-- `iconFile` — optional; use instead of `iconUrl` when the app has no hosted
-  icon to link to. Drop a square PNG at `public/app-icons/<packageName>.png` and
-  set `"iconFile": true` (or pass an extension like `"svg"`). `iconUrl` wins when
-  both are set; with neither, the card shows an initials avatar.
-- `skipUpdateCheck` — optional; set `true` to suppress the "update available"
-  check when upstream versioning is unreliable (e.g. a release tag that doesn't
-  match the APK's embedded versionName, which would flag a phantom update)
-- `customSource` — optional; with `source: "custom"`, the id of a resolver in
-  `src/lib/portal/custom-sources/registry.ts` that fetches the app's latest APK
-  and version with bespoke code. Use it for apps with no standard GitHub/F-Droid
-  release feed (e.g. a self-hosted version manifest whose tags drift from the
-  APK's versionName). Like a custom `setup` panel, this catalog change also needs
-  a matching code change
-- `setup` — optional post-install configuration, one of two shapes:
+The `program` field is data too (a JSON block, plus an `openportal.js` for the
+sandboxed kind), so it needs no `src/` change:
+
+- `program` — optional lifecycle program: everything the app needs beyond a
+  plain install. One of two kinds:
   - `{ "kind": "commands", "commands": [...], "auto"?: boolean, "labelKey"?: string }`
     — shell commands to finish setup. `auto: true` runs them silently right
     after install (e.g. a launcher becoming the default); otherwise they run
     when the user clicks the setup gear on the app card. `labelKey` is an i18n
-    key in `src/locales/<lang>/apps.json` used for the gear's tooltip.
-  - `{ "kind": "custom", "id": "...", "labelKey"?: string }` — setup that needs
-    a UI (e.g. uploading credentials). The `id` must match a panel registered in
-    `src/components/apps/setup/registry.ts`. **This is the only catalog change
-    that also requires code** — most apps should use `commands`.
+    key in `src/locales/<lang>/apps.json` used for the gear's tooltip. **This is
+    the kind most apps should use.**
+  - `{ "kind": "sandboxed", "repo"?: "owner/repo", "programPath"?: "...", "trust": "first-party" | "verified", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
+    — a JavaScript program run in a sandboxed worker via the `portal` capability
+    API, which declares its own UI (a manifest form, a `file` field, static
+    presentation, a returned result view), so setup that needs configuration is
+    data, not code. A first-party program is bundled as `openportal.js` in the app's
+    own folder (omit `repo`); a partner ships one in **their own** repo, fetched
+    from their latest release (default path `provisioning/openportal.js`)
+    with a bundled `openportal.js` as the offline fallback. `handlesInstall` makes
+    the Install button open the panel instead of installing directly;
+    `revertOnUninstall` runs the program's revert before uninstall. See
+    `docs/programs.md` and `sdk/`.
+
+  A `sandboxed` program runs partner-authored code (raw device shell), so it is
+  gated by `trust`: only `"verified"` (a vetted partner) or `"first-party"`
+  (OpenPortal's own) programs are fetched and executed; anything else is
+  refused. **`trust` is enforced at review time** — do not merge a catalog PR
+  that claims `"verified"` for a repo the maintainers have not vetted.
 
 Guidelines:
 

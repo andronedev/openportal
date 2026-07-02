@@ -2,7 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Spinner } from "@/components/ui/primitives";
 import { useTheme } from "@/hooks/use-theme";
 import { MOCK_DEVICE_INFO } from "@/lib/adb/mock";
-import { resolveModel } from "@/lib/portal/models";
+import { resolveModel } from "@/lib/device/models";
 import { AppsPage } from "@/pages/AppsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { useDeviceStore } from "@/store/device-store";

@@ -1,0 +1,13 @@
+{
+	"id": "archivetune",
+	"name": "ArchiveTune",
+	"packageName": "moe.koiverse.archivetune",
+	"description": "Material 3 music player with local files and YouTube Music support",
+	"category": "media",
+	"version": "latest",
+	"source": "github",
+	"repo": "ArchiveTuneApp/ArchiveTune",
+	"assetPattern": "^app-mobile-universal-release\\.apk$",
+	"downloadUrl": "https://github.com/ArchiveTuneApp/ArchiveTune/releases/latest",
+	"iconUrl": "https://apt.izzysoft.de/fdroid/repo/moe.koiverse.archivetune/en-US/icon.png"
+}

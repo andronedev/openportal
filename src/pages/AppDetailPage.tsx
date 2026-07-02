@@ -17,13 +17,14 @@ import {
 	getAppIconUrl,
 	getAppShareUrl,
 	getCatalogApp,
-} from "@/lib/portal/catalog";
-import { useReadme } from "@/lib/portal/readme";
+	isPanelProgram,
+} from "@/lib/catalog";
+import { useReadme } from "@/lib/catalog/readme";
 import {
 	canAutoInstall,
 	getSourceLabel,
 	getSourceUrl,
-} from "@/lib/portal/sources";
+} from "@/lib/catalog/sources";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";
@@ -126,15 +127,15 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 
 	if (!catApp && !pkg) return null;
 
-	const setup = catApp?.setup;
+	const program = catApp?.program;
 	const showSetup =
 		actions.isInstalled &&
-		!!setup &&
-		(setup.kind === "custom" ||
+		!!program &&
+		(isPanelProgram(program) ||
 			!(catApp?.category === "launcher" && isDefaultLauncher));
 	const handleSetup = () => {
-		if (!setup) return;
-		if (setup.kind === "custom") openSetup();
+		if (!program) return;
+		if (isPanelProgram(program)) openSetup();
 		else actions.runSetup();
 	};
 
@@ -151,11 +152,11 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 
 	const sourceUrl = catApp ? getSourceUrl(catApp) : undefined;
 	const version = actions.isInstalled ? (liveVersion ?? storeVersion) : null;
-	const autoSetup = setup?.kind === "commands" && setup.auto === true;
+	const autoSetup = program?.kind === "commands" && program.auto === true;
 	const installViaPanel =
-		setup?.kind === "custom" && setup.handlesInstall === true;
+		isPanelProgram(program) && program.handlesInstall === true;
 	const revertOnUninstall =
-		setup?.kind === "custom" && setup.revertOnUninstall === true;
+		isPanelProgram(program) && program.revertOnUninstall === true;
 
 	return (
 		<div className="mx-auto max-w-4xl space-y-5">
@@ -252,7 +253,7 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 				</dl>
 			)}
 
-			{setup?.kind === "commands" && <SetupNotice setup={setup} />}
+			{program?.kind === "commands" && <SetupNotice program={program} />}
 
 			<div className="flex flex-wrap gap-2">
 				{actions.stage ? (
@@ -279,14 +280,14 @@ function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 							)}
 							{t("openApp")}
 						</Button>
-						{showSetup && setup && (
+						{showSetup && program && (
 							<Button
 								onClick={handleSetup}
 								disabled={actions.busy !== null}
 								loading={actions.busy === "setup"}
 							>
 								{actions.busy !== "setup" && <Settings className="h-4 w-4" />}
-								{t(setup.labelKey ?? "runSetup")}
+								{t(program.labelKey ?? "runSetup")}
 							</Button>
 						)}
 						{!isSystem && (

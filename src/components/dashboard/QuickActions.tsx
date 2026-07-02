@@ -1,5 +1,5 @@
 import { AppCard } from "@/components/apps/AppCard";
-import { APP_CATALOG } from "@/lib/portal/catalog";
+import { APP_CATALOG } from "@/lib/catalog";
 import { ChevronRight, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";

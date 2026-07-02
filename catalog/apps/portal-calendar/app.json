@@ -1,0 +1,19 @@
+{
+	"id": "portal-calendar",
+	"name": "Portal Calendar",
+	"packageName": "com.portal.calendar",
+	"description": "Turn your Portal into a family calendar board synced from Google, iCloud, or any iCal feed",
+	"category": "utility",
+	"version": "latest",
+	"source": "github",
+	"repo": "thefloppytaco/portal-calendar",
+	"downloadUrl": "https://github.com/thefloppytaco/portal-calendar/releases/latest",
+	"iconFile": true,
+	"program": {
+		"kind": "sandboxed",
+		"trust": "first-party",
+		"handlesInstall": false,
+		"revertOnUninstall": false,
+		"labelKey": "setUpCalendar"
+	}
+}

@@ -1,0 +1,11 @@
+{
+	"id": "revanced-gmscore",
+	"name": "GmsCore (microG)",
+	"packageName": "app.revanced.android.gms",
+	"description": "Google Play Services replacement (microG) that Morphe-patched apps need to run on Portal. Install it before YouTube (Morphe)",
+	"category": "utility",
+	"version": "0.3.13.2.250932",
+	"source": "url",
+	"apkUrl": "https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk",
+	"downloadUrl": "https://github.com/ReVanced/GmsCore/releases/latest"
+}

@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const dir = join(here, "..", "src/lib/portal/provision/upstream");
+const dir = join(here, "..", "catalog/apps/immortal-launcher/upstream");
 const meta = JSON.parse(readFileSync(join(dir, "meta.json"), "utf8"));
 const repo = meta.repo;
 
@@ -31,6 +31,23 @@ async function raw(ref, path) {
 	return res.text();
 }
 
+// Optional fetches that return null on 404 (the program may not be published).
+async function tryApi(path) {
+	const res = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+		headers,
+	});
+	return res.ok ? res.json() : null;
+}
+
+async function tryRaw(ref, path) {
+	const res = await fetch(
+		`https://raw.githubusercontent.com/${repo}/${ref}/${path}`,
+	);
+	return res.ok ? res.text() : null;
+}
+
+const PROGRAM_PATH = "provisioning/openportal.js";
+
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
 const argRef = process.argv[2];
@@ -40,9 +57,20 @@ const shFile = await api(`contents/provisioning/provision.sh?ref=${tag}`);
 const envFile = await api(`contents/provisioning/config.env?ref=${tag}`);
 const provisionSh = await raw(tag, "provisioning/provision.sh");
 const configEnv = await raw(tag, "provisioning/config.env");
+const programFile = await tryApi(`contents/${PROGRAM_PATH}?ref=${tag}`);
+const programJs = await tryRaw(tag, PROGRAM_PATH);
 
 writeFileSync(join(dir, "provision.sh"), provisionSh);
 writeFileSync(join(dir, "config.env"), configEnv);
+
+// Once Immortal publishes a program, vendor it as the offline fallback,
+// replacing the built-in seed. Until then, keep the seed in place.
+if (programFile && programJs) {
+	writeFileSync(
+		join(here, "..", "catalog/apps/immortal-launcher/openportal.js"),
+		programJs,
+	);
+}
 
 const newMeta = {
 	...meta,
@@ -53,6 +81,8 @@ const newMeta = {
 	configEnvBlob: envFile.sha,
 	provisionShSha256: sha256(provisionSh),
 	configEnvSha256: sha256(configEnv),
+	programBlob: programFile?.sha ?? null,
+	programSha256: programJs ? sha256(programJs) : null,
 	capturedAt: new Date().toISOString().slice(0, 10),
 };
 writeFileSync(
@@ -72,5 +102,5 @@ export const CONFIG_ENV_RAW = ${JSON.stringify(configEnv)};
 writeFileSync(join(dir, "snapshot.ts"), snapshot);
 
 console.log(
-	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update src/lib/adb/provision.ts if provision.sh changed.`,
+	`Vendored ${repo}@${tag} (${commit.slice(0, 7)}). Review the diff; update catalog/apps/immortal-launcher/openportal.js if provision.sh changed.`,
 );

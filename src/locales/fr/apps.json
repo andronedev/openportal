@@ -102,31 +102,32 @@
 	"refresh": "Actualiser",
 	"openApp": "Ouvrir l'application",
 	"launched": "{{name}} lancé",
-	"gphotos": {
-		"intro": "Affichez vos albums Google Photos en économiseur d'écran. Cela nécessite vos propres identifiants OAuth Google Cloud.",
-		"step1": "Créez un projet Google Cloud et activez l'API Photos Picker.",
-		"step2": "Configurez l'écran de consentement OAuth (Externe) et ajoutez-vous comme testeur.",
-		"step3": "Créez un client OAuth « Application de bureau » et téléchargez son client_secret.json.",
-		"guideLink": "Guide d'installation complet",
-		"credentialsLabel": "Identifiants OAuth (client_secret.json)",
-		"chooseFile": "Choisir un fichier",
-		"apply": "Appliquer et lancer",
-		"done": "Économiseur configuré. Terminez la connexion sur le Portal."
-	},
-	"portalCalendar": {
-		"intro": "Transformez votre Portal en calendrier mural. La configuration se fait depuis votre navigateur.",
-		"step1": "Ajoutez vos calendriers via des flux iCal (Google, iCloud ou toute URL .ics) et donnez à chacun une couleur et un nom.",
-		"step2": "Connectez éventuellement iCloud ou Google pour une synchronisation bidirectionnelle et créer des événements depuis le Portal.",
-		"step3": "Activez « Afficher le calendrier quand le Portal est inactif » pour l'utiliser comme économiseur d'écran.",
-		"finding": "Recherche de l'adresse du Portal…",
-		"retry": "Réessayer",
-		"addressLabel": "Ouvrez cette adresse dans votre navigateur",
-		"addressHint": "Utilisez un téléphone ou un ordinateur sur le même Wi-Fi que votre Portal.",
-		"copy": "Copier l'adresse",
-		"noAddress": "Adresse réseau du Portal introuvable. Vérifiez qu'il est connecté au Wi-Fi."
-	},
 	"provisioning": {
 		"setupLabel": "Provisionner l'appareil",
+		"apply": "Appliquer",
+		"copy": "Copier",
+		"chooseFile": "Choisir un fichier",
+		"presentation": {
+			"intro": {
+				"google-photos-screensaver": "Affichez vos albums Google Photos en économiseur d'écran. Cela nécessite vos propres identifiants OAuth Google Cloud.",
+				"portal-calendar": "Transformez votre Portal en calendrier mural. La configuration se fait depuis votre navigateur."
+			},
+			"steps": {
+				"google-photos-screensaver": {
+					"0": "Créez un projet Google Cloud et activez l'API Photos Picker.",
+					"1": "Configurez l'écran de consentement OAuth (Externe) et ajoutez-vous comme testeur.",
+					"2": "Créez un client OAuth « Application de bureau » et téléchargez son client_secret.json."
+				},
+				"portal-calendar": {
+					"0": "Ajoutez vos calendriers via des flux iCal (Google, iCloud ou toute URL .ics) et donnez à chacun une couleur et un nom.",
+					"1": "Connectez éventuellement iCloud ou Google pour une synchronisation bidirectionnelle et créer des événements depuis le Portal.",
+					"2": "Activez « Afficher le calendrier quand le Portal est inactif » pour l'utiliser comme économiseur d'écran."
+				}
+			},
+			"link": {
+				"google-photos-screensaver": "Guide d'installation complet"
+			}
+		},
 		"intro": "Configuration complète d'Immortal via ADB : installe et définit le lanceur et l'économiseur, et débloque l'installation d'apps pour que son store marche. Réversible via Restaurer.",
 		"sourceLive": "Config live · {{ref}}",
 		"sourceVendored": "Config embarquée · {{ref}}",
@@ -134,6 +135,10 @@
 		"connect": "Connecter le Portal",
 		"optionsTitle": "Options avancées",
 		"commandsTitle": "Afficher les commandes qui seront exécutées",
+		"viewProgram": "Examiner le programme de provisioning",
+		"auditTitle": "Commandes ({{count}})",
+		"stop": "Arrêter",
+		"incompatible": "Ce programme nécessite une version plus récente d'OpenPortal. Utilisation de la version intégrée.",
 		"needDevice": "Connectez un Portal pour lancer le provisioning.",
 		"provision": "Provisionner",
 		"restore": "Restaurer",
@@ -142,6 +147,9 @@
 		"running": "En cours…",
 		"done": "Portal provisionné.",
 		"restoreDone": "Réglages d'origine du Portal restaurés.",
+		"resetLauncher": "Remettre le launcher d'origine",
+		"resetLauncherHint": "Immortal est l'écran d'accueil de votre Portal.",
+		"resetLauncherDone": "Launcher d'origine restauré.",
 		"close": "Terminé",
 		"fleetDownload": "Télécharger la fiche fleet",
 		"fleetDownloadHint": "Enregistrez la fiche fleet de cet appareil (nom, IP, jeton d'agent) pour l'outil fleet du PC. Elle remplace le fichier que le kit écrit en local.",
@@ -158,6 +166,8 @@
 		"opt": {
 			"blockOta": "Bloquer les mises à jour système",
 			"blockOtaHint": "Empêche une future OTA de Meta d'annuler cette configuration. Renonce aux mises à jour ; réversible.",
+			"disableOta": "Bloquer les mises à jour système",
+			"disableOtaHint": "Empêche une future OTA de Meta d'annuler cette configuration. Renonce aux mises à jour ; réversible.",
 			"installShizuku": "Installer Shizuku",
 			"installShizukuHint": "Broker privilégié utilisé par certaines apps (ex. installs silencieuses d'Aurora). Utile sur chaque Portal.",
 			"runPreinstalls": "Pré-installer les apps incluses",
@@ -167,9 +177,12 @@
 			"enableFleet": "Activer l'agent fleet Wi-Fi",
 			"enableFleetHint": "Lance l'agent intégré d'Immortal pour gérer ce Portal en Wi-Fi. Survit au redémarrage.",
 			"fleetNamePlaceholder": "Nommer ce Portal (ex. Salon)",
+			"fleetName": "Nom de l'appareil fleet",
+			"setLauncher": "Définir comme launcher par défaut",
+			"setLauncherHint": "Fait d'Immortal l'écran d'accueil du Portal. Désactivez pour garder le launcher de Meta (ex. Calls) ; vous pourrez toujours ouvrir Immortal manuellement. Réversible avec Restaurer.",
 			"restoreAlexa": "Restaurer Amazon Alexa",
 			"restoreAlexaHint": "Ravive le client Alexa d'origine sur l'appareil (« Hey Alexa » mains libres). Télécharge ~115 Mo.",
-			"restoreAlexaA10": "Non pris en charge sur ce Portal (Android 10+ bloque le micro en arrière-plan pour les apps sideloadées)."
+			"restoreAlexaDisabled": "Non pris en charge sur ce Portal (Android 10+ bloque le micro en arrière-plan pour les apps sideloadées)."
 		},
 		"steps": {
 			"installClient": "Installer Immortal",

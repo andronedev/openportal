@@ -3,7 +3,7 @@ import {
 	APP_CATALOG,
 	type CatalogApp,
 	getCatalogByCategory,
-} from "@/lib/portal/catalog";
+} from "@/lib/catalog";
 import { useUIStore } from "@/store/ui-store";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
