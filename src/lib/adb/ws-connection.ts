@@ -17,6 +17,9 @@ import type { WirelessEndpoint } from "./wireless";
 const EMPTY = new Uint8Array(0);
 const BRIDGE_PORT = 8787;
 
+export const BRIDGE_DOWNLOAD_URL =
+	"https://github.com/andronedev/openportal/releases";
+
 type AdbConnectionPair = ReadableWritablePair<
 	AdbPacketData,
 	Consumable<AdbPacketInit>

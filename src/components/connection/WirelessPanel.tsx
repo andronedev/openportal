@@ -1,15 +1,47 @@
 import { Button, Card } from "@/components/ui/primitives";
 import { enableWireless } from "@/lib/adb/wireless";
-import { detectBridge } from "@/lib/adb/ws-connection";
+import { BRIDGE_DOWNLOAD_URL, detectBridge } from "@/lib/adb/ws-connection";
+import { cn } from "@/lib/utils";
 import { useDeviceStore } from "@/store/device-store";
 import { useWirelessStore } from "@/store/wireless-store";
-import { Wifi } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+	Check,
+	ChevronRight,
+	Download,
+	Loader2,
+	RefreshCw,
+	Wifi,
+} from "lucide-react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 function formatAddress(ip: string, port: number): string {
 	return `${ip}:${port}`;
+}
+
+type BridgeState = "checking" | "present" | "absent";
+
+function useBridgeStatus(active: boolean) {
+	const [status, setStatus] = useState<BridgeState>("checking");
+
+	const recheck = useCallback(() => {
+		let alive = true;
+		setStatus("checking");
+		detectBridge().then((info) => {
+			if (alive) setStatus(info ? "present" : "absent");
+		});
+		return () => {
+			alive = false;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!active) return;
+		return recheck();
+	}, [active, recheck]);
+
+	return { status, recheck };
 }
 
 export function WirelessSetup() {
@@ -50,10 +82,12 @@ export function WirelessSetup() {
 	return (
 		<Card className="space-y-4">
 			<div className="flex items-start gap-3">
-				<Wifi className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
-				<div>
+				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+					<Wifi className="h-5 w-5 text-violet-400" />
+				</div>
+				<div className="min-w-0">
 					<h2 className="font-semibold">{t("wirelessTitle")}</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="mt-0.5 text-sm text-muted-foreground">
 						{t("wirelessEnableHint")}
 					</p>
 				</div>
@@ -65,6 +99,9 @@ export function WirelessSetup() {
 					})}
 				</p>
 			)}
+			<div className="rounded-lg border border-border bg-background/40 px-3 py-2 text-xs text-muted-foreground">
+				{t("wirelessEnableNote")}
+			</div>
 			<Button variant="primary" loading={busy} onClick={onEnable}>
 				{busy ? t("wirelessEnabling") : t("wirelessEnable")}
 			</Button>
@@ -77,50 +114,206 @@ export function WirelessConnect() {
 	const state = useDeviceStore((s) => s.state);
 	const connectViaWireless = useDeviceStore((s) => s.connectViaWireless);
 	const lastEndpoint = useWirelessStore((s) => s.lastEndpoint);
-	const [bridge, setBridge] = useState<"unknown" | "present" | "absent">(
-		"unknown",
-	);
-
-	useEffect(() => {
-		if (!lastEndpoint) return;
-		let alive = true;
-		detectBridge().then((info) => {
-			if (alive) setBridge(info ? "present" : "absent");
-		});
-		return () => {
-			alive = false;
-		};
-	}, [lastEndpoint]);
-
-	if (!lastEndpoint) return null;
+	const enabled = !!lastEndpoint;
+	const { status: bridge, recheck } = useBridgeStatus(enabled);
+	const [open, setOpen] = useState(enabled);
 
 	const connecting = state === "connecting" || state === "authenticating";
+	const canConnect = enabled && bridge === "present";
 
 	return (
-		<div className="space-y-3 rounded-xl border border-border bg-card/50 p-4">
-			<div className="flex items-center gap-2 text-sm text-muted-foreground">
-				<Wifi className="h-4 w-4 text-violet-400" />
-				<span>
-					{t("wirelessLastKnown", {
-						address: formatAddress(lastEndpoint.ip, lastEndpoint.port),
-					})}
-				</span>
-			</div>
-			{bridge === "present" && (
-				<Button
-					variant="secondary"
-					loading={connecting}
-					onClick={() => connectViaWireless(lastEndpoint)}
-					className="w-full"
+		<details
+			open={open}
+			onToggle={(e) => setOpen(e.currentTarget.open)}
+			className="group rounded-xl border border-border bg-background/30"
+		>
+			<summary className="flex cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+				<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+					<Wifi className="h-5 w-5 text-violet-400" />
+				</div>
+				<div className="min-w-0 flex-1 text-left">
+					<p className="text-sm font-semibold">{t("wirelessConnectTitle")}</p>
+					<p className="truncate text-xs text-muted-foreground">
+						{t("wirelessConnectSubtitle")}
+					</p>
+				</div>
+				<ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+			</summary>
+
+			<div className="border-t border-border px-4 pb-4 pt-3">
+				<GuideStep
+					index={1}
+					title={t("wirelessStepEnableTitle")}
+					state={enabled ? "done" : "active"}
 				>
-					{t("wirelessReconnect")}
-				</Button>
+					{lastEndpoint ? (
+						<p className="text-xs text-muted-foreground">
+							{t("wirelessStepEnableDone", {
+								address: formatAddress(lastEndpoint.ip, lastEndpoint.port),
+							})}
+						</p>
+					) : (
+						<>
+							<p className="text-xs text-muted-foreground">
+								{t("wirelessStepEnableTodo")}
+							</p>
+							<details className="group/why mt-2 text-xs">
+								<summary className="flex cursor-pointer list-none items-center gap-1 text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+									<ChevronRight className="h-3 w-3 shrink-0 transition-transform group-open/why:rotate-90" />
+									{t("wirelessWhyUsb")}
+								</summary>
+								<p className="mt-1.5 pl-4 text-muted-foreground">
+									{t("wirelessWhyUsbBody")}
+								</p>
+							</details>
+						</>
+					)}
+				</GuideStep>
+
+				<GuideStep
+					index={2}
+					title={t("wirelessStepBridgeTitle")}
+					state={bridge === "present" ? "done" : enabled ? "active" : "todo"}
+				>
+					<p className="text-xs text-muted-foreground">
+						{t("wirelessStepBridgeDesc")}
+					</p>
+					<BridgeStatusRow status={bridge} onRecheck={recheck} />
+				</GuideStep>
+
+				<GuideStep
+					index={3}
+					title={t("wirelessStepConnectTitle")}
+					state={canConnect ? "active" : "todo"}
+					last
+				>
+					<Button
+						variant="primary"
+						loading={connecting}
+						disabled={!canConnect}
+						onClick={() => {
+							if (lastEndpoint) connectViaWireless(lastEndpoint);
+						}}
+						className="w-full"
+					>
+						{t("wirelessConnectAction")}
+					</Button>
+					{!canConnect && (
+						<p className="mt-2 text-xs text-muted-foreground">
+							{t("wirelessConnectBlocked")}
+						</p>
+					)}
+				</GuideStep>
+			</div>
+		</details>
+	);
+}
+
+function BridgeStatusRow({
+	status,
+	onRecheck,
+}: {
+	status: BridgeState;
+	onRecheck: () => void;
+}) {
+	const { t } = useTranslation();
+
+	return (
+		<div className="mt-2 space-y-2">
+			<div className="flex items-center gap-2 text-xs">
+				{status === "checking" && (
+					<>
+						<Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />
+						<span className="text-muted-foreground">
+							{t("wirelessBridgeChecking")}
+						</span>
+					</>
+				)}
+				{status === "present" && (
+					<>
+						<Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+						<span className="text-foreground">
+							{t("wirelessBridgeRunning")}
+						</span>
+					</>
+				)}
+				{status === "absent" && (
+					<span className="text-muted-foreground">
+						{t("wirelessBridgeNotFound")}
+					</span>
+				)}
+			</div>
+
+			{status === "absent" && (
+				<div className="space-y-2">
+					<a
+						href={BRIDGE_DOWNLOAD_URL}
+						target="_blank"
+						rel="noreferrer"
+						className="inline-flex items-center gap-2 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
+					>
+						<Download className="h-3.5 w-3.5" />
+						{t("wirelessBridgeDownload")}
+					</a>
+					<p className="text-xs text-muted-foreground">
+						{t("wirelessBridgeInstalledHint")}
+					</p>
+				</div>
 			)}
-			{bridge === "absent" && (
-				<p className="text-xs text-muted-foreground">
-					{t("wirelessBridgeNeeded")}
+
+			{status !== "checking" && (
+				<button
+					type="button"
+					onClick={onRecheck}
+					className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
+					<RefreshCw className="h-3 w-3" />
+					{t("wirelessBridgeRecheck")}
+				</button>
+			)}
+		</div>
+	);
+}
+
+function GuideStep({
+	index,
+	title,
+	state,
+	last,
+	children,
+}: {
+	index: number;
+	title: string;
+	state: "done" | "active" | "todo";
+	last?: boolean;
+	children: ReactNode;
+}) {
+	return (
+		<div className="flex gap-3">
+			<div className="flex flex-col items-center">
+				<div
+					className={cn(
+						"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+						state === "done" && "bg-emerald-500/15 text-emerald-500",
+						state === "active" && "bg-foreground text-background",
+						state === "todo" && "bg-secondary text-muted-foreground",
+					)}
+				>
+					{state === "done" ? <Check className="h-3.5 w-3.5" /> : index}
+				</div>
+				{!last && <div className="mt-1 w-px flex-1 bg-border" />}
+			</div>
+			<div className="min-w-0 flex-1 pb-4">
+				<p
+					className={cn(
+						"text-sm font-medium",
+						state === "todo" && "text-muted-foreground",
+					)}
+				>
+					{title}
 				</p>
-			)}
+				<div className="mt-1">{children}</div>
+			</div>
 		</div>
 	);
 }
