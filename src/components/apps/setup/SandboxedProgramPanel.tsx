@@ -9,6 +9,7 @@ import {
 	type ProgramAnswers,
 	type ProgramManifest,
 	type ProgramStatus,
+	type ResultView,
 	type StepEvent,
 	describe,
 	loadProgram,
@@ -31,13 +32,15 @@ import {
 	Check,
 	ChevronRight,
 	CircleX,
+	Copy,
 	Download,
 	ExternalLink,
+	FileUp,
 	Loader2,
 	Minus,
 	Square,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { SetupPanelProps } from "./registry";
@@ -98,7 +101,14 @@ export default function SandboxedProgramPanel({
 	const [mode, setMode] = useState<"provision" | "restore">("provision");
 	const [confirmRestore, setConfirmRestore] = useState(false);
 	const [resettingLauncher, setResettingLauncher] = useState(false);
+	const [resultView, setResultView] = useState<ResultView | null>(null);
+	const [files, setFiles] = useState<Record<string, File>>({});
 	const abortRef = useRef<AbortController | null>(null);
+
+	const programApp = useMemo(
+		() => ({ packageName: app.packageName, name: app.name }),
+		[app.packageName, app.name],
+	);
 
 	useEffect(() => {
 		if (!spec) return;
@@ -110,7 +120,10 @@ export default function SandboxedProgramPanel({
 				loadProgram(adb, spec, app.id),
 			]);
 			let prog = loadedProgram;
-			let desc = await describe(adb, config.cfg, { program: prog });
+			let desc = await describe(adb, config.cfg, {
+				program: prog,
+				app: programApp,
+			});
 			let incompat = false;
 			if (
 				prog.source === "live" &&
@@ -118,12 +131,18 @@ export default function SandboxedProgramPanel({
 			) {
 				incompat = true;
 				prog = loadVendoredProgram(prog.ref);
-				desc = await describe(adb, config.cfg, { program: prog });
+				desc = await describe(adb, config.cfg, {
+					program: prog,
+					app: programApp,
+				});
 			}
 			let st: ProgramStatus | null = null;
 			if (adb) {
 				try {
-					st = await readStatus(adb, config.cfg, { program: prog });
+					st = await readStatus(adb, config.cfg, {
+						program: prog,
+						app: programApp,
+					});
 				} catch {}
 			}
 			if (cancelled) return;
@@ -139,7 +158,7 @@ export default function SandboxedProgramPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [adb, spec, app.id]);
+	}, [adb, spec, app.id, programApp]);
 
 	const onStep = (event: StepEvent) =>
 		setEvents((prev) => {
@@ -160,6 +179,7 @@ export default function SandboxedProgramPanel({
 		setEvents([]);
 		setAudit([]);
 		setFleet(null);
+		setResultView(null);
 		setWorking(true);
 		setPhase("running");
 		const controller = new AbortController();
@@ -169,8 +189,11 @@ export default function SandboxedProgramPanel({
 				signal: controller.signal,
 				onCommand,
 				program,
+				app: programApp,
+				files,
 			});
 			setFleet(result.fleet);
+			setResultView(result.view ?? null);
 			await refreshInstalled();
 			await refreshDefaultLauncher();
 			toast.success(app.name, { description: t("provisioning.done") });
@@ -192,6 +215,7 @@ export default function SandboxedProgramPanel({
 		setEvents([]);
 		setAudit([]);
 		setFleet(null);
+		setResultView(null);
 		setWorking(true);
 		setPhase("running");
 		const controller = new AbortController();
@@ -201,6 +225,7 @@ export default function SandboxedProgramPanel({
 				signal: controller.signal,
 				onCommand,
 				program,
+				app: programApp,
 			});
 			await refreshInstalled();
 			await refreshDefaultLauncher();
@@ -221,11 +246,15 @@ export default function SandboxedProgramPanel({
 		if (!adb || !loaded) return;
 		setResettingLauncher(true);
 		try {
-			await resetLauncher(adb, loaded.cfg, program ? { program } : undefined);
+			await resetLauncher(
+				adb,
+				loaded.cfg,
+				program ? { program, app: programApp } : undefined,
+			);
 			const st = await readStatus(
 				adb,
 				loaded.cfg,
-				program ? { program } : undefined,
+				program ? { program, app: programApp } : undefined,
 			).catch(() => null);
 			setDeviceStatus(st);
 			await refreshDefaultLauncher();
@@ -250,6 +279,18 @@ export default function SandboxedProgramPanel({
 		const a = document.createElement("a");
 		a.href = url;
 		a.download = `${fleet.serial || "device"}.json`;
+		a.click();
+		URL.revokeObjectURL(url);
+	};
+
+	const downloadJson = (d: { name: string; json: unknown }) => {
+		const blob = new Blob([JSON.stringify(d.json, null, 2)], {
+			type: "application/json",
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = d.name;
 		a.click();
 		URL.revokeObjectURL(url);
 	};
@@ -354,6 +395,32 @@ export default function SandboxedProgramPanel({
 					</div>
 				)}
 
+				{phase === "done" && resultView && (
+					<div className="flex flex-col gap-2 rounded-lg border border-border bg-background/50 p-3">
+						{resultView.text && (
+							<p className="text-sm text-muted-foreground">{resultView.text}</p>
+						)}
+						{resultView.links?.map((link) => (
+							<ResultLinkRow
+								key={link.url}
+								link={link}
+								copyLabel={t("provisioning.copy")}
+							/>
+						))}
+						{resultView.download && (
+							<Button
+								variant="secondary"
+								onClick={() =>
+									resultView.download && downloadJson(resultView.download)
+								}
+							>
+								<Download className="h-4 w-4" />
+								{resultView.download.name}
+							</Button>
+						)}
+					</div>
+				)}
+
 				{phase === "done" && (
 					<div className="flex justify-end">
 						<Button variant="primary" onClick={onClose}>
@@ -366,6 +433,7 @@ export default function SandboxedProgramPanel({
 	}
 
 	const cfg = loaded.cfg;
+	const canRestore = spec?.revertOnUninstall === true;
 	const connecting =
 		deviceState === "connecting" || deviceState === "authenticating";
 
@@ -388,6 +456,44 @@ export default function SandboxedProgramPanel({
 					label={label}
 					hint={hint}
 				/>
+			);
+		}
+		if (f.type === "file") {
+			const picked = files[f.key];
+			return (
+				<div key={f.key} className="flex flex-col gap-1 px-2 py-1.5">
+					<span className="text-sm font-medium">{label}</span>
+					{hint && (
+						<span className="text-xs text-muted-foreground">{hint}</span>
+					)}
+					<label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-left text-xs transition-colors hover:border-foreground/30">
+						<input
+							type="file"
+							accept={f.accept}
+							disabled={!enabled}
+							className="hidden"
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (!file) return;
+								setFiles((prev) => ({ ...prev, [f.key]: file }));
+								setAnswer(f.key, file.name);
+							}}
+						/>
+						{picked ? (
+							<>
+								<Check className="h-4 w-4 shrink-0 text-emerald-500" />
+								<span className="truncate">{picked.name}</span>
+							</>
+						) : (
+							<>
+								<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+								<span className="text-muted-foreground">
+									{t("provisioning.chooseFile")}
+								</span>
+							</>
+						)}
+					</label>
+				</div>
 			);
 		}
 		const value = answers[f.key];
@@ -436,30 +542,67 @@ export default function SandboxedProgramPanel({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<p className="text-muted-foreground">{t("provisioning.intro")}</p>
+			{manifest.presentation?.intro ? (
+				<p className="text-muted-foreground">
+					{t(
+						`provisioning.presentation.intro.${app.id}`,
+						manifest.presentation.intro,
+					)}
+				</p>
+			) : spec?.repo ? (
+				<p className="text-muted-foreground">{t("provisioning.intro")}</p>
+			) : null}
 
-			<div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-				<span className="rounded-full bg-secondary px-2 py-0.5 font-medium">
-					{loaded.source === "live"
-						? t("provisioning.sourceLive", { ref: loaded.ref })
-						: t("provisioning.sourceVendored", { ref: loaded.ref })}
-				</span>
+			{manifest.presentation?.steps &&
+				manifest.presentation.steps.length > 0 && (
+					<ol className="flex list-decimal flex-col gap-1.5 pl-4 text-xs text-muted-foreground">
+						{manifest.presentation.steps.map((step, i) => (
+							<li key={step}>
+								{t(`provisioning.presentation.steps.${app.id}.${i}`, step)}
+							</li>
+						))}
+					</ol>
+				)}
+
+			{manifest.presentation?.link && (
 				<a
-					href={
-						program.source === "live"
-							? `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/openportal.program.js`
-							: `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/provision.sh`
-					}
+					href={manifest.presentation.link.url}
 					target="_blank"
 					rel="noreferrer"
-					className="inline-flex items-center gap-1.5 font-medium text-sky-500 hover:underline"
+					className="inline-flex items-center gap-1.5 text-xs font-medium text-sky-500 hover:underline"
 				>
 					<ExternalLink className="h-3.5 w-3.5" />
-					{program.source === "live"
-						? t("provisioning.viewProgram")
-						: t("provisioning.viewSource")}
+					{t(
+						`provisioning.presentation.link.${app.id}`,
+						manifest.presentation.link.label,
+					)}
 				</a>
-			</div>
+			)}
+
+			{spec?.repo && (
+				<div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+					<span className="rounded-full bg-secondary px-2 py-0.5 font-medium">
+						{loaded.source === "live"
+							? t("provisioning.sourceLive", { ref: loaded.ref })
+							: t("provisioning.sourceVendored", { ref: loaded.ref })}
+					</span>
+					<a
+						href={
+							program.source === "live"
+								? `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/openportal.program.js`
+								: `https://github.com/${cfg.releaseRepo}/blob/${program.ref}/provisioning/provision.sh`
+						}
+						target="_blank"
+						rel="noreferrer"
+						className="inline-flex items-center gap-1.5 font-medium text-sky-500 hover:underline"
+					>
+						<ExternalLink className="h-3.5 w-3.5" />
+						{program.source === "live"
+							? t("provisioning.viewProgram")
+							: t("provisioning.viewSource")}
+					</a>
+				</div>
+			)}
 
 			{incompatible && (
 				<p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-600 dark:text-amber-400">
@@ -547,7 +690,7 @@ export default function SandboxedProgramPanel({
 					>
 						{t("provisioning.connect")}
 					</Button>
-				) : isInstalled ? (
+				) : isInstalled && canRestore ? (
 					<>
 						<Button
 							variant="danger"
@@ -567,7 +710,9 @@ export default function SandboxedProgramPanel({
 						onClick={runProgram}
 						disabled={working}
 					>
-						{t("installAndConfigure")}
+						{!isInstalled && spec?.handlesInstall
+							? t("installAndConfigure")
+							: t("provisioning.apply")}
 					</Button>
 				)}
 			</div>
@@ -581,6 +726,48 @@ export default function SandboxedProgramPanel({
 				confirmLabel={t("provisioning.restore")}
 				danger
 			/>
+		</div>
+	);
+}
+
+function ResultLinkRow({
+	link,
+	copyLabel,
+}: {
+	link: { label: string; url: string; copy?: boolean };
+	copyLabel: string;
+}) {
+	const [copied, setCopied] = useState(false);
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(link.url);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 1500);
+	};
+	return (
+		<div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+			<a
+				href={link.url}
+				target="_blank"
+				rel="noreferrer"
+				className="inline-flex flex-1 items-center gap-1.5 truncate text-sm font-medium text-sky-500 hover:underline"
+			>
+				<ExternalLink className="h-3.5 w-3.5 shrink-0" />
+				{link.label}
+			</a>
+			{link.copy && (
+				<button
+					type="button"
+					onClick={handleCopy}
+					aria-label={copyLabel}
+					className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+				>
+					{copied ? (
+						<Check className="h-4 w-4 text-emerald-500" />
+					) : (
+						<Copy className="h-4 w-4" />
+					)}
+				</button>
+			)}
 		</div>
 	);
 }

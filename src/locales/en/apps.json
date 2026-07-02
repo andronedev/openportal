@@ -127,6 +127,9 @@
 	},
 	"provisioning": {
 		"setupLabel": "Provision device",
+		"apply": "Apply",
+		"copy": "Copy",
+		"chooseFile": "Choose file",
 		"intro": "Runs Immortal's full ADB setup: installs and sets the launcher and screensaver, and unlocks on-device installs so its store works. Reversible with Restore.",
 		"sourceLive": "Live config · {{ref}}",
 		"sourceVendored": "Bundled config · {{ref}}",

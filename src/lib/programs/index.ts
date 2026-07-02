@@ -22,10 +22,13 @@ export {
 	type OnStep,
 	type ProgramAnswers,
 	type ProgramDescription,
+	type ProgramApp,
 	type ProgramManifest,
+	type ProgramPresentation,
 	type ProgramResult,
 	type ProgramRun,
 	type ProgramStatus,
+	type ResultView,
 	type StepEvent,
 	type StepStatus,
 } from "./types";

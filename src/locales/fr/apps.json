@@ -127,6 +127,9 @@
 	},
 	"provisioning": {
 		"setupLabel": "Provisionner l'appareil",
+		"apply": "Appliquer",
+		"copy": "Copier",
+		"chooseFile": "Choisir un fichier",
 		"intro": "Configuration complète d'Immortal via ADB : installe et définit le lanceur et l'économiseur, et débloque l'installation d'apps pour que son store marche. Réversible via Restaurer.",
 		"sourceLive": "Config live · {{ref}}",
 		"sourceVendored": "Config embarquée · {{ref}}",
