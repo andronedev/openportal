@@ -4,7 +4,7 @@ import {
 	EmptyState,
 	Segmented,
 } from "@/components/ui/primitives";
-import { installFromUrl } from "@/lib/adb/online-install";
+import { installApp } from "@/lib/adb/install";
 import type { InstalledPackage } from "@/lib/adb/types";
 import { getAppIconUrl, getCatalogApp } from "@/lib/portal/catalog";
 import { useAppStore } from "@/store/app-store";
@@ -85,7 +85,11 @@ export function InstalledAppsList() {
 			for (const [packageName, update] of Object.entries(updates)) {
 				const name = getCatalogApp(packageName)?.name ?? packageName;
 				try {
-					await installFromUrl(adb, update.urls, undefined, update.sha256);
+					await installApp(adb, {
+						kind: "url",
+						urls: update.urls,
+						sha256: update.sha256,
+					});
 					clearUpdate(packageName);
 					toast.success(name, { description: t("updated") });
 				} catch (err) {

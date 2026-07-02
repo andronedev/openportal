@@ -1,8 +1,9 @@
 import { launchApp } from "@/lib/adb/app-manager";
 import { getIpAddress } from "@/lib/adb/device-info";
 import { makeDirectory, pushFile, removePath } from "@/lib/adb/file-system";
+import { installApp } from "@/lib/adb/install";
 import { clearLogcat, dumpLogcat } from "@/lib/adb/logcat";
-import { deviceFetchText, installFromUrl } from "@/lib/adb/online-install";
+import { deviceFetchText } from "@/lib/adb/online-install";
 import { getSetting, putSetting } from "@/lib/adb/settings";
 import { execShell, getprop } from "@/lib/adb/shell";
 import type { ProvisionConfig } from "@/lib/portal/provision-config";
@@ -149,12 +150,10 @@ async function dispatch(
 				| { sha256?: string | null; flags?: string | null }
 				| undefined;
 			audit(urls.join(" "));
-			return installFromUrl(
+			return installApp(
 				adb,
-				urls,
-				onProgress,
-				opts?.sha256 ?? undefined,
-				reqInstallFlags(opts?.flags),
+				{ kind: "url", urls, sha256: opts?.sha256 ?? undefined },
+				{ flags: reqInstallFlags(opts?.flags), onProgress },
 			);
 		}
 		case "resolveGithubLatest":

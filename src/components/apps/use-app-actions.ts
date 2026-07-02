@@ -6,7 +6,7 @@ import {
 	openDeviceAdminDeactivation,
 	runPostInstall,
 } from "@/lib/adb/app-manager";
-import { type InstallStage, installFromUrl } from "@/lib/adb/online-install";
+import { type InstallStage, installApp } from "@/lib/adb/install";
 import { type CatalogApp, getCatalogApp } from "@/lib/portal/catalog";
 import { resolveApk } from "@/lib/portal/sources";
 import { useAppStore } from "@/store/app-store";
@@ -64,20 +64,21 @@ export function useAppActions(packageName: string, displayName: string) {
 		}
 	};
 
-	const installApp = async (
+	const installCatalogApp = async (
 		activeAdb: Adb,
 		target: CatalogApp,
 		cached?: { urls: string[]; sha256?: string },
 	) => {
 		const resolved = cached ?? (await resolveApk(activeAdb, target));
-		await installFromUrl(
+		await installApp(
 			activeAdb,
-			resolved.urls,
-			(s, percent) => {
-				setStage(s);
-				setProgress(percent);
+			{ kind: "url", urls: resolved.urls, sha256: resolved.sha256 },
+			{
+				onProgress: (s, percent) => {
+					setStage(s);
+					setProgress(percent);
+				},
 			},
-			resolved.sha256,
 		);
 		markInstalled(target.packageName);
 		clearUpdate(target.packageName);
@@ -103,10 +104,10 @@ export function useAppActions(packageName: string, displayName: string) {
 			try {
 				if (withDeps) {
 					for (const dep of missingRequires) {
-						await installApp(activeAdb, dep);
+						await installCatalogApp(activeAdb, dep);
 					}
 				}
-				await installApp(activeAdb, app, update);
+				await installCatalogApp(activeAdb, app, update);
 			} finally {
 				setStage(null);
 				setProgress(null);

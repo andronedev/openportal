@@ -1,10 +1,10 @@
 import {
 	getDefaultLauncher,
 	getInstalledVersion,
-	installApk,
 	listPackages,
 	uninstallPackage,
 } from "@/lib/adb/app-manager";
+import { installApp } from "@/lib/adb/install";
 import { MOCK_INSTALLED_PACKAGES } from "@/lib/adb/mock";
 import type { InstallTask, InstalledPackage } from "@/lib/adb/types";
 import { type CatalogApp, getCatalogApp } from "@/lib/portal/catalog";
@@ -176,19 +176,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
 		}));
 
 		try {
-			await installApk(adb, file, (stage, percent) => {
-				set((state) => ({
-					installTasks: state.installTasks.map((t) =>
-						t.id === taskId
-							? {
-									...t,
-									status: stage as InstallTask["status"],
-									progress: percent,
-								}
-							: t,
-					),
-				}));
-			});
+			await installApp(
+				adb,
+				{ kind: "file", file },
+				{
+					onProgress: (stage, percent) => {
+						set((state) => ({
+							installTasks: state.installTasks.map((t) =>
+								t.id === taskId
+									? {
+											...t,
+											status: stage as InstallTask["status"],
+											progress: percent ?? t.progress,
+										}
+									: t,
+							),
+						}));
+					},
+				},
+			);
 
 			set((state) => ({
 				installTasks: state.installTasks.map((t) =>

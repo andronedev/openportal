@@ -1,5 +1,4 @@
 import type { Adb } from "@yume-chan/adb";
-import { ReadableStream as AdbReadableStream } from "@yume-chan/stream-extra";
 import { execShell } from "./shell";
 import type { InstalledPackage } from "./types";
 
@@ -31,70 +30,6 @@ export async function listPackages(adb: Adb): Promise<InstalledPackage[]> {
 		...parsePackages(userResult.stdout, false),
 		...parsePackages(systemResult.stdout, true),
 	];
-}
-
-export async function installApk(
-	adb: Adb,
-	file: File,
-	onProgress?: (stage: string, percent: number) => void,
-): Promise<void> {
-	const remotePath = `/data/local/tmp/${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-
-	onProgress?.("pushing", 0);
-
-	const chunkSize = 64 * 1024;
-	const total = file.size;
-	let sent = 0;
-	let pending: Uint8Array | null = null;
-	const reader = file.stream().getReader();
-
-	const fileStream = new AdbReadableStream<Uint8Array>({
-		async pull(controller) {
-			if (!pending) {
-				const { done, value } = await reader.read();
-				if (done) {
-					controller.close();
-					return;
-				}
-				pending = value;
-			}
-			const slice = pending.subarray(0, chunkSize);
-			pending =
-				pending.byteLength > chunkSize ? pending.subarray(chunkSize) : null;
-			sent += slice.byteLength;
-			if (total > 0) {
-				onProgress?.("pushing", Math.min(99, Math.round((sent / total) * 100)));
-			}
-			controller.enqueue(slice);
-		},
-		cancel(reason) {
-			return reader.cancel(reason);
-		},
-	});
-
-	const sync = await adb.sync();
-	try {
-		await sync.write({
-			filename: remotePath,
-			file: fileStream,
-			permission: 0o644,
-			mtime: Math.floor(Date.now() / 1000),
-		});
-	} finally {
-		await sync.dispose();
-	}
-
-	onProgress?.("pushing", 100);
-	onProgress?.("installing", 100);
-
-	const result = await execShell(adb, `pm install -r "${remotePath}"`);
-	await execShell(adb, `rm "${remotePath}"`);
-
-	if (result.stdout.includes("Failure")) {
-		throw new Error(`Install failed: ${result.stdout}`);
-	}
-
-	onProgress?.("done", 100);
 }
 
 export async function uninstallPackage(

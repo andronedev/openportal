@@ -1,4 +1,7 @@
+import type { InstallStage } from "@/lib/adb/install";
 import type { ProvisionConfig } from "@/lib/portal/provision-config";
+
+export type { InstallStage };
 
 /**
  * Major version of the host <-> program contract (the `Portal` surface, the
@@ -118,8 +121,6 @@ export interface LoadedProvisionProgram {
 	ref: string;
 	source: "live" | "vendored";
 }
-
-export type InstallStage = "downloading" | "installing" | "done";
 
 export interface InstallOptions {
 	sha256?: string;
