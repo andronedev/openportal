@@ -9,6 +9,7 @@ import {
 import { type InstallStage, installApp } from "@/lib/adb/install";
 import { type CatalogApp, getCatalogApp, isPanelProgram } from "@/lib/catalog";
 import { resolveApk } from "@/lib/catalog/sources";
+import { installMorpheApp } from "@/lib/programs/morphe-runner";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import type { Adb } from "@yume-chan/adb";
@@ -69,17 +70,26 @@ export function useAppActions(packageName: string, displayName: string) {
 		target: CatalogApp,
 		cached?: { urls: string[]; sha256?: string },
 	) => {
-		const resolved = cached ?? (await resolveApk(activeAdb, target));
-		await installApp(
-			activeAdb,
-			{ kind: "url", urls: resolved.urls, sha256: resolved.sha256 },
-			{
-				onProgress: (s, percent) => {
-					setStage(s);
-					setProgress(percent);
+		if (target.source === "morphe") {
+			await installMorpheApp(activeAdb, target.packageName, (ev) => {
+				if (ev.status === "running") {
+					setStage("installing");
+					setProgress(null);
+				}
+			});
+		} else {
+			const resolved = cached ?? (await resolveApk(activeAdb, target));
+			await installApp(
+				activeAdb,
+				{ kind: "url", urls: resolved.urls, sha256: resolved.sha256 },
+				{
+					onProgress: (s, percent) => {
+						setStage(s);
+						setProgress(percent);
+					},
 				},
-			},
-		);
+			);
+		}
 		markInstalled(target.packageName);
 		clearUpdate(target.packageName);
 	};

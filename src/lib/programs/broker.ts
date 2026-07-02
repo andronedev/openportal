@@ -6,6 +6,7 @@ import { clearLogcat, dumpLogcat } from "@/lib/adb/logcat";
 import { deviceFetchText } from "@/lib/adb/online-install";
 import { getSetting, putSetting } from "@/lib/adb/settings";
 import { execShell, getprop } from "@/lib/adb/shell";
+import { verifyAndParseManifest } from "@/lib/catalog/morphe";
 import {
 	resolveFdroidLatest,
 	resolveGithubLatest,
@@ -147,6 +148,8 @@ async function dispatch(
 			audit(url);
 			return deviceFetchText(adb, url);
 		}
+		case "verifyMorpheManifest":
+			return verifyAndParseManifest(reqString(args[0], "manifest"));
 		case "installFromUrl": {
 			const urls = reqUrlList(args[0]);
 			const opts = args[1] as

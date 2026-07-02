@@ -1,7 +1,8 @@
 import type { InstallStage } from "@/lib/adb/install";
+import type { MorpheManifest } from "@/lib/catalog/morphe";
 import type { ProgramConfig } from "@/lib/programs/config";
 
-export type { InstallStage };
+export type { InstallStage, MorpheManifest };
 
 /**
  * Major version of the host <-> program contract (the `Portal` surface, the
@@ -146,6 +147,12 @@ export interface Portal {
 	getprop(key: string): Promise<string>;
 	getIpAddress(): Promise<string | null>;
 	deviceFetchText(url: string): Promise<string>;
+	/**
+	 * Verifies a Morphe manifest envelope (Ed25519, against OpenPortal's pinned
+	 * key) and returns the parsed manifest. The key and verification stay on the
+	 * host: a program can orchestrate a modded-app install but cannot forge one.
+	 */
+	verifyMorpheManifest(text: string): Promise<MorpheManifest>;
 	installFromUrl(urls: string | string[], opts?: InstallOptions): Promise<void>;
 	resolveGithubLatest(repo: string): Promise<string[]>;
 	resolveFdroidLatest(packageName: string): Promise<string[]>;

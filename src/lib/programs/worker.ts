@@ -1,6 +1,7 @@
 import type {
 	BrokerToWorker,
 	InstallOptions,
+	MorpheManifest,
 	Portal,
 	ProgramContext,
 	StepStatus,
@@ -91,6 +92,8 @@ function makePortal(sdk: number, cfg: Portal["cfg"]): Portal {
 		getprop: (key) => call("getprop", [key]) as Promise<string>,
 		getIpAddress: () => call("getIpAddress", []) as Promise<string | null>,
 		deviceFetchText: (url) => call("deviceFetchText", [url]) as Promise<string>,
+		verifyMorpheManifest: (text) =>
+			call("verifyMorpheManifest", [text]) as Promise<MorpheManifest>,
 		installFromUrl: callInstall,
 		resolveGithubLatest: (repo) =>
 			call("resolveGithubLatest", [repo]) as Promise<string[]>,
