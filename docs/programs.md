@@ -1,4 +1,4 @@
-# Sandboxed provisioning programs
+# Sandboxed setup programs
 
 Some catalog apps need full device provisioning, not just an install. OpenPortal
 runs that provisioning from the browser through a **sandboxed program runtime**:
@@ -41,7 +41,7 @@ src/lib/adb wrappers           ◄── RPC ──►   provision / restore / s
 kill switch = worker.terminate()             portal.* (no Adb, no creds, no net)
 ```
 
-The built-in program (`src/lib/portal/provision/program/default.program.js`) is
+The built-in program (`catalog/apps/immortal-launcher/program.js`) is
 a faithful translation of Immortal's `provision.sh` and is the offline fallback
 for that one repo. When Immortal publishes `provisioning/openportal.program.js`
 in a release, OpenPortal runs that one instead, so the maintainer can change the
@@ -56,20 +56,21 @@ question (a toggle, a text field, a select) appears with no front-end change.
 
 | Concern | File |
 |---|---|
-| Worker runtime (sandbox + `portal` RPC) | `src/lib/portal/provision/worker.ts` |
-| Capability broker (validation, audit, dispatch) | `src/lib/portal/provision/broker.ts` |
-| Shared types + `PORTAL_API_VERSION` | `src/lib/portal/provision/types.ts` |
-| Program loader (spec-driven fetch, trust gate, vendored fallback) | `src/lib/portal/provision/loader.ts` |
-| Built-in program (1:1 of Immortal's `provision.sh`) | `src/lib/portal/provision/program/default.program.js` |
-| Public barrel | `src/lib/portal/provision/index.ts` |
-| Config (typed view of `config.env`, live fetch + fallback) | `src/lib/portal/provision-config.ts` |
-| Vendored upstream snapshot + pinned ref | `src/lib/portal/provision/upstream/` |
+| Worker runtime (sandbox + `portal` RPC) | `src/lib/programs/worker.ts` |
+| Capability broker (validation, audit, dispatch) | `src/lib/programs/broker.ts` |
+| Shared types + `PORTAL_API_VERSION` | `src/lib/programs/types.ts` |
+| Program loader (spec-driven fetch, trust gate, vendored fallback) | `src/lib/programs/loader.ts` |
+| Built-in program (1:1 of Immortal's `provision.sh`) | `catalog/apps/immortal-launcher/program.js` |
+| Public barrel | `src/lib/programs/index.ts` |
+| Config (typed view of `config.env`, live fetch + fallback) | `src/lib/programs/config.ts` |
+| Vendored upstream snapshot + pinned ref | `catalog/apps/immortal-launcher/upstream/` |
 | Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
+| First-party Morphe program + headless runner | `catalog/programs/morphe/program.js`, `src/lib/programs/morphe-runner.ts` |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |
 
-The catalog entry (`src/lib/portal/catalog.json`, `immortal-launcher`) wires the
+The catalog entry (`catalog/apps/immortal-launcher/app.json`) wires the
 runner in with `program: { kind: "sandboxed", repo: "starbrightlab/immortal",
 trust: "verified" }`. `AppSetupPanel` routes every `sandboxed` program to the one
 generic `SandboxedProgramPanel` by kind — there is no per-app panel id, and the
@@ -95,7 +96,7 @@ reviewer must not merge a `"verified"` entry for an unvetted repo.
 
 ## The SDK
 
-`sdk/` is the launcher author's kit: `provision-sdk.d.ts` (the typed contract),
+`sdk/` is the launcher author's kit: `program-sdk.d.ts` (the typed contract),
 `template.program.js` (a starter, referenced with `/// <reference>` for editor
 types and no build step), and `README.md` (the API reference, manifest schema,
 versioning, and testing). The built-in program is the full worked example.
@@ -133,7 +134,7 @@ The boundary is the **broker capability allowlist**, not the sandbox alone.
 3. **Reviewability.** The program is fetched from a known release tag, shown to
    the user with a link, and the drift CI alerts when it changes. There is no CSP
    on GitHub Pages, so this design-time validation is the protection, matching the
-   existing allowlist approach in `provision-config.ts`.
+   existing allowlist approach in `src/lib/programs/config.ts`.
 
 Honest notes:
 
@@ -170,13 +171,13 @@ blob SHAs against the vendored snapshot in `meta.json`.
    `node scripts/vendor-provision.mjs`.
 2. **`provision.sh` changed, or `openportal.program.js` changed/was published.**
    Fails with a link to the upstream diff. Re-review the built-in program in
-   `src/lib/portal/provision/program/default.program.js` against `provision.sh`
+   `catalog/apps/immortal-launcher/program.js` against `provision.sh`
    (the 1:1 naming makes it mechanical), then re-vendor:
    `node scripts/vendor-provision.mjs`. When upstream ships
    `openportal.program.js`, the vendor script vendors it as the fallback and
    records `programBlob`/`programSha256` in `meta.json`.
 
-## Fidelity map (provision.sh -> default.program.js)
+## Fidelity map (provision.sh -> program.js)
 
 | Bash function | Program step | Key commands | Notes |
 |---|---|---|---|

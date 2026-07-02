@@ -7,9 +7,9 @@ runs it in a sandboxed worker, and renders its form from a manifest you declare.
 This means you can change the steps and the questions whenever you want, with no
 change to OpenPortal.
 
-- **Contract / types:** [`provision-sdk.d.ts`](./provision-sdk.d.ts)
+- **Contract / types:** [`program-sdk.d.ts`](./program-sdk.d.ts)
 - **Starter:** [`template.program.js`](./template.program.js)
-- **Full reference example:** `src/lib/portal/provision/program/default.program.js` (the built-in Immortal program)
+- **Full reference example:** `catalog/apps/immortal-launcher/program.js` (the built-in Immortal program)
 
 ## How it works
 
@@ -45,7 +45,7 @@ Copy `template.program.js`. Your module must export:
 Get editor types with no build step by referencing the SDK at the top of your file:
 
 ```js
-/// <reference path="./provision-sdk.d.ts" />
+/// <reference path="./program-sdk.d.ts" />
 /** @param {Portal} portal */
 export async function provision(portal, answers) { /* ... */ }
 ```
@@ -98,4 +98,4 @@ on capabilities introduced by a newer host.
 Open OpenPortal with a device connected, install/configure your launcher, and
 watch the step list and audit log. The built-in program is the behavioral
 baseline; diff against it. Browser deviations (no `adb tcpip`, no host-side file
-writes) are documented in `docs/provisioning.md`.
+writes) are documented in `docs/programs.md`.

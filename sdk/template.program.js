@@ -1,10 +1,10 @@
-/// <reference path="./provision-sdk.d.ts" />
+/// <reference path="./program-sdk.d.ts" />
 //
 // Starter OpenPortal provisioning program. Copy this to
 // provisioning/openportal.program.js in your release, then fill in the steps.
 // OpenPortal fetches it live from your latest release tag and runs it in a
 // sandboxed worker. See sdk/README.md for the full contract, and
-// src/lib/portal/provision/program/default.program.js for a complete example.
+// catalog/apps/immortal-launcher/program.js for a complete example.
 
 /** @type {ProvisionManifest} */
 export const manifest = {

@@ -1,10 +1,10 @@
 name: Provisioning drift
 
 # Alerts when Immortal's upstream provisioning kit moves away from the vendored
-# snapshot that src/lib/adb/provision.ts was ported against. A change to
-# provision.sh (the procedure) fails the job so the TS port gets re-reviewed; a
-# change to config.env alone (data) just prints a notice, since the runtime reads
-# release-tag values live.
+# snapshot that catalog/apps/immortal-launcher/program.js was ported against. A
+# change to provision.sh (the procedure) fails the job so the program gets
+# re-reviewed; a change to config.env alone (data) just prints a notice, since
+# the runtime reads release-tag values live.
 
 on:
   schedule:

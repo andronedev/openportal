@@ -1,10 +1,10 @@
-// OpenPortal provisioning SDK — type definitions (API v1).
+// OpenPortal program SDK — type definitions (API v1).
 //
-// These types describe the contract between OpenPortal (the host) and a
-// provisioning program. Reference this file from your program to get editor
-// autocomplete and type-checking with no build step:
+// These types describe the contract between OpenPortal (the host) and a setup
+// program. Reference this file from your program to get editor autocomplete and
+// type-checking with no build step:
 //
-//   /// <reference path="./provision-sdk.d.ts" />
+//   /// <reference path="./program-sdk.d.ts" />
 //   /** @param {Portal} portal */
 //   export async function provision(portal, answers) { ... }
 //
@@ -13,8 +13,8 @@
 // the `portal` object below. Every `portal` call is validated by the host on
 // the main thread, where the live ADB connection lives.
 
-/** A live, allowlist-validated view of Immortal's config.env. */
-interface ProvisionConfig {
+/** A live, allowlist-validated view of a launcher's config.env (Immortal-shaped). */
+interface ProgramConfig {
 	pkg: string;
 	homeActivity: string;
 	dreamService: string;
@@ -55,6 +55,22 @@ type StepStatus = "running" | "ok" | "warn" | "skip" | "error";
 type SettingsNamespace = "global" | "secure" | "system";
 type InstallStage = "downloading" | "installing" | "done";
 
+interface MorpheManifestApp {
+	id: string;
+	packageName: string;
+	version: string;
+	arch?: string;
+	sha256: string;
+	size?: number;
+	urls: string[];
+}
+
+interface MorpheManifest {
+	version: number;
+	generatedAt: string;
+	apps: MorpheManifestApp[];
+}
+
 interface InstallOptions {
 	/** If set, the host verifies the downloaded APK's sha256 on the device. */
 	sha256?: string;
@@ -71,7 +87,7 @@ interface InstallOptions {
 interface Portal {
 	/** Android API level of the connected device (e.g. 28 for A9, 29 for A10). */
 	readonly sdk: number;
-	readonly cfg: ProvisionConfig;
+	readonly cfg: ProgramConfig;
 	shell(
 		command: string,
 		opts?: { timeoutMs?: number },
@@ -80,6 +96,12 @@ interface Portal {
 	getIpAddress(): Promise<string | null>;
 	/** Fetch a URL from the device shell (no browser CORS). */
 	deviceFetchText(url: string): Promise<string>;
+	/**
+	 * Verify a Morphe manifest envelope (Ed25519, against OpenPortal's pinned
+	 * key) and return the parsed manifest. The key and verification stay on the
+	 * host: a program can orchestrate a modded-app install but cannot forge one.
+	 */
+	verifyMorpheManifest(text: string): Promise<MorpheManifest>;
 	/** Download an APK on the device and install it. */
 	installFromUrl(urls: string | string[], opts?: InstallOptions): Promise<void>;
 	/** Resolve the latest GitHub release APK URLs for a repo. */
@@ -117,11 +139,11 @@ interface FleetInventory {
 	token: string;
 }
 
-interface ProvisionResult {
+interface ProgramResult {
 	fleet: FleetInventory | null;
 }
 
-interface ProvisionStatus {
+interface ProgramStatus {
 	statusBar: string;
 	darkMode: boolean;
 	home: string;
@@ -133,7 +155,7 @@ interface ProvisionStatus {
 }
 
 /** The user's answers to the manifest fields, keyed by field key. */
-type ProvisionAnswers = Record<string, boolean | string>;
+type ProgramAnswers = Record<string, boolean | string>;
 
 type FieldType = "boolean" | "text" | "select";
 
@@ -165,7 +187,7 @@ interface ManifestField {
 	showWhen?: FieldCondition;
 }
 
-interface ProvisionManifest {
+interface ProgramManifest {
 	/** The host API version this program targets. Must be <= the host's. */
 	apiVersion?: number;
 	name?: string;
@@ -178,11 +200,11 @@ interface ProvisionManifest {
  * The exports your program module must provide. `manifest` and `defaultOptions`
  * power the panel form; the rest are the actions OpenPortal runs.
  */
-interface ProvisionProgram {
-	manifest: ProvisionManifest | (() => ProvisionManifest);
-	defaultOptions(portal: Portal): ProvisionAnswers | Promise<ProvisionAnswers>;
-	provision(portal: Portal, answers: ProvisionAnswers): Promise<ProvisionResult>;
+interface ProgramModule {
+	manifest: ProgramManifest | (() => ProgramManifest);
+	defaultOptions(portal: Portal): ProgramAnswers | Promise<ProgramAnswers>;
+	provision(portal: Portal, answers: ProgramAnswers): Promise<ProgramResult>;
 	restore(portal: Portal): Promise<void>;
-	status(portal: Portal): Promise<ProvisionStatus>;
+	status(portal: Portal): Promise<ProgramStatus>;
 	resetLauncher(portal: Portal): Promise<string>;
 }
