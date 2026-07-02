@@ -8,6 +8,8 @@ export default defineConfig({
 	// such as a GitHub Pages project site. Defaults to root for custom domains.
 	base: process.env.VITE_BASE || "/",
 	plugins: [react(), tailwindcss()],
+	// The program runtime spawns a module worker (src/lib/programs).
+	worker: { format: "es" },
 	resolve: {
 		alias: {
 			"@": resolve(__dirname, "./src"),

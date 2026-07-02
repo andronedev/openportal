@@ -1,6 +1,6 @@
 import { ConfirmDialog } from "@/components/ui/primitives";
-import { type CatalogApp, getAppIconUrl } from "@/lib/portal/catalog";
-import { canAutoInstall } from "@/lib/portal/sources";
+import { type CatalogApp, getAppIconUrl, isPanelProgram } from "@/lib/catalog";
+import { canAutoInstall } from "@/lib/catalog/sources";
 import { useAppStore } from "@/store/app-store";
 import {
 	ArrowUpCircle,
@@ -45,21 +45,21 @@ export function AppCard({ app }: { app: CatalogApp }) {
 	} = useSetupPanel();
 
 	const isLauncher = app.category === "launcher";
-	const setup = app.setup;
-	const autoSetup = setup?.kind === "commands" && setup.auto === true;
+	const program = app.program;
+	const autoSetup = program?.kind === "commands" && program.auto === true;
 	const installViaPanel =
-		setup?.kind === "custom" && setup.handlesInstall === true;
+		isPanelProgram(program) && program.handlesInstall === true;
 	const revertOnUninstall =
-		setup?.kind === "custom" && setup.revertOnUninstall === true;
+		isPanelProgram(program) && program.revertOnUninstall === true;
 	const showSetupGear =
 		actions.isInstalled &&
 		!actions.hasUpdate &&
-		!!setup &&
-		(setup.kind === "custom" || !(isLauncher && isDefaultLauncher));
+		!!program &&
+		(isPanelProgram(program) || !(isLauncher && isDefaultLauncher));
 
 	const handleSetup = () => {
-		if (!setup) return;
-		if (setup.kind === "custom") openSetup();
+		if (!program) return;
+		if (isPanelProgram(program)) openSetup();
 		else actions.runSetup();
 	};
 
@@ -136,13 +136,13 @@ export function AppCard({ app }: { app: CatalogApp }) {
 								{t("installed")}
 							</span>
 						)}
-						{showSetupGear && setup && (
+						{showSetupGear && program && (
 							<button
 								type="button"
 								onClick={handleSetup}
 								disabled={actions.busy === "setup"}
-								title={t(setup.labelKey ?? "runSetup")}
-								aria-label={t(setup.labelKey ?? "runSetup")}
+								title={t(program.labelKey ?? "runSetup")}
+								aria-label={t(program.labelKey ?? "runSetup")}
 								className={ICON_BUTTON}
 							>
 								{actions.busy === "setup" ? (

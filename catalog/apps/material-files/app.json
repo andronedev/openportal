@@ -1,0 +1,11 @@
+{
+	"id": "material-files",
+	"name": "Material Files",
+	"packageName": "me.zhanghai.android.files",
+	"description": "File manager with FTP server for wireless file transfer",
+	"category": "utility",
+	"version": "1.8.0",
+	"source": "fdroid",
+	"repo": "zhanghai/MaterialFiles",
+	"iconUrl": "https://f-droid.org/repo/me.zhanghai.android.files/en-US/icon.png"
+}

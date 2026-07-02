@@ -1,4 +1,4 @@
-import type { InstallStage } from "@/lib/adb/online-install";
+import type { InstallStage } from "@/lib/adb/install";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";

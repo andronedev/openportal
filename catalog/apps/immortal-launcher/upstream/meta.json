@@ -1,0 +1,14 @@
+{
+	"repo": "starbrightlab/immortal",
+	"vendoredCommit": "4678e40be434ce27e0f88098a380126d52a6cd91",
+	"vendoredCommitShort": "4678e40",
+	"latestReleaseTag": "v1.52",
+	"provisionShBlob": "b27cb0eada3465cb49a9bc34997d84695a6a9ebd",
+	"configEnvBlob": "64a55d606278ec40f0b75af16426b3d275552143",
+	"provisionShSha256": "744f4d17dc00d73ab5f5865aa30f3462a9d220b2a5ec7e77873b6b51f89007d2",
+	"configEnvSha256": "3929473a97548a365b8ef7e3615852d8fe2399a59cb0f63d3dd6ad41085d6b95",
+	"programBlob": null,
+	"programSha256": null,
+	"capturedAt": "2026-06-27",
+	"note": "Vendored snapshot of Immortal's provisioning kit (provisioning/provision.sh + config.env). The procedure is ported as the built-in program at catalog/apps/immortal-launcher/openportal.js; provision.sh here is the fidelity reference and drift-check baseline against upstream main. At runtime the panel fetches config.env live from the latest release tag for value auto-sync; this snapshot is the offline fallback. latestReleaseTag is that offline fallback ref (a pinned release), distinct from the main-tracking drift baseline. Regenerate with: node scripts/vendor-provision.mjs <ref>"
+}

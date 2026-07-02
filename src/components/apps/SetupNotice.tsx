@@ -1,18 +1,18 @@
-import type { AppSetup } from "@/lib/portal/catalog";
+import type { AppProgram } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function SetupNotice({
-	setup,
+	program,
 	className,
 }: {
-	setup: AppSetup;
+	program: AppProgram;
 	className?: string;
 }) {
 	const { t } = useTranslation("apps");
-	if (setup.kind !== "commands") return null;
-	const auto = setup.auto === true;
+	if (program.kind !== "commands") return null;
+	const auto = program.auto === true;
 
 	return (
 		<details
@@ -30,7 +30,7 @@ export function SetupNotice({
 			</summary>
 			<div className="space-y-2 border-t border-border px-3 py-2.5">
 				<p className="text-muted-foreground">{t("setupNoticeIntro")}</p>
-				<CommandList commands={setup.commands} />
+				<CommandList commands={program.commands} />
 			</div>
 		</details>
 	);

@@ -1,0 +1,11 @@
+{
+	"id": "jellyfin",
+	"name": "Jellyfin",
+	"packageName": "org.jellyfin.mobile",
+	"description": "Self-hosted media streaming client",
+	"category": "media",
+	"version": "2.6.2",
+	"source": "fdroid",
+	"repo": "jellyfin/jellyfin-android",
+	"iconUrl": "https://f-droid.org/repo/org.jellyfin.mobile/en-US/icon.png"
+}

@@ -1,0 +1,10 @@
+{
+	"id": "aurora-store",
+	"name": "Aurora Store",
+	"packageName": "com.aurora.store",
+	"description": "Open-source alternative to Google Play Store for downloading Android apps",
+	"category": "store",
+	"version": "4.6.1",
+	"source": "fdroid",
+	"iconUrl": "https://f-droid.org/repo/com.aurora.store/en-US/icon.png"
+}

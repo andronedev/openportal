@@ -1,0 +1,12 @@
+{
+	"id": "cromite",
+	"name": "Cromite",
+	"packageName": "org.cromite.cromite",
+	"description": "Privacy-focused Chromium browser with built-in ad blocking",
+	"category": "utility",
+	"version": "latest",
+	"source": "github",
+	"repo": "uazo/cromite",
+	"downloadUrl": "https://github.com/uazo/cromite/releases/latest",
+	"iconUrl": "https://web.archive.org/web/20260314054730im_/https://www.cromite.org/app_icon.png"
+}

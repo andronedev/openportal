@@ -1,0 +1,33 @@
+{
+	"order": [
+		"immortal-launcher",
+		"aurora-store",
+		"google-photos-screensaver",
+		"fdroid",
+		"vlc",
+		"jellyfin",
+		"cromite",
+		"archivetune",
+		"material-files",
+		"newpipe",
+		"libretube",
+		"home-assistant",
+		"antennapod",
+		"kodi",
+		"stremio",
+		"smarttube",
+		"portal-calendar",
+		"portal-iss-tracker",
+		"portal-overlays",
+		"morphe-youtube",
+		"morphe-youtube-music",
+		"revanced-gmscore"
+	],
+	"featured": [
+		"immortal-launcher",
+		"google-photos-screensaver",
+		"portal-calendar",
+		"portal-iss-tracker",
+		"portal-overlays"
+	]
+}

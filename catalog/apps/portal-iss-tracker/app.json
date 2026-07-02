@@ -1,0 +1,12 @@
+{
+	"id": "portal-iss-tracker",
+	"name": "Space Portal",
+	"packageName": "com.portal.isstracker",
+	"description": "NASA-style ISS dashboard with live 4K video, a real-time ground track, who's in space, space weather, and a launch countdown",
+	"category": "utility",
+	"version": "latest",
+	"source": "github",
+	"repo": "compscirunner/portal-iss-tracker",
+	"downloadUrl": "https://github.com/compscirunner/portal-iss-tracker/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/compscirunner/portal-iss-tracker/main/docs/icon.png"
+}

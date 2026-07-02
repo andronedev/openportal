@@ -102,31 +102,11 @@
 	"refresh": "Refresh",
 	"openApp": "Open app",
 	"launched": "Launched {{name}}",
-	"gphotos": {
-		"intro": "Show your Google Photos albums as a screensaver. This needs your own Google Cloud OAuth credentials.",
-		"step1": "Create a Google Cloud project and enable the Photos Picker API.",
-		"step2": "Configure the OAuth consent screen (External) and add yourself as a test user.",
-		"step3": "Create a Desktop OAuth client and download its client_secret.json.",
-		"guideLink": "Full setup guide",
-		"credentialsLabel": "OAuth credentials (client_secret.json)",
-		"chooseFile": "Choose file",
-		"apply": "Apply & launch",
-		"done": "Screensaver configured. Finish signing in on the Portal."
-	},
-	"portalCalendar": {
-		"intro": "Turn your Portal into a wall calendar. You set it up from your browser.",
-		"step1": "Add your calendars as iCal feeds (Google, iCloud, or any .ics URL) and give each one a color and a name.",
-		"step2": "Optionally connect iCloud or Google for two-way sync so you can create events from the Portal.",
-		"step3": "Turn on \"Show the calendar when the Portal idles\" to use it as a screensaver.",
-		"finding": "Finding your Portal's address…",
-		"retry": "Try again",
-		"addressLabel": "Open this address in your browser",
-		"addressHint": "Use a phone or computer on the same Wi-Fi as your Portal.",
-		"copy": "Copy address",
-		"noAddress": "Couldn't find the Portal's network address. Make sure it's connected to Wi-Fi."
-	},
 	"provisioning": {
 		"setupLabel": "Provision device",
+		"apply": "Apply",
+		"copy": "Copy",
+		"chooseFile": "Choose file",
 		"intro": "Runs Immortal's full ADB setup: installs and sets the launcher and screensaver, and unlocks on-device installs so its store works. Reversible with Restore.",
 		"sourceLive": "Live config · {{ref}}",
 		"sourceVendored": "Bundled config · {{ref}}",
@@ -134,6 +114,10 @@
 		"connect": "Connect Portal",
 		"optionsTitle": "Advanced options",
 		"commandsTitle": "Show the commands that will run",
+		"viewProgram": "Review the provisioning program",
+		"auditTitle": "Commands ({{count}})",
+		"stop": "Stop",
+		"incompatible": "This program needs a newer OpenPortal. Using the built-in version instead.",
 		"needDevice": "Connect a Portal to run provisioning.",
 		"provision": "Provision device",
 		"restore": "Restore",
@@ -161,6 +145,8 @@
 		"opt": {
 			"blockOta": "Block OS updates",
 			"blockOtaHint": "Stops a future Meta OTA from undoing this setup. Forgoes OS updates; reversible.",
+			"disableOta": "Block OS updates",
+			"disableOtaHint": "Stops a future Meta OTA from undoing this setup. Forgoes OS updates; reversible.",
 			"installShizuku": "Install Shizuku",
 			"installShizukuHint": "Privileged broker used by some apps (e.g. Aurora's silent installs). Useful on every Portal.",
 			"runPreinstalls": "Pre-install bundled apps",
@@ -170,11 +156,12 @@
 			"enableFleet": "Enable Wi-Fi fleet agent",
 			"enableFleetHint": "Runs Immortal's in-app agent so you can manage this Portal over Wi-Fi. Survives reboot.",
 			"fleetNamePlaceholder": "Name this Portal (e.g. Living Room)",
+			"fleetName": "Fleet device name",
 			"setLauncher": "Set as default launcher",
 			"setLauncherHint": "Makes Immortal the Portal's home screen. Turn off to keep Meta's launcher (e.g. Calls); you can still open Immortal manually. Reversible with Restore.",
 			"restoreAlexa": "Restore Amazon Alexa",
 			"restoreAlexaHint": "Revives the original on-device Alexa client (hands-free \"Hey Alexa\"). Downloads ~115 MB.",
-			"restoreAlexaA10": "Not supported on this Portal (Android 10+ blocks background mic for sideloaded apps)."
+			"restoreAlexaDisabled": "Not supported on this Portal (Android 10+ blocks background mic for sideloaded apps)."
 		},
 		"steps": {
 			"installClient": "Install Immortal",

@@ -1,0 +1,20 @@
+{
+	"id": "google-photos-screensaver",
+	"name": "Google Photos Screensaver",
+	"packageName": "com.ramnat.portalgphotos",
+	"description": "Use your Google Photos albums as a screensaver on your Portal",
+	"category": "photo",
+	"version": "latest",
+	"source": "github",
+	"repo": "ram-nat/portal-gphotos",
+	"downloadUrl": "https://github.com/ram-nat/portal-gphotos/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/ram-nat/portal-gphotos/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+	"skipUpdateCheck": true,
+	"program": {
+		"kind": "sandboxed",
+		"trust": "first-party",
+		"handlesInstall": false,
+		"revertOnUninstall": false,
+		"labelKey": "setUpGphotos"
+	}
+}

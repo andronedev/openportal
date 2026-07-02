@@ -1,0 +1,23 @@
+{
+	"id": "portal-overlays",
+	"name": "Portal Overlays",
+	"packageName": "com.portal.overlays",
+	"description": "Floating HUD over any app, with draggable widgets, mirrored notifications, ntfy push banners, a status strip, and a Back/Home/Recents nav cluster",
+	"category": "utility",
+	"version": "latest",
+	"source": "github",
+	"repo": "GodricTM/PortalOverlays",
+	"downloadUrl": "https://github.com/GodricTM/PortalOverlays/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/GodricTM/PortalOverlays/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+	"program": {
+		"kind": "commands",
+		"auto": true,
+		"commands": [
+			"appops set com.portal.overlays SYSTEM_ALERT_WINDOW allow",
+			"settings put secure enabled_accessibility_services com.portal.overlays/com.portal.overlays.NavAccessibilityService",
+			"settings put secure accessibility_enabled 1",
+			"cmd notification allow_listener com.portal.overlays/com.portal.overlays.NotifyListenerService"
+		],
+		"labelKey": "grantPermissions"
+	}
+}

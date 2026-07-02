@@ -1,0 +1,11 @@
+{
+	"id": "my-app",
+	"name": "My App",
+	"packageName": "com.example.myapp",
+	"description": "What it does, in one short sentence.",
+	"category": "utility",
+	"version": "1.0.0",
+	"source": "github",
+	"repo": "owner/repo",
+	"iconUrl": "https://example.com/icon.png"
+}

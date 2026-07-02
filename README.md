@@ -84,7 +84,7 @@ Just want the plain link? It's `https://openportal.cc/apps/YOUR.PACKAGE.NAME` â€
 
 ## Contributing
 
-The app catalog lives in [`src/lib/portal/catalog.json`](src/lib/portal/catalog.json). It's data-only, so you can add an app with a pull request and no code change. See [CONTRIBUTING.md](CONTRIBUTING.md) for the field schema and conventions.
+The app catalog lives at the repo root in [`catalog/`](catalog/): one folder per app under `catalog/apps/<id>/app.json`. It's data-only, so you can add an app with a pull request and no code change. See [catalog/README.md](catalog/README.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the field schema and conventions.
 
 ## Legal
 

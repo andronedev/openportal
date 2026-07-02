@@ -10,8 +10,9 @@
 			"dist",
 			"node_modules",
 			"pnpm-lock.yaml",
-			"src/lib/portal/catalog.json",
-			"src/lib/portal/provision/upstream",
+			"catalog",
+			"sdk",
+			"src/lib/programs/morphe/openportal.js",
 			"public/scrcpy-server"
 		]
 	},

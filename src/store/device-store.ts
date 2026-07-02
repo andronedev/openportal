@@ -7,8 +7,8 @@ import {
 } from "@/lib/adb/connection";
 import { getDeviceInfo } from "@/lib/adb/device-info";
 import type { ConnectionState, DeviceInfo } from "@/lib/adb/types";
-import { resolveModel } from "@/lib/portal/models";
-import type { PortalModelInfo } from "@/lib/portal/models";
+import { resolveModel } from "@/lib/device/models";
+import type { PortalModelInfo } from "@/lib/device/models";
 import type { Adb } from "@yume-chan/adb";
 import type { AdbDaemonWebUsbDevice } from "@yume-chan/adb-daemon-webusb";
 import { toast } from "sonner";

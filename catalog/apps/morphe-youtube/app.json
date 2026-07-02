@@ -1,0 +1,13 @@
+{
+	"id": "morphe-youtube",
+	"name": "YouTube (Morphe)",
+	"packageName": "app.morphe.android.youtube",
+	"description": "Modded YouTube with no ads, background playback, SponsorBlock, and a nodpi build tuned for Portal (requires GmsCore)",
+	"category": "media",
+	"version": "latest",
+	"source": "morphe",
+	"requires": [
+		"app.revanced.android.gms"
+	],
+	"iconUrl": "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"
+}

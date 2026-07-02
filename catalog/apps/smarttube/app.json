@@ -1,0 +1,12 @@
+{
+	"id": "smarttube",
+	"name": "SmartTube",
+	"packageName": "org.smarttube.stable",
+	"description": "Ad-free YouTube client for TV screens with SponsorBlock built in",
+	"category": "media",
+	"version": "latest",
+	"source": "github",
+	"repo": "yuliskov/SmartTube",
+	"downloadUrl": "https://github.com/yuliskov/SmartTube/releases/latest",
+	"iconUrl": "https://raw.githubusercontent.com/yuliskov/SmartTube/master/smarttubetv/src/ststable/res/mipmap-nodpi/app_icon.png"
+}
