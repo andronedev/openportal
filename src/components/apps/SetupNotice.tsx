@@ -1,4 +1,4 @@
-import type { AppProgram } from "@/lib/portal/catalog";
+import type { AppProgram } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";

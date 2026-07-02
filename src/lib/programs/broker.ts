@@ -6,21 +6,24 @@ import { clearLogcat, dumpLogcat } from "@/lib/adb/logcat";
 import { deviceFetchText } from "@/lib/adb/online-install";
 import { getSetting, putSetting } from "@/lib/adb/settings";
 import { execShell, getprop } from "@/lib/adb/shell";
-import type { ProvisionConfig } from "@/lib/portal/provision-config";
-import { resolveFdroidLatest, resolveGithubLatest } from "@/lib/portal/sources";
+import {
+	resolveFdroidLatest,
+	resolveGithubLatest,
+} from "@/lib/catalog/sources";
+import type { ProgramConfig } from "@/lib/programs/config";
 import type { Adb } from "@yume-chan/adb";
 import { loadVendoredProgram } from "./loader";
 import type {
 	InstallStage,
 	ManifestField,
 	OnStep,
+	ProgramAnswers,
 	ProgramContext,
-	ProvisionAnswers,
-	ProvisionDescription,
-	ProvisionEntry,
-	ProvisionResult,
-	ProvisionRun,
-	ProvisionStatus,
+	ProgramDescription,
+	ProgramEntry,
+	ProgramResult,
+	ProgramRun,
+	ProgramStatus,
 	SettingsNamespace,
 	WorkerToBroker,
 } from "./types";
@@ -122,7 +125,7 @@ async function pushUserPhotos(
 
 async function dispatch(
 	adb: Adb,
-	run: ProvisionRun | undefined,
+	run: ProgramRun | undefined,
 	method: string,
 	args: unknown[],
 	onProgress: (stage: InstallStage, percent: number | null) => void,
@@ -218,11 +221,11 @@ function spawnWorker(): Worker {
 
 function runEntry(
 	adb: Adb | null,
-	cfg: ProvisionConfig,
-	entry: ProvisionEntry,
-	answers: ProvisionAnswers | null,
+	cfg: ProgramConfig,
+	entry: ProgramEntry,
+	answers: ProgramAnswers | null,
 	onStep: OnStep,
-	run: ProvisionRun | undefined,
+	run: ProgramRun | undefined,
 ): Promise<unknown> {
 	return (async () => {
 		const program = run?.program ?? loadVendoredProgram();
@@ -320,7 +323,7 @@ function isManifestField(value: unknown): value is ManifestField {
 }
 
 /** Defensive normalization: the manifest is untrusted remote data rendered in the UI. */
-function normalizeDescription(value: unknown): ProvisionDescription {
+function normalizeDescription(value: unknown): ProgramDescription {
 	const v = (value ?? {}) as { manifest?: unknown; defaults?: unknown };
 	const m = (v.manifest ?? {}) as Record<string, unknown>;
 	const fields = Array.isArray(m.fields)
@@ -329,7 +332,7 @@ function normalizeDescription(value: unknown): ProvisionDescription {
 	const steps = Array.isArray(m.steps)
 		? m.steps.filter((s): s is string => typeof s === "string")
 		: undefined;
-	const defaults: ProvisionAnswers = {};
+	const defaults: ProgramAnswers = {};
 	if (v.defaults && typeof v.defaults === "object") {
 		for (const [key, val] of Object.entries(v.defaults)) {
 			if (typeof val === "boolean" || typeof val === "string") {
@@ -350,9 +353,9 @@ function normalizeDescription(value: unknown): ProvisionDescription {
 
 export async function describe(
 	adb: Adb | null,
-	cfg: ProvisionConfig,
-	run?: ProvisionRun,
-): Promise<ProvisionDescription> {
+	cfg: ProgramConfig,
+	run?: ProgramRun,
+): Promise<ProgramDescription> {
 	return normalizeDescription(
 		await runEntry(adb, cfg, "describe", null, () => {}, run),
 	);
@@ -360,9 +363,9 @@ export async function describe(
 
 export function status(
 	adb: Adb,
-	cfg: ProvisionConfig,
-	run?: ProvisionRun,
-): Promise<ProvisionStatus> {
+	cfg: ProgramConfig,
+	run?: ProgramRun,
+): Promise<ProgramStatus> {
 	return runEntry(
 		adb,
 		cfg,
@@ -370,16 +373,16 @@ export function status(
 		null,
 		() => {},
 		run,
-	) as Promise<ProvisionStatus>;
+	) as Promise<ProgramStatus>;
 }
 
 export function provision(
 	adb: Adb,
-	cfg: ProvisionConfig,
-	answers: ProvisionAnswers,
+	cfg: ProgramConfig,
+	answers: ProgramAnswers,
 	onStep: OnStep,
-	run?: ProvisionRun,
-): Promise<ProvisionResult> {
+	run?: ProgramRun,
+): Promise<ProgramResult> {
 	return runEntry(
 		adb,
 		cfg,
@@ -387,22 +390,22 @@ export function provision(
 		answers,
 		onStep,
 		run,
-	) as Promise<ProvisionResult>;
+	) as Promise<ProgramResult>;
 }
 
 export function restore(
 	adb: Adb,
-	cfg: ProvisionConfig,
+	cfg: ProgramConfig,
 	onStep: OnStep,
-	run?: ProvisionRun,
+	run?: ProgramRun,
 ): Promise<void> {
 	return runEntry(adb, cfg, "restore", null, onStep, run) as Promise<void>;
 }
 
 export function resetLauncher(
 	adb: Adb,
-	cfg: ProvisionConfig,
-	run?: ProvisionRun,
+	cfg: ProgramConfig,
+	run?: ProgramRun,
 ): Promise<string> {
 	return runEntry(
 		adb,

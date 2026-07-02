@@ -1,14 +1,13 @@
 import { deviceFetchText } from "@/lib/adb/online-install";
 import { getprop } from "@/lib/adb/shell";
-import { MORPHE_MANIFEST_URLS } from "@/lib/security/manifest-key";
+import type { Adb } from "@yume-chan/adb";
+import fdroidMirrors from "./fdroid-mirrors.json";
 import {
+	MORPHE_MANIFEST_URLS,
 	type MorpheManifestApp,
 	verifyAndParseManifest,
-} from "@/lib/security/verify-manifest";
-import type { Adb } from "@yume-chan/adb";
-import type { CatalogApp } from "./catalog";
-import { CUSTOM_SOURCES } from "./custom-sources/registry";
-import fdroidMirrors from "./fdroid-mirrors.json";
+} from "./morphe";
+import { type CatalogApp, isPanelProgram } from "./types";
 
 const FDROID_MIRRORS: string[] =
 	fdroidMirrors.length > 0 ? fdroidMirrors : ["https://f-droid.org/repo"];
@@ -21,13 +20,30 @@ export interface ResolvedApk {
 	sha256?: string;
 }
 
-export function canAutoInstall(app: CatalogApp): boolean {
+/**
+ * Whether the APK can be resolved to a download by {@link resolveApk} (the
+ * standard sources the device can fetch on its own). Drives the passive
+ * update-check; apps whose install is driven by a `program` are not resolvable
+ * this way and are excluded.
+ */
+export function hasResolvableSource(app: CatalogApp): boolean {
 	return (
 		app.source === "github" ||
 		app.source === "fdroid" ||
 		app.source === "url" ||
-		app.source === "morphe" ||
-		app.source === "custom"
+		app.source === "morphe"
+	);
+}
+
+/**
+ * Whether OpenPortal can install the app from within the UI: either it has a
+ * resolvable source, or its `program` handles the install itself (a launcher
+ * provisioned through a panel/sandboxed program).
+ */
+export function canAutoInstall(app: CatalogApp): boolean {
+	return (
+		hasResolvableSource(app) ||
+		(isPanelProgram(app.program) && app.program.handlesInstall === true)
 	);
 }
 
@@ -35,14 +51,13 @@ export function canAutoInstall(app: CatalogApp): boolean {
 export function getSourceUrl(app: CatalogApp): string | undefined {
 	switch (app.source) {
 		case "github":
-		case "custom":
 			return app.repo ? `https://github.com/${app.repo}` : app.downloadUrl;
 		case "fdroid":
 			return `https://f-droid.org/packages/${app.packageName}`;
 		case "url":
 			return app.apkUrl ?? app.downloadUrl;
 		default:
-			return app.downloadUrl;
+			return app.repo ? `https://github.com/${app.repo}` : app.downloadUrl;
 	}
 }
 
@@ -55,10 +70,8 @@ export function getSourceLabel(app: CatalogApp): string {
 			return "F-Droid";
 		case "morphe":
 			return "Morphe";
-		case "custom":
-			return app.repo ? "GitHub" : "Web";
 		default:
-			return "Web";
+			return app.repo ? "GitHub" : "Web";
 	}
 }
 
@@ -221,15 +234,6 @@ export async function resolveApk(
 	adb: Adb,
 	app: CatalogApp,
 ): Promise<ResolvedApk> {
-	if (app.source === "custom") {
-		const resolver = app.customSource
-			? CUSTOM_SOURCES[app.customSource]
-			: undefined;
-		if (!resolver) {
-			throw new Error(`Unknown custom source "${app.customSource ?? ""}"`);
-		}
-		return resolver(adb, app);
-	}
 	switch (app.source) {
 		case "github":
 			if (!app.repo) throw new Error("Missing GitHub repo");

@@ -7,8 +7,6 @@
 		"category": "launcher",
 		"version": "latest",
 		"madeForPortal": true,
-		"source": "custom",
-		"customSource": "immortal",
 		"repo": "starbrightlab/immortal",
 		"downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
 		"iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",

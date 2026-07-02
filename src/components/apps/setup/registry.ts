@@ -1,4 +1,4 @@
-import type { CatalogApp } from "@/lib/portal/catalog";
+import type { CatalogApp } from "@/lib/catalog";
 import { type ComponentType, type LazyExoticComponent, lazy } from "react";
 
 export interface SetupPanelProps {

@@ -6,11 +6,7 @@ import {
 } from "@/components/ui/primitives";
 import { installApp } from "@/lib/adb/install";
 import type { InstalledPackage } from "@/lib/adb/types";
-import {
-	getAppIconUrl,
-	getCatalogApp,
-	isPanelProgram,
-} from "@/lib/portal/catalog";
+import { getAppIconUrl, getCatalogApp, isPanelProgram } from "@/lib/catalog";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";

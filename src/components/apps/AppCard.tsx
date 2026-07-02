@@ -1,10 +1,6 @@
 import { ConfirmDialog } from "@/components/ui/primitives";
-import {
-	type CatalogApp,
-	getAppIconUrl,
-	isPanelProgram,
-} from "@/lib/portal/catalog";
-import { canAutoInstall } from "@/lib/portal/sources";
+import { type CatalogApp, getAppIconUrl, isPanelProgram } from "@/lib/catalog";
+import { canAutoInstall } from "@/lib/catalog/sources";
 import { useAppStore } from "@/store/app-store";
 import {
 	ArrowUpCircle,

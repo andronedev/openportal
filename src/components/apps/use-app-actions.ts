@@ -7,12 +7,8 @@ import {
 	runPostInstall,
 } from "@/lib/adb/app-manager";
 import { type InstallStage, installApp } from "@/lib/adb/install";
-import {
-	type CatalogApp,
-	getCatalogApp,
-	isPanelProgram,
-} from "@/lib/portal/catalog";
-import { resolveApk } from "@/lib/portal/sources";
+import { type CatalogApp, getCatalogApp, isPanelProgram } from "@/lib/catalog";
+import { resolveApk } from "@/lib/catalog/sources";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import type { Adb } from "@yume-chan/adb";

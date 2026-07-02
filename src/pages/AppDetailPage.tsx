@@ -18,13 +18,13 @@ import {
 	getAppShareUrl,
 	getCatalogApp,
 	isPanelProgram,
-} from "@/lib/portal/catalog";
-import { useReadme } from "@/lib/portal/readme";
+} from "@/lib/catalog";
+import { useReadme } from "@/lib/catalog/readme";
 import {
 	canAutoInstall,
 	getSourceLabel,
 	getSourceUrl,
-} from "@/lib/portal/sources";
+} from "@/lib/catalog/sources";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";

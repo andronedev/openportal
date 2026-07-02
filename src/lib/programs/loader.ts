@@ -1,9 +1,9 @@
 import { deviceFetchText } from "@/lib/adb/online-install";
-import type { ProgramTrust } from "@/lib/portal/catalog";
-import { resolveLatestTag } from "@/lib/portal/provision-config";
+import type { ProgramTrust } from "@/lib/catalog";
+import { resolveLatestTag } from "@/lib/programs/config";
 import type { Adb } from "@yume-chan/adb";
-import defaultProgram from "./program/default.program.js?raw";
-import type { LoadedProvisionProgram } from "./types";
+import defaultProgram from "./default.program.js?raw";
+import type { LoadedProgram } from "./types";
 import { UPSTREAM_META } from "./upstream/snapshot";
 
 const DEFAULT_PROGRAM_PATH = "provisioning/openportal.program.js";
@@ -28,7 +28,7 @@ function hasVendoredSnapshot(repo: string): boolean {
 /** The built-in program, kept in sync with provision.sh and always API-compatible. */
 export function loadVendoredProgram(
 	ref: string = UPSTREAM_META.latestReleaseTag,
-): LoadedProvisionProgram {
+): LoadedProgram {
 	return { code: defaultProgram, ref, source: "vendored" };
 }
 
@@ -50,7 +50,7 @@ function looksLikeProgram(code: string): boolean {
 export async function loadProgram(
 	adb: Adb | null,
 	spec: ProgramSpec,
-): Promise<LoadedProvisionProgram> {
+): Promise<LoadedProgram> {
 	const trusted = spec.trust === "verified" || spec.trust === "first-party";
 	if (!adb || !trusted) {
 		if (hasVendoredSnapshot(spec.repo)) return loadVendoredProgram();

@@ -10,9 +10,9 @@
 			"dist",
 			"node_modules",
 			"pnpm-lock.yaml",
-			"src/lib/portal/catalog.json",
-			"src/lib/portal/provision/upstream",
-			"src/lib/portal/provision/program",
+			"src/lib/catalog/catalog.json",
+			"src/lib/programs/upstream",
+			"src/lib/programs/default.program.js",
 			"sdk",
 			"public/scrcpy-server"
 		]

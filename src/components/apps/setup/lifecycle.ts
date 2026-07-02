@@ -1,7 +1,7 @@
 import { launchApp } from "@/lib/adb/app-manager";
-import type { CatalogApp } from "@/lib/portal/catalog";
-import { loadProgram, restore } from "@/lib/portal/provision";
-import { loadProvisionConfig } from "@/lib/portal/provision-config";
+import type { CatalogApp } from "@/lib/catalog";
+import { loadProgram, restore } from "@/lib/programs";
+import { loadProgramConfig } from "@/lib/programs/config";
 import type { Adb } from "@yume-chan/adb";
 
 export interface SetupLifecycle {
@@ -21,7 +21,7 @@ export function getSetupLifecycle(app: CatalogApp): SetupLifecycle | undefined {
 		return {
 			beforeUninstall: async (adb) => {
 				const [{ cfg }, loaded] = await Promise.all([
-					loadProvisionConfig(adb, program.repo),
+					loadProgramConfig(adb, program.repo),
 					loadProgram(adb, program),
 				]);
 				await restore(adb, cfg, () => {}, { program: loaded });

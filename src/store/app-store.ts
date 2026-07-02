@@ -7,12 +7,12 @@ import {
 import { installApp } from "@/lib/adb/install";
 import { MOCK_INSTALLED_PACKAGES } from "@/lib/adb/mock";
 import type { InstallTask, InstalledPackage } from "@/lib/adb/types";
-import { type CatalogApp, getCatalogApp } from "@/lib/portal/catalog";
+import { type CatalogApp, getCatalogApp } from "@/lib/catalog";
 import {
-	canAutoInstall,
+	hasResolvableSource,
 	isNewerVersion,
 	resolveApk,
-} from "@/lib/portal/sources";
+} from "@/lib/catalog/sources";
 import { create } from "zustand";
 import { useDeviceStore } from "./device-store";
 
@@ -84,7 +84,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 			.installedPackages.map((pkg) => getCatalogApp(pkg.packageName))
 			.filter(
 				(app): app is CatalogApp =>
-					!!app && canAutoInstall(app) && !app.skipUpdateCheck,
+					!!app && hasResolvableSource(app) && !app.skipUpdateCheck,
 			);
 
 		checkingUpdates = (async () => {

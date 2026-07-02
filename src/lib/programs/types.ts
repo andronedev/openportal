@@ -1,5 +1,5 @@
 import type { InstallStage } from "@/lib/adb/install";
-import type { ProvisionConfig } from "@/lib/portal/provision-config";
+import type { ProgramConfig } from "@/lib/programs/config";
 
 export type { InstallStage };
 
@@ -32,11 +32,11 @@ export interface FleetInventory {
 	token: string;
 }
 
-export interface ProvisionResult {
+export interface ProgramResult {
 	fleet: FleetInventory | null;
 }
 
-export interface ProvisionStatus {
+export interface ProgramStatus {
 	statusBar: string;
 	darkMode: boolean;
 	home: string;
@@ -52,7 +52,7 @@ export interface ProvisionStatus {
  * can add a new question by declaring a field, with no front-end change.
  * Answers are a flat map keyed by field key; `provision()` reads them.
  */
-export type ProvisionAnswers = Record<string, boolean | string>;
+export type ProgramAnswers = Record<string, boolean | string>;
 
 export type FieldType = "boolean" | "text" | "select";
 
@@ -78,19 +78,19 @@ export interface ManifestField {
 	showWhen?: FieldCondition;
 }
 
-export interface ProvisionManifest {
+export interface ProgramManifest {
 	apiVersion?: number;
 	name?: string;
 	fields: ManifestField[];
 	steps?: string[];
 }
 
-export interface ProvisionDescription {
-	manifest: ProvisionManifest;
-	defaults: ProvisionAnswers;
+export interface ProgramDescription {
+	manifest: ProgramManifest;
+	defaults: ProgramAnswers;
 }
 
-export type ProvisionEntry =
+export type ProgramEntry =
 	| "describe"
 	| "status"
 	| "provision"
@@ -109,14 +109,14 @@ export interface AuditEntry {
  * the caller reuse an already-loaded program instead of re-fetching it;
  * `photos` are pushed by `pushUserPhotos` and never enter the worker.
  */
-export interface ProvisionRun {
+export interface ProgramRun {
 	signal?: AbortSignal;
 	onCommand?: (entry: AuditEntry) => void;
-	program?: LoadedProvisionProgram;
+	program?: LoadedProgram;
 	photos?: File[];
 }
 
-export interface LoadedProvisionProgram {
+export interface LoadedProgram {
 	code: string;
 	ref: string;
 	source: "live" | "vendored";
@@ -138,7 +138,7 @@ export type SettingsNamespace = "global" | "secure" | "system";
  */
 export interface Portal {
 	readonly sdk: number;
-	readonly cfg: ProvisionConfig;
+	readonly cfg: ProgramConfig;
 	shell(
 		command: string,
 		opts?: { timeoutMs?: number },
@@ -168,11 +168,11 @@ export interface Portal {
 }
 
 export interface ProgramContext {
-	entry: ProvisionEntry;
+	entry: ProgramEntry;
 	programCode: string;
 	sdk: number;
-	cfg: ProvisionConfig;
-	answers: ProvisionAnswers | null;
+	cfg: ProgramConfig;
+	answers: ProgramAnswers | null;
 }
 
 export type BrokerToWorker =

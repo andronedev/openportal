@@ -1,8 +1,8 @@
 import { deviceFetchText } from "@/lib/adb/online-install";
 import type { Adb } from "@yume-chan/adb";
-import { CONFIG_ENV_RAW, UPSTREAM_META } from "./provision/upstream/snapshot";
+import { CONFIG_ENV_RAW, UPSTREAM_META } from "./upstream/snapshot";
 
-export interface ProvisionConfig {
+export interface ProgramConfig {
 	pkg: string;
 	homeActivity: string;
 	dreamService: string;
@@ -82,9 +82,7 @@ const list = (raw: Record<string, string>, key: string): string[] => {
 const str = (raw: Record<string, string>, key: string, fallback = "") =>
 	raw[key] ?? fallback;
 
-export function toProvisionConfig(
-	raw: Record<string, string>,
-): ProvisionConfig {
+export function toProgramConfig(raw: Record<string, string>): ProgramConfig {
 	return {
 		pkg: str(raw, "PKG"),
 		homeActivity: str(raw, "HOME_ACTIVITY"),
@@ -122,8 +120,8 @@ export function toProvisionConfig(
 	};
 }
 
-export function parseConfigEnv(text: string): ProvisionConfig {
-	return toProvisionConfig(parseConfigEnvRaw(text));
+export function parseConfigEnv(text: string): ProgramConfig {
+	return toProgramConfig(parseConfigEnvRaw(text));
 }
 
 const PKG_RE = /^[A-Za-z0-9_.]+$/;
@@ -147,7 +145,7 @@ function isSafeUrl(value: string): boolean {
 const pkgOk = (v: string) => v.length === 0 || PKG_RE.test(v);
 const componentOk = (v: string) => v.length === 0 || COMPONENT_RE.test(v);
 
-export function findConfigViolations(cfg: ProvisionConfig): string[] {
+export function findConfigViolations(cfg: ProgramConfig): string[] {
 	const out: string[] = [];
 	const pkg = (label: string, v: string) => {
 		if (!pkgOk(v)) out.push(`${label}=${v}`);
@@ -190,8 +188,8 @@ export function findConfigViolations(cfg: ProvisionConfig): string[] {
 	return out;
 }
 
-export interface LoadedProvisionConfig {
-	cfg: ProvisionConfig;
+export interface LoadedProgramConfig {
+	cfg: ProgramConfig;
 	ref: string;
 	source: "live" | "vendored";
 }
@@ -214,14 +212,14 @@ export async function resolveLatestTag(repo: string): Promise<string | null> {
 	}
 }
 
-function vendored(ref: string): LoadedProvisionConfig {
+function vendored(ref: string): LoadedProgramConfig {
 	return { cfg: parseConfigEnv(CONFIG_ENV_RAW), ref, source: "vendored" };
 }
 
-export async function loadProvisionConfig(
+export async function loadProgramConfig(
 	adb: Adb | null,
 	repo: string = IMMORTAL_REPO,
-): Promise<LoadedProvisionConfig> {
+): Promise<LoadedProgramConfig> {
 	if (!adb) return vendored(UPSTREAM_META.latestReleaseTag);
 
 	const tag = (await resolveLatestTag(repo)) ?? UPSTREAM_META.latestReleaseTag;
@@ -230,7 +228,7 @@ export async function loadProvisionConfig(
 		const text = await deviceFetchText(adb, url);
 		const raw = parseConfigEnvRaw(text);
 		if (!raw.PKG) throw new Error("config.env missing PKG");
-		const cfg = toProvisionConfig(raw);
+		const cfg = toProgramConfig(raw);
 		const violations = findConfigViolations(cfg);
 		if (violations.length > 0) {
 			throw new Error(

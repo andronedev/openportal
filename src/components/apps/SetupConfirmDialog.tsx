@@ -1,5 +1,5 @@
 import { Button, Modal } from "@/components/ui/primitives";
-import type { CatalogApp } from "@/lib/portal/catalog";
+import type { CatalogApp } from "@/lib/catalog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CommandList } from "./SetupNotice";

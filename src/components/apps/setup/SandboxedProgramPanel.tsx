@@ -3,12 +3,12 @@ import {
 	type AuditEntry,
 	type FieldCondition,
 	type FleetInventory,
-	type LoadedProvisionProgram,
+	type LoadedProgram,
 	type ManifestField,
 	PORTAL_API_VERSION,
-	type ProvisionAnswers,
-	type ProvisionManifest,
-	type ProvisionStatus,
+	type ProgramAnswers,
+	type ProgramManifest,
+	type ProgramStatus,
 	type StepEvent,
 	describe,
 	loadProgram,
@@ -18,11 +18,11 @@ import {
 	status as readStatus,
 	resetLauncher,
 	restore,
-} from "@/lib/portal/provision";
+} from "@/lib/programs";
 import {
-	type LoadedProvisionConfig,
-	loadProvisionConfig,
-} from "@/lib/portal/provision-config";
+	type LoadedProgramConfig,
+	loadProgramConfig,
+} from "@/lib/programs/config";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";
@@ -47,7 +47,7 @@ type Phase = "loading" | "review" | "running" | "done";
 function evalCondition(
 	cond: FieldCondition | undefined,
 	sdk: number,
-	answers: ProvisionAnswers,
+	answers: ProgramAnswers,
 ): boolean {
 	if (!cond) return true;
 	if (cond.sdkLessThan !== undefined && !(sdk < cond.sdkLessThan)) return false;
@@ -84,15 +84,13 @@ export default function SandboxedProgramPanel({
 	const isInstalled = useAppStore((s) => s.isInstalled(app.packageName));
 
 	const [phase, setPhase] = useState<Phase>("loading");
-	const [loaded, setLoaded] = useState<LoadedProvisionConfig | null>(null);
-	const [program, setProgram] = useState<LoadedProvisionProgram | null>(null);
-	const [manifest, setManifest] = useState<ProvisionManifest | null>(null);
+	const [loaded, setLoaded] = useState<LoadedProgramConfig | null>(null);
+	const [program, setProgram] = useState<LoadedProgram | null>(null);
+	const [manifest, setManifest] = useState<ProgramManifest | null>(null);
 	const [incompatible, setIncompatible] = useState(false);
 	const [sdk, setSdk] = useState(99);
-	const [deviceStatus, setDeviceStatus] = useState<ProvisionStatus | null>(
-		null,
-	);
-	const [answers, setAnswers] = useState<ProvisionAnswers>({});
+	const [deviceStatus, setDeviceStatus] = useState<ProgramStatus | null>(null);
+	const [answers, setAnswers] = useState<ProgramAnswers>({});
 	const [events, setEvents] = useState<StepEvent[]>([]);
 	const [audit, setAudit] = useState<AuditEntry[]>([]);
 	const [fleet, setFleet] = useState<FleetInventory | null>(null);
@@ -107,7 +105,7 @@ export default function SandboxedProgramPanel({
 		let cancelled = false;
 		(async () => {
 			const [config, currentSdk, loadedProgram] = await Promise.all([
-				loadProvisionConfig(adb, spec.repo),
+				loadProgramConfig(adb, spec.repo),
 				adb ? readSdk(adb) : Promise.resolve(99),
 				loadProgram(adb, spec),
 			]);
@@ -122,7 +120,7 @@ export default function SandboxedProgramPanel({
 				prog = loadVendoredProgram(prog.ref);
 				desc = await describe(adb, config.cfg, { program: prog });
 			}
-			let st: ProvisionStatus | null = null;
+			let st: ProgramStatus | null = null;
 			if (adb) {
 				try {
 					st = await readStatus(adb, config.cfg, { program: prog });
@@ -156,7 +154,7 @@ export default function SandboxedProgramPanel({
 
 	const onCommand = (entry: AuditEntry) => setAudit((prev) => [...prev, entry]);
 
-	const runProvision = async () => {
+	const runProgram = async () => {
 		if (!adb || !loaded || !program) return;
 		setMode("provision");
 		setEvents([]);
@@ -558,7 +556,7 @@ export default function SandboxedProgramPanel({
 						>
 							{t("provisioning.restore")}
 						</Button>
-						<Button variant="primary" onClick={runProvision} disabled={working}>
+						<Button variant="primary" onClick={runProgram} disabled={working}>
 							{t("provisioning.provision")}
 						</Button>
 					</>
@@ -566,7 +564,7 @@ export default function SandboxedProgramPanel({
 					<Button
 						variant="primary"
 						className="flex-1"
-						onClick={runProvision}
+						onClick={runProgram}
 						disabled={working}
 					>
 						{t("installAndConfigure")}
