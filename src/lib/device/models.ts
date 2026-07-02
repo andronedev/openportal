@@ -1,11 +1,11 @@
 export type PortalModel =
-	| "omni"
-	| "portal-2019"
-	| "portal-plus-1"
-	| "portal-plus-2"
-	| "portal-go"
-	| "portal-tv"
 	| "portal-1"
+	| "portal-plus-1"
+	| "portal-2"
+	| "portal-mini"
+	| "portal-plus-2"
+	| "portal-tv"
+	| "portal-go"
 	| "unknown";
 
 // Marketing/topology metadata only — anything the device reports itself
@@ -20,40 +20,54 @@ export interface PortalModelInfo {
 }
 
 const MODELS: Record<string, PortalModelInfo> = {
-	omni: {
-		codename: "omni",
-		displayName: "Portal Mini",
-		generation: 2,
-		screenSize: '8"',
+	aloha: {
+		codename: "portal-1",
+		displayName: "Portal (1st Gen)",
+		generation: 1,
+		screenSize: '10.1"',
 		hasScreen: true,
 	},
-	aloha: {
-		codename: "portal-2019",
+	ohana: {
+		codename: "portal-plus-1",
+		displayName: "Portal+ (1st Gen)",
+		generation: 1,
+		screenSize: '15.6"',
+		hasScreen: true,
+	},
+	omni: {
+		codename: "portal-2",
 		displayName: "Portal (2nd Gen)",
 		generation: 2,
 		screenSize: '10"',
 		hasScreen: true,
 	},
-	porto: {
+	atlas: {
+		codename: "portal-mini",
+		displayName: "Portal Mini",
+		generation: 2,
+		screenSize: '8"',
+		hasScreen: true,
+	},
+	cipher: {
 		codename: "portal-plus-2",
 		displayName: "Portal+ (2nd Gen)",
 		generation: 2,
-		screenSize: '15.6"',
+		screenSize: '14"',
 		hasScreen: true,
 	},
-	sansa: {
-		codename: "portal-go",
-		displayName: "Portal Go",
-		generation: 2,
-		screenSize: '10"',
-		hasScreen: true,
-	},
-	pltv: {
+	ripley: {
 		codename: "portal-tv",
 		displayName: "Portal TV",
 		generation: 2,
 		screenSize: "HDMI",
 		hasScreen: false,
+	},
+	terry: {
+		codename: "portal-go",
+		displayName: "Portal Go",
+		generation: 2,
+		screenSize: '10"',
+		hasScreen: true,
 	},
 };
 
