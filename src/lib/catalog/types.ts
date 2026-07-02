@@ -20,37 +20,19 @@ export type ProgramTrust = "first-party" | "verified";
 /**
  * An app's lifecycle program: everything beyond a plain install. Every app is
  * data-only by default (no program); apps that need post-install work declare
- * one of three flavors, all under this single field:
+ * one of two flavors, all under this single field:
  *
  * - `commands`: declarative shell commands. `auto: true` runs them silently
  *   right after install (e.g. a launcher that becomes default); otherwise they
  *   run when the user clicks the setup gear.
- * - `panel`: setup needs bespoke UI (e.g. uploading credentials). `id` maps to a
- *   React panel in `src/components/apps/setup/registry.ts`. The one flavor that
- *   needs a matching code change.
- * - `sandboxed`: a full program the partner ships in their own repo. OpenPortal
- *   fetches it from their release and runs it in a sandboxed worker via the
- *   `portal` capability API (see `src/lib/programs`). Gated by `trust`.
+ * - `sandboxed`: a JavaScript program run in a sandboxed worker via the `portal`
+ *   capability API (see `src/lib/programs`). It declares its own UI (a manifest
+ *   form, presentation, a result view), so setup that needs configuration is
+ *   data, not code. First-party programs are bundled in the app's own folder; a
+ *   partner ships one in their repo. Gated by `trust`.
  */
 export type AppProgram =
 	| { kind: "commands"; commands: string[]; auto?: boolean; labelKey?: string }
-	| {
-			kind: "panel";
-			id: string;
-			labelKey?: string;
-			/**
-			 * The panel installs the app itself, so the catalog's Install button
-			 * opens the panel instead of installing directly. Use for apps whose
-			 * install only makes sense as part of a larger setup flow.
-			 */
-			handlesInstall?: boolean;
-			/**
-			 * Run the panel's lifecycle `beforeUninstall` hook (registered in
-			 * `setup/lifecycle.ts`) before uninstalling, e.g. to revert system
-			 * changes the setup made.
-			 */
-			revertOnUninstall?: boolean;
-	  }
 	| {
 			kind: "sandboxed";
 			/**
@@ -137,15 +119,14 @@ export interface CatalogApp {
 }
 
 /**
- * A program whose setup runs through a modal panel: either a bespoke React panel
- * (`panel`) or the sandboxed program runner (`sandboxed`). Both can install the
- * app themselves (`handlesInstall`) and revert on uninstall (`revertOnUninstall`),
- * so most UI treats them alike, as opposed to declarative `commands`.
+ * A program whose setup runs through the modal program panel (`sandboxed`). It
+ * can install the app itself (`handlesInstall`) and revert on uninstall
+ * (`revertOnUninstall`), as opposed to declarative `commands`.
  */
-export type PanelProgram = Extract<AppProgram, { kind: "panel" | "sandboxed" }>;
+export type PanelProgram = Extract<AppProgram, { kind: "sandboxed" }>;
 
 export function isPanelProgram(
 	program: AppProgram | undefined,
 ): program is PanelProgram {
-	return program?.kind === "panel" || program?.kind === "sandboxed";
+	return program?.kind === "sandboxed";
 }

@@ -11,8 +11,10 @@
 	"iconUrl": "https://raw.githubusercontent.com/ram-nat/portal-gphotos/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
 	"skipUpdateCheck": true,
 	"program": {
-		"kind": "panel",
-		"id": "gphotos",
+		"kind": "sandboxed",
+		"trust": "first-party",
+		"handlesInstall": false,
+		"revertOnUninstall": false,
 		"labelKey": "setUpGphotos"
 	}
 }

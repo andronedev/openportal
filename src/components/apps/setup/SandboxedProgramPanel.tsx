@@ -1,4 +1,5 @@
 import { Button, ConfirmDialog } from "@/components/ui/primitives";
+import type { CatalogApp } from "@/lib/catalog";
 import {
 	type AuditEntry,
 	type FieldCondition,
@@ -43,7 +44,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { SetupPanelProps } from "./registry";
+
+export interface SetupPanelProps {
+	app: CatalogApp;
+	onClose: () => void;
+}
 
 type Phase = "loading" | "review" | "running" | "done";
 

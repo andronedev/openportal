@@ -76,28 +76,28 @@ it when a `program` drives the install); curation (`order`, `featured` for the
 "Made for Portal" pins) lives in `catalog/index.json`, not the app files. There
 is no per-app "custom source" — anything non-standard is a `program`.
 
-The one part that can need a code change is the `program` field:
+The `program` field is data too (a JSON block, plus a `program.js` for the
+sandboxed kind), so it needs no `src/` change:
 
 - `program` — optional lifecycle program: everything the app needs beyond a
-  plain install. One of three kinds:
+  plain install. One of two kinds:
   - `{ "kind": "commands", "commands": [...], "auto"?: boolean, "labelKey"?: string }`
     — shell commands to finish setup. `auto: true` runs them silently right
     after install (e.g. a launcher becoming the default); otherwise they run
     when the user clicks the setup gear on the app card. `labelKey` is an i18n
     key in `src/locales/<lang>/apps.json` used for the gear's tooltip. **This is
-    the kind most apps should use** — it needs no code.
-  - `{ "kind": "panel", "id": "...", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
-    — setup that needs a UI (e.g. uploading credentials). The `id` must match a
-    panel registered in `src/components/apps/setup/registry.ts`, so this kind
-    also requires code. `handlesInstall` makes the Install button open the panel
-    instead of installing directly; `revertOnUninstall` runs the panel's
-    lifecycle revert before uninstall.
-  - `{ "kind": "sandboxed", "repo": "owner/repo", "programPath"?: "...", "trust": "verified", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
-    — a full setup program the partner ships in **their own** repo. OpenPortal
-    fetches it from their latest release (default path
-    `provisioning/openportal.program.js`) and runs it in a sandboxed worker via
-    the `portal` capability API. Drop a `program.js` in the app folder as the
-    offline fallback. See `docs/programs.md` and `sdk/`.
+    the kind most apps should use.**
+  - `{ "kind": "sandboxed", "repo"?: "owner/repo", "programPath"?: "...", "trust": "first-party" | "verified", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
+    — a JavaScript program run in a sandboxed worker via the `portal` capability
+    API, which declares its own UI (a manifest form, a `file` field, static
+    presentation, a returned result view), so setup that needs configuration is
+    data, not code. A first-party program is bundled as `program.js` in the app's
+    own folder (omit `repo`); a partner ships one in **their own** repo, fetched
+    from their latest release (default path `provisioning/openportal.program.js`)
+    with a bundled `program.js` as the offline fallback. `handlesInstall` makes
+    the Install button open the panel instead of installing directly;
+    `revertOnUninstall` runs the program's revert before uninstall. See
+    `docs/programs.md` and `sdk/`.
 
   A `sandboxed` program runs partner-authored code (raw device shell), so it is
   gated by `trust`: only `"verified"` (a vetted partner) or `"first-party"`

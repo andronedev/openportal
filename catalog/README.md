@@ -48,17 +48,17 @@ and `featured` lists the ids pinned to the "Made for Portal" section.
 
 ## `program` — setup beyond a plain install
 
-A `program` is the escape hatch for anything an app needs past a plain install.
-Three kinds:
+A `program` is the escape hatch for anything an app needs past a plain install,
+and it is data (a JSON block plus, for the sandboxed kind, a `program.js`). Two
+kinds:
 
 - `{ "kind": "commands", "commands": [...], "auto"?: bool, "labelKey"?: "..." }`
   — declarative shell. `auto: true` runs them silently right after install. **The
   kind most apps should use**; needs no code.
-- `{ "kind": "panel", "id": "...", "handlesInstall"?: bool, "revertOnUninstall"?: bool }`
-  — a bespoke React panel, registered in
-  `src/components/apps/setup/registry.ts` (so this kind needs code).
-- `{ "kind": "sandboxed", "repo": "owner/repo", "trust": "verified", "handlesInstall"?: bool, "revertOnUninstall"?: bool }`
-  — a full setup program the partner ships in their own repo, run in a sandboxed
-  worker. Drop a `program.js` in the app folder as the offline fallback. See
-  `docs/programs.md` and `sdk/`. `trust` (`verified`/`first-party`) is enforced
-  at review time — do not claim `verified` for an unvetted repo.
+- `{ "kind": "sandboxed", "repo"?: "owner/repo", "trust": "first-party" | "verified", "handlesInstall"?: bool, "revertOnUninstall"?: bool }`
+  — a JavaScript program run in a sandboxed worker that declares its own UI (a
+  manifest form, presentation, a result view). A first-party program is bundled
+  as `program.js` in this app's folder (omit `repo`); a partner ships one in
+  their own repo (a bundled `program.js` is the offline fallback). See
+  `docs/programs.md` and `sdk/`. `trust` (`first-party`/`verified`) is enforced
+  at review time, do not claim `verified` for an unvetted repo.

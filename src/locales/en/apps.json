@@ -102,29 +102,6 @@
 	"refresh": "Refresh",
 	"openApp": "Open app",
 	"launched": "Launched {{name}}",
-	"gphotos": {
-		"intro": "Show your Google Photos albums as a screensaver. This needs your own Google Cloud OAuth credentials.",
-		"step1": "Create a Google Cloud project and enable the Photos Picker API.",
-		"step2": "Configure the OAuth consent screen (External) and add yourself as a test user.",
-		"step3": "Create a Desktop OAuth client and download its client_secret.json.",
-		"guideLink": "Full setup guide",
-		"credentialsLabel": "OAuth credentials (client_secret.json)",
-		"chooseFile": "Choose file",
-		"apply": "Apply & launch",
-		"done": "Screensaver configured. Finish signing in on the Portal."
-	},
-	"portalCalendar": {
-		"intro": "Turn your Portal into a wall calendar. You set it up from your browser.",
-		"step1": "Add your calendars as iCal feeds (Google, iCloud, or any .ics URL) and give each one a color and a name.",
-		"step2": "Optionally connect iCloud or Google for two-way sync so you can create events from the Portal.",
-		"step3": "Turn on \"Show the calendar when the Portal idles\" to use it as a screensaver.",
-		"finding": "Finding your Portal's address…",
-		"retry": "Try again",
-		"addressLabel": "Open this address in your browser",
-		"addressHint": "Use a phone or computer on the same Wi-Fi as your Portal.",
-		"copy": "Copy address",
-		"noAddress": "Couldn't find the Portal's network address. Make sure it's connected to Wi-Fi."
-	},
 	"provisioning": {
 		"setupLabel": "Provision device",
 		"apply": "Apply",

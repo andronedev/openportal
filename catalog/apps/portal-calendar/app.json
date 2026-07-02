@@ -10,8 +10,10 @@
 	"downloadUrl": "https://github.com/thefloppytaco/portal-calendar/releases/latest",
 	"iconFile": true,
 	"program": {
-		"kind": "panel",
-		"id": "portal-calendar",
+		"kind": "sandboxed",
+		"trust": "first-party",
+		"handlesInstall": false,
+		"revertOnUninstall": false,
 		"labelKey": "setUpCalendar"
 	}
 }

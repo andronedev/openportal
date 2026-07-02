@@ -3,9 +3,9 @@
 Some catalog apps need full device provisioning, not just an install. OpenPortal
 runs that provisioning from the browser through a **sandboxed program runtime**:
 a partner ships a JavaScript program in their repo, and OpenPortal fetches and
-runs it in a locked-down worker. This is one of the three `program` kinds a
-catalog entry can declare (`commands`, `panel`, `sandboxed`); this document
-covers the `sandboxed` kind.
+runs it in a locked-down worker. This is one of the two `program` kinds a
+catalog entry can declare (`commands`, `sandboxed`); this document covers the
+`sandboxed` kind, which every app that needs a setup UI now uses.
 
 **Immortal is the reference consumer.** Its maintainer (rightly) pointed out that
 installing the launcher alone is not enough: the on-device App Store and
