@@ -6,7 +6,11 @@ export {
 	restore,
 	status,
 } from "./broker";
-export { loadProvisionProgram, loadVendoredProgram } from "./loader";
+export {
+	loadProgram,
+	loadVendoredProgram,
+	type ProgramSpec,
+} from "./loader";
 export {
 	PORTAL_API_VERSION,
 	type AuditEntry,

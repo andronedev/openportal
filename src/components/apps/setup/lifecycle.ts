@@ -1,5 +1,6 @@
 import { launchApp } from "@/lib/adb/app-manager";
-import { restore } from "@/lib/portal/provision";
+import type { CatalogApp } from "@/lib/portal/catalog";
+import { loadProgram, restore } from "@/lib/portal/provision";
 import { loadProvisionConfig } from "@/lib/portal/provision-config";
 import type { Adb } from "@yume-chan/adb";
 
@@ -8,15 +9,28 @@ export interface SetupLifecycle {
 	onUninstallBlocked?: (adb: Adb) => Promise<string | undefined>;
 }
 
-export const SETUP_LIFECYCLE: Record<string, SetupLifecycle> = {
-	"immortal-provision": {
-		beforeUninstall: async (adb) => {
-			const { cfg } = await loadProvisionConfig(adb);
-			await restore(adb, cfg, () => {});
-		},
-		onUninstallBlocked: async (adb) => {
-			await launchApp(adb, "com.immortal.launcher");
-			return "uninstallDeviceAdminImmortal";
-		},
-	},
-};
+/**
+ * The uninstall-time hooks for an app's program, when it opts in with
+ * `revertOnUninstall`. A `sandboxed` program reverts by running its own
+ * `restore` (the inverse of provisioning) and, if the OS blocks the uninstall
+ * on an active device admin, opens the app so the user can deactivate it.
+ */
+export function getSetupLifecycle(app: CatalogApp): SetupLifecycle | undefined {
+	const program = app.program;
+	if (program?.kind === "sandboxed" && program.revertOnUninstall) {
+		return {
+			beforeUninstall: async (adb) => {
+				const [{ cfg }, loaded] = await Promise.all([
+					loadProvisionConfig(adb, program.repo),
+					loadProgram(adb, program),
+				]);
+				await restore(adb, cfg, () => {}, { program: loaded });
+			},
+			onUninstallBlocked: async (adb) => {
+				await launchApp(adb, app.packageName);
+				return "uninstallDeviceAdmin";
+			},
+		};
+	}
+	return undefined;
+}

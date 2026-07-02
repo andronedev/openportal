@@ -220,8 +220,8 @@ function vendored(ref: string): LoadedProvisionConfig {
 
 export async function loadProvisionConfig(
 	adb: Adb | null,
+	repo: string = IMMORTAL_REPO,
 ): Promise<LoadedProvisionConfig> {
-	const repo = IMMORTAL_REPO;
 	if (!adb) return vendored(UPSTREAM_META.latestReleaseTag);
 
 	const tag = (await resolveLatestTag(repo)) ?? UPSTREAM_META.latestReleaseTag;

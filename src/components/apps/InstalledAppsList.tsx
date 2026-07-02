@@ -6,7 +6,11 @@ import {
 } from "@/components/ui/primitives";
 import { installApp } from "@/lib/adb/install";
 import type { InstalledPackage } from "@/lib/adb/types";
-import { getAppIconUrl, getCatalogApp } from "@/lib/portal/catalog";
+import {
+	getAppIconUrl,
+	getCatalogApp,
+	isPanelProgram,
+} from "@/lib/portal/catalog";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
 import { useUIStore } from "@/store/ui-store";
@@ -192,18 +196,18 @@ function InstalledRow({
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [setupOpen, setSetupOpen] = useState(false);
 
-	const setup = catApp?.setup;
+	const program = catApp?.program;
 	const revertOnUninstall =
-		setup?.kind === "custom" && setup.revertOnUninstall === true;
+		isPanelProgram(program) && program.revertOnUninstall === true;
 	const showSetupGear =
-		!!setup &&
+		!!program &&
 		!actions.hasUpdate &&
-		(setup.kind === "custom" ||
+		(isPanelProgram(program) ||
 			!(catApp?.category === "launcher" && isDefaultLauncher));
 
 	const handleSetup = () => {
-		if (!setup) return;
-		if (setup.kind === "custom") setSetupOpen(true);
+		if (!program) return;
+		if (isPanelProgram(program)) setSetupOpen(true);
 		else actions.runSetup();
 	};
 
@@ -277,9 +281,9 @@ function InstalledRow({
 						{t("update")}
 					</button>
 				)}
-				{showSetupGear && setup && (
+				{showSetupGear && program && (
 					<IconAction
-						title={t(setup.labelKey ?? "runSetup")}
+						title={t(program.labelKey ?? "runSetup")}
 						onClick={handleSetup}
 					>
 						<Settings className="h-4 w-4" />

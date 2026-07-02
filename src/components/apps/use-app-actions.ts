@@ -7,7 +7,11 @@ import {
 	runPostInstall,
 } from "@/lib/adb/app-manager";
 import { type InstallStage, installApp } from "@/lib/adb/install";
-import { type CatalogApp, getCatalogApp } from "@/lib/portal/catalog";
+import {
+	type CatalogApp,
+	getCatalogApp,
+	isPanelProgram,
+} from "@/lib/portal/catalog";
 import { resolveApk } from "@/lib/portal/sources";
 import { useAppStore } from "@/store/app-store";
 import { useDeviceStore } from "@/store/device-store";
@@ -119,11 +123,11 @@ export function useAppActions(packageName: string, displayName: string) {
 			if (
 				runSetup &&
 				!updating &&
-				app.setup?.kind === "commands" &&
-				app.setup.auto
+				app.program?.kind === "commands" &&
+				app.program.auto
 			) {
 				try {
-					await runPostInstall(activeAdb, app.setup.commands);
+					await runPostInstall(activeAdb, app.program.commands);
 					await refreshDefaultLauncher();
 				} catch {}
 			}
@@ -158,19 +162,19 @@ export function useAppActions(packageName: string, displayName: string) {
 
 	const runSetup = () =>
 		run("setup", async () => {
-			if (!adb || app?.setup?.kind !== "commands") return;
-			await runPostInstall(adb, app.setup.commands);
+			if (!adb || app?.program?.kind !== "commands") return;
+			await runPostInstall(adb, app.program.commands);
 			toast.success(displayName, { description: t("postInstallDone") });
 			await refreshDefaultLauncher();
 		});
 
 	const uninstall = () =>
 		run("uninstall", async () => {
-			if (!adb) return;
-			const setup = app?.setup;
+			if (!adb || !app) return;
+			const program = app.program;
 			const lifecycle =
-				setup?.kind === "custom" && setup.revertOnUninstall
-					? (await import("./setup/lifecycle")).SETUP_LIFECYCLE[setup.id]
+				isPanelProgram(program) && program.revertOnUninstall
+					? (await import("./setup/lifecycle")).getSetupLifecycle(app)
 					: undefined;
 			if (lifecycle?.beforeUninstall) {
 				toast.info(displayName, { description: t("revertingBeforeUninstall") });

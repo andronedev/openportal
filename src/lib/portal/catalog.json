@@ -12,9 +12,10 @@
 		"repo": "starbrightlab/immortal",
 		"downloadUrl": "https://github.com/starbrightlab/immortal/releases/latest",
 		"iconUrl": "https://raw.githubusercontent.com/starbrightlab/immortal/main/immortal-icon.png",
-		"setup": {
-			"kind": "custom",
-			"id": "immortal-provision",
+		"program": {
+			"kind": "sandboxed",
+			"repo": "starbrightlab/immortal",
+			"trust": "verified",
 			"labelKey": "provisioning.setupLabel",
 			"handlesInstall": true,
 			"revertOnUninstall": true
@@ -43,8 +44,8 @@
 		"downloadUrl": "https://github.com/ram-nat/portal-gphotos/releases/latest",
 		"iconUrl": "https://raw.githubusercontent.com/ram-nat/portal-gphotos/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
 		"skipUpdateCheck": true,
-		"setup": {
-			"kind": "custom",
+		"program": {
+			"kind": "panel",
 			"id": "gphotos",
 			"labelKey": "setUpGphotos"
 		}
@@ -209,8 +210,8 @@
 		"repo": "thefloppytaco/portal-calendar",
 		"downloadUrl": "https://github.com/thefloppytaco/portal-calendar/releases/latest",
 		"iconFile": true,
-		"setup": {
-			"kind": "custom",
+		"program": {
+			"kind": "panel",
 			"id": "portal-calendar",
 			"labelKey": "setUpCalendar"
 		}
@@ -240,7 +241,7 @@
 		"repo": "GodricTM/PortalOverlays",
 		"downloadUrl": "https://github.com/GodricTM/PortalOverlays/releases/latest",
 		"iconUrl": "https://raw.githubusercontent.com/GodricTM/PortalOverlays/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
-		"setup": {
+		"program": {
 			"kind": "commands",
 			"auto": true,
 			"commands": [

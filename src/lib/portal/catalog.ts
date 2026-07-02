@@ -18,25 +18,39 @@ export type AppSource =
 	| "custom";
 
 /**
- * Post-install configuration for an app.
- *
- * - `commands`: declarative shell commands run to finish setup. Set `auto: true`
- *   to run them silently right after install (e.g. a launcher that becomes the
- *   default); otherwise they run when the user clicks the setup gear.
- * - `custom`: setup needs a UI (e.g. uploading credentials). `id` maps to a
- *   panel registered in `src/components/apps/setup/registry.ts`. This is the one
- *   case where a catalog entry also needs a matching code change.
+ * How much OpenPortal trusts an app's remote-fetched program. Only these tiers
+ * may fetch and run a `sandboxed` program live; unknown contributors cannot ship
+ * one. `first-party` is OpenPortal's own; `verified` is a vetted partner (e.g. a
+ * launcher author) whose release we fetch at run time.
  */
-export type AppSetup =
+export type ProgramTrust = "first-party" | "verified";
+
+/**
+ * An app's lifecycle program: everything beyond a plain install. Every app is
+ * data-only by default (no program); apps that need post-install work declare
+ * one of three flavors, all under this single field:
+ *
+ * - `commands`: declarative shell commands. `auto: true` runs them silently
+ *   right after install (e.g. a launcher that becomes default); otherwise they
+ *   run when the user clicks the setup gear.
+ * - `panel`: setup needs bespoke UI (e.g. uploading credentials). `id` maps to a
+ *   React panel in `src/components/apps/setup/registry.ts`. The one flavor that
+ *   needs a matching code change.
+ * - `sandboxed`: a full provisioning program the partner ships in their own
+ *   repo. OpenPortal fetches it from their release and runs it in a sandboxed
+ *   worker via the `portal` capability API (see `src/lib/portal/provision`).
+ *   Gated by `trust`.
+ */
+export type AppProgram =
 	| { kind: "commands"; commands: string[]; auto?: boolean; labelKey?: string }
 	| {
-			kind: "custom";
+			kind: "panel";
 			id: string;
 			labelKey?: string;
 			/**
-			 * The custom panel installs the app itself, so the catalog's Install
-			 * button opens the panel instead of installing directly. Use for apps
-			 * whose install only makes sense as part of a larger setup flow.
+			 * The panel installs the app itself, so the catalog's Install button
+			 * opens the panel instead of installing directly. Use for apps whose
+			 * install only makes sense as part of a larger setup flow.
 			 */
 			handlesInstall?: boolean;
 			/**
@@ -44,6 +58,21 @@ export type AppSetup =
 			 * `setup/lifecycle.ts`) before uninstalling, e.g. to revert system
 			 * changes the setup made.
 			 */
+			revertOnUninstall?: boolean;
+	  }
+	| {
+			kind: "sandboxed";
+			/** `owner/repo` that publishes the program module + its `config.env`. */
+			repo: string;
+			/**
+			 * Path to the program ES module in the repo. Defaults to
+			 * `provisioning/openportal.program.js`.
+			 */
+			programPath?: string;
+			/** Only `verified`/`first-party` programs are fetched live and run. */
+			trust: ProgramTrust;
+			labelKey?: string;
+			handlesInstall?: boolean;
 			revertOnUninstall?: boolean;
 	  };
 
@@ -107,8 +136,8 @@ export interface CatalogApp {
 	 * file extension (e.g. `"svg"`). `iconUrl` wins when both are set.
 	 */
 	iconFile?: boolean | string;
-	/** Optional post-install configuration (see {@link AppSetup}). */
-	setup?: AppSetup;
+	/** Optional lifecycle program (see {@link AppProgram}). */
+	program?: AppProgram;
 	/**
 	 * Skip the "update available" check for this app. Set it when upstream
 	 * versioning is unreliable (e.g. release tags that don't match the APK's
@@ -121,6 +150,20 @@ export interface CatalogApp {
 // The catalog is data-only and lives in catalog.json so the community can submit
 // new apps via simple PRs. See CONTRIBUTING.md for the submission format.
 export const APP_CATALOG: CatalogApp[] = rawCatalog as CatalogApp[];
+
+/**
+ * A program whose setup runs through a modal panel: either a bespoke React panel
+ * (`panel`) or the sandboxed program runner (`sandboxed`). Both can install the
+ * app themselves (`handlesInstall`) and revert on uninstall (`revertOnUninstall`),
+ * so most UI treats them alike, as opposed to declarative `commands`.
+ */
+export type PanelProgram = Extract<AppProgram, { kind: "panel" | "sandboxed" }>;
+
+export function isPanelProgram(
+	program: AppProgram | undefined,
+): program is PanelProgram {
+	return program?.kind === "panel" || program?.kind === "sandboxed";
+}
 
 export function getCatalogByCategory(): Map<string, CatalogApp[]> {
 	const map = new Map<string, CatalogApp[]>();

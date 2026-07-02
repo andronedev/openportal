@@ -25,8 +25,8 @@ export function SetupConfirmDialog({
 		if (open) setRunSetup(true);
 	}, [open]);
 
-	const setup = app.setup;
-	if (setup?.kind !== "commands") return null;
+	const program = app.program;
+	if (program?.kind !== "commands") return null;
 
 	return (
 		<Modal
@@ -55,7 +55,7 @@ export function SetupConfirmDialog({
 					{t("setupConfirmIntro", { name: app.name })}
 				</p>
 				<div className="max-h-64 overflow-auto">
-					<CommandList commands={setup.commands} />
+					<CommandList commands={program.commands} />
 				</div>
 				<label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-background/50 px-3 py-2.5">
 					<input

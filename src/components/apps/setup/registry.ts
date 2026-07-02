@@ -7,10 +7,12 @@ export interface SetupPanelProps {
 }
 
 /**
- * Maps a `setup: { kind: "custom", id }` catalog entry to the React panel that
+ * Maps a `program: { kind: "panel", id }` catalog entry to the React panel that
  * drives its configuration. Panels are code-split so their (sometimes heavy) UI
- * only loads when a user opens the setup gear. Adding a custom-setup app means
- * adding both a catalog entry and an entry here.
+ * only loads when a user opens the setup gear. Adding a panel-program app means
+ * adding both a catalog entry and an entry here. Sandboxed programs
+ * (`kind: "sandboxed"`) are not listed here: they all share one generic runner,
+ * `SandboxedProgramPanel`, routed by kind in `AppSetupPanel`.
  */
 export const SETUP_PANELS: Record<
 	string,
@@ -18,5 +20,4 @@ export const SETUP_PANELS: Record<
 > = {
 	gphotos: lazy(() => import("./GPhotosSetup")),
 	"portal-calendar": lazy(() => import("./PortalCalendarSetup")),
-	"immortal-provision": lazy(() => import("./ImmortalProvisioning")),
 };

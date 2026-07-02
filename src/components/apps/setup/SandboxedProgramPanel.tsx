@@ -11,7 +11,7 @@ import {
 	type ProvisionStatus,
 	type StepEvent,
 	describe,
-	loadProvisionProgram,
+	loadProgram,
 	loadVendoredProgram,
 	provision,
 	readSdk,
@@ -69,11 +69,12 @@ function StepIcon({ status }: { status: StepEvent["status"] }) {
 	return <Minus className="h-4 w-4 text-muted-foreground" />;
 }
 
-export default function ImmortalProvisioning({
+export default function SandboxedProgramPanel({
 	app,
 	onClose,
 }: SetupPanelProps) {
 	const { t } = useTranslation("apps");
+	const spec = app.program?.kind === "sandboxed" ? app.program : null;
 	const adb = useDeviceStore((s) => s.adb);
 	const advanced = useUIStore((s) => s.mode) === "advanced";
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
@@ -102,12 +103,13 @@ export default function ImmortalProvisioning({
 	const abortRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
+		if (!spec) return;
 		let cancelled = false;
 		(async () => {
 			const [config, currentSdk, loadedProgram] = await Promise.all([
-				loadProvisionConfig(adb),
+				loadProvisionConfig(adb, spec.repo),
 				adb ? readSdk(adb) : Promise.resolve(99),
-				loadProvisionProgram(adb),
+				loadProgram(adb, spec),
 			]);
 			let prog = loadedProgram;
 			let desc = await describe(adb, config.cfg, { program: prog });
@@ -139,7 +141,7 @@ export default function ImmortalProvisioning({
 		return () => {
 			cancelled = true;
 		};
-	}, [adb]);
+	}, [adb, spec]);
 
 	const onStep = (event: StepEvent) =>
 		setEvents((prev) => {

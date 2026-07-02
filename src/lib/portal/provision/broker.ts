@@ -9,7 +9,7 @@ import { execShell, getprop } from "@/lib/adb/shell";
 import type { ProvisionConfig } from "@/lib/portal/provision-config";
 import { resolveFdroidLatest, resolveGithubLatest } from "@/lib/portal/sources";
 import type { Adb } from "@yume-chan/adb";
-import { loadProvisionProgram } from "./loader";
+import { loadVendoredProgram } from "./loader";
 import type {
 	InstallStage,
 	ManifestField,
@@ -225,7 +225,7 @@ function runEntry(
 	run: ProvisionRun | undefined,
 ): Promise<unknown> {
 	return (async () => {
-		const program = run?.program ?? (await loadProvisionProgram(adb));
+		const program = run?.program ?? loadVendoredProgram();
 		const sdk = adb ? await readSdk(adb) : 99;
 		const worker = spawnWorker();
 		return new Promise<unknown>((resolve, reject) => {
