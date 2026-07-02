@@ -13,13 +13,21 @@ change to OpenPortal.
 
 ## How it works
 
-1. You publish `provisioning/openportal.program.js` in your release (an ES module).
-2. OpenPortal reads it from `https://raw.githubusercontent.com/<repo>/<tag>/provisioning/openportal.program.js` (device-side, no CORS).
-3. It runs your program in a **sandboxed Web Worker**: no DOM, no credentials, and no network (`fetch`/`XHR`/`WebSocket` are removed). The device is reachable only through the `portal` object.
-4. Every `portal` call is validated on the main thread (https-only URLs, paths under `/sdcard` or `/data/local/tmp`, safe install flags) and shown in a user-visible audit log. The user can stop a run at any time.
+1. Your app has a catalog entry with `program: { kind: "sandboxed", repo: "<you>/<repo>", trust: "verified" }`.
+2. You publish `provisioning/openportal.program.js` in your release (an ES module).
+3. OpenPortal reads it from `https://raw.githubusercontent.com/<repo>/<tag>/provisioning/openportal.program.js` (device-side, no CORS).
+4. It runs your program in a **sandboxed Web Worker**: no DOM, no credentials, and no network (`fetch`/`XHR`/`WebSocket` are removed). The device is reachable only through the `portal` object.
+5. Every `portal` call is validated on the main thread (https-only URLs, paths under `/sdcard` or `/data/local/tmp`, safe install flags) and shown in a user-visible audit log. The user can stop a run at any time.
+
+**Trust.** A program runs partner-authored code with raw device shell, so
+OpenPortal only fetches and runs one when your catalog entry is marked
+`trust: "verified"` (a partner the maintainers have vetted) or `"first-party"`.
+That tier is set in OpenPortal's reviewed catalog, not by you — coordinate with
+the maintainers to get your repo marked verified.
 
 If your program can't be fetched, or it targets a newer API than the user's
-OpenPortal, the built-in program runs instead.
+OpenPortal, OpenPortal falls back to the built-in program **only for the repo it
+ships a vendored snapshot for** (Immortal today); other programs are live-only.
 
 ## Writing a program
 

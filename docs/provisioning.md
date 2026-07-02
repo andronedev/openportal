@@ -1,13 +1,21 @@
-# Immortal provisioning
+# Sandboxed provisioning programs
 
-OpenPortal runs Immortal's full device provisioning from the browser, the same
-way the project's `provisioning/provision.sh` does over a USB cable. This exists
-because Immortal's maintainer (rightly) pointed out that installing the launcher
-alone is not enough: its on-device App Store and self-update only work once the
-device has been provisioned (Meta's package verifier disabled,
-`REQUEST_INSTALL_PACKAGES` granted, the Gen-1 installer overlay fixed, the
-launcher and screensaver set). OpenPortal reproduces that whole flow, step for
-step, with a Restore that undoes it.
+Some catalog apps need full device provisioning, not just an install. OpenPortal
+runs that provisioning from the browser through a **sandboxed program runtime**:
+a partner ships a JavaScript program in their repo, and OpenPortal fetches and
+runs it in a locked-down worker. This is one of the three `program` kinds a
+catalog entry can declare (`commands`, `panel`, `sandboxed`); this document
+covers the `sandboxed` kind.
+
+**Immortal is the reference consumer.** Its maintainer (rightly) pointed out that
+installing the launcher alone is not enough: the on-device App Store and
+self-update only work once the device has been provisioned (Meta's package
+verifier disabled, `REQUEST_INSTALL_PACKAGES` granted, the Gen-1 installer
+overlay fixed, the launcher and screensaver set). OpenPortal reproduces that
+whole flow, step for step, with a Restore that undoes it — the same way the
+project's `provisioning/provision.sh` does over a USB cable. The runtime itself
+is not Immortal-specific: any **verified** partner can ship a program the same
+way (see Trust below).
 
 Everything provisioning does is a public ADB command (`pm`, `cmd`, `settings`,
 `appops`, `am`, `dpm`, `input`, file push, `pm install`). No root, no exploit.
@@ -34,10 +42,12 @@ kill switch = worker.terminate()             portal.* (no Adb, no creds, no net)
 ```
 
 The built-in program (`src/lib/portal/provision/program/default.program.js`) is
-a faithful translation of `provision.sh` and is the offline fallback. When
-Immortal publishes `provisioning/openportal.program.js` in a release, OpenPortal
-runs that one instead, so the maintainer can change the steps without any
-OpenPortal change.
+a faithful translation of Immortal's `provision.sh` and is the offline fallback
+for that one repo. When Immortal publishes `provisioning/openportal.program.js`
+in a release, OpenPortal runs that one instead, so the maintainer can change the
+steps without any OpenPortal change. The program's `repo`, its path, and its
+`trust` tier all come from the catalog entry, so the loader is not hardcoded to
+Immortal (see Trust below).
 
 The panel form is driven by a **manifest** the program declares, so a new
 question (a toggle, a text field, a select) appears with no front-end change.
@@ -49,18 +59,39 @@ question (a toggle, a text field, a select) appears with no front-end change.
 | Worker runtime (sandbox + `portal` RPC) | `src/lib/portal/provision/worker.ts` |
 | Capability broker (validation, audit, dispatch) | `src/lib/portal/provision/broker.ts` |
 | Shared types + `PORTAL_API_VERSION` | `src/lib/portal/provision/types.ts` |
-| Program loader (live fetch + vendored fallback) | `src/lib/portal/provision/loader.ts` |
-| Built-in program (1:1 of `provision.sh`) | `src/lib/portal/provision/program/default.program.js` |
+| Program loader (spec-driven fetch, trust gate, vendored fallback) | `src/lib/portal/provision/loader.ts` |
+| Built-in program (1:1 of Immortal's `provision.sh`) | `src/lib/portal/provision/program/default.program.js` |
 | Public barrel | `src/lib/portal/provision/index.ts` |
 | Config (typed view of `config.env`, live fetch + fallback) | `src/lib/portal/provision-config.ts` |
 | Vendored upstream snapshot + pinned ref | `src/lib/portal/provision/upstream/` |
-| UI panel (status, manifest form, progress, audit, restore) | `src/components/apps/setup/ImmortalProvisioning.tsx` |
+| Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |
 
 The catalog entry (`src/lib/portal/catalog.json`, `immortal-launcher`) wires the
-panel in with `setup: { kind: "custom", id: "immortal-provision" }`.
+runner in with `program: { kind: "sandboxed", repo: "starbrightlab/immortal",
+trust: "verified" }`. `AppSetupPanel` routes every `sandboxed` program to the one
+generic `SandboxedProgramPanel` by kind — there is no per-app panel id, and the
+loader reads `repo`/`programPath`/`trust` from that entry rather than hardcoding
+Immortal.
+
+## Trust
+
+A `sandboxed` program is partner-authored code with raw device shell access, so
+running it is gated by the catalog entry's `trust` tier (`ProgramTrust` in
+`catalog.ts`):
+
+- `first-party` — OpenPortal's own program.
+- `verified` — a partner the maintainers have vetted (Immortal today), whose
+  release we fetch and run at run time.
+
+`loadProgram` fetches and executes a live program **only** for these two tiers;
+anything else is refused. A vendored offline snapshot is offered only for the one
+repo we ship one for (`UPSTREAM_META.repo`, i.e. Immortal); other programs are
+live-only. Because the tier is declared in `catalog.json`, which is first-party
+data merged through reviewed PRs, **trust is enforced at review time**: a
+reviewer must not merge a `"verified"` entry for an unvetted repo.
 
 ## The SDK
 

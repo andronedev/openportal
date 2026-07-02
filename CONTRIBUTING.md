@@ -64,7 +64,7 @@ array:
   "version": "1.0.0",
   "downloadUrl": "https://...",
   "iconUrl": "https://...",
-  "setup": {
+  "program": {
     "kind": "commands",
     "commands": ["settings put secure ..."],
     "labelKey": "setAsDefault"
@@ -105,18 +105,33 @@ Field reference:
   `src/lib/portal/custom-sources/registry.ts` that fetches the app's latest APK
   and version with bespoke code. Use it for apps with no standard GitHub/F-Droid
   release feed (e.g. a self-hosted version manifest whose tags drift from the
-  APK's versionName). Like a custom `setup` panel, this catalog change also needs
+  APK's versionName). Like a `panel` program, this catalog change also needs
   a matching code change
-- `setup` — optional post-install configuration, one of two shapes:
+- `program` — optional lifecycle program: everything the app needs beyond a
+  plain install. One of three kinds:
   - `{ "kind": "commands", "commands": [...], "auto"?: boolean, "labelKey"?: string }`
     — shell commands to finish setup. `auto: true` runs them silently right
     after install (e.g. a launcher becoming the default); otherwise they run
     when the user clicks the setup gear on the app card. `labelKey` is an i18n
-    key in `src/locales/<lang>/apps.json` used for the gear's tooltip.
-  - `{ "kind": "custom", "id": "...", "labelKey"?: string }` — setup that needs
-    a UI (e.g. uploading credentials). The `id` must match a panel registered in
-    `src/components/apps/setup/registry.ts`. **This is the only catalog change
-    that also requires code** — most apps should use `commands`.
+    key in `src/locales/<lang>/apps.json` used for the gear's tooltip. **This is
+    the kind most apps should use** — it needs no code.
+  - `{ "kind": "panel", "id": "...", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
+    — setup that needs a UI (e.g. uploading credentials). The `id` must match a
+    panel registered in `src/components/apps/setup/registry.ts`, so this kind
+    also requires code. `handlesInstall` makes the Install button open the panel
+    instead of installing directly; `revertOnUninstall` runs the panel's
+    lifecycle revert before uninstall.
+  - `{ "kind": "sandboxed", "repo": "owner/repo", "programPath"?: "...", "trust": "verified", "labelKey"?: string, "handlesInstall"?: boolean, "revertOnUninstall"?: boolean }`
+    — a full provisioning program the partner ships in **their own** repo.
+    OpenPortal fetches it from their latest release (default path
+    `provisioning/openportal.program.js`) and runs it in a sandboxed worker via
+    the `portal` capability API. See `docs/provisioning.md` and `sdk/`.
+
+  A `sandboxed` program runs partner-authored code (raw device shell), so it is
+  gated by `trust`: only `"verified"` (a vetted partner) or `"first-party"`
+  (OpenPortal's own) programs are fetched and executed; anything else is
+  refused. **`trust` is enforced at review time** — do not merge a catalog PR
+  that claims `"verified"` for a repo the maintainers have not vetted.
 
 Guidelines:
 
