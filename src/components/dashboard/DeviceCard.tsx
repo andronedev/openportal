@@ -1,4 +1,4 @@
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveDeviceInfo, useActivePortalModel } from "@/store/fleet-store";
 import { Smartphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -11,7 +11,8 @@ interface StatusFlag {
 
 export function DeviceCard() {
 	const { t } = useTranslation("dashboard");
-	const { deviceInfo, portalModel } = useDeviceStore();
+	const deviceInfo = useActiveDeviceInfo();
+	const portalModel = useActivePortalModel();
 
 	if (!deviceInfo || !portalModel) return null;
 

@@ -1,5 +1,5 @@
 import { captureScreen, drawScreenshot } from "@/lib/adb/screen";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb, useActivePortalModel } from "@/store/fleet-store";
 import { Loader2, Maximize2, RefreshCw, Tablet, Tv } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,8 @@ type SnapState = "loading" | "ready" | "error";
 export function DeviceSnapshot() {
 	const { t } = useTranslation("dashboard");
 	const navigate = useNavigate();
-	const adb = useDeviceStore((s) => s.adb);
-	const portalModel = useDeviceStore((s) => s.portalModel);
+	const adb = useActiveAdb();
+	const portalModel = useActivePortalModel();
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [state, setState] = useState<SnapState>("loading");

@@ -1,7 +1,11 @@
 import { LogoMark, LogoWordmark } from "@/components/ui/Logo";
 import { Card } from "@/components/ui/primitives";
 import { getPlatformSupport } from "@/lib/utils/platform";
-import { useDeviceStore } from "@/store/device-store";
+import {
+	useConnectError,
+	useConnecting,
+	useFleetStore,
+} from "@/store/fleet-store";
 import { ArrowRight, Usb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BrowserCheck } from "./BrowserCheck";
@@ -9,10 +13,10 @@ import { WirelessConnect } from "./WirelessPanel";
 
 export function ConnectPanel() {
 	const { t } = useTranslation();
-	const { state, error, connect } = useDeviceStore();
+	const connectUsb = useFleetStore((s) => s.connectUsb);
+	const error = useConnectError();
+	const isConnecting = useConnecting();
 	const support = getPlatformSupport();
-
-	const isConnecting = state === "connecting" || state === "authenticating";
 
 	return (
 		<Card className="space-y-8">
@@ -30,7 +34,7 @@ export function ConnectPanel() {
 
 			<button
 				type="button"
-				onClick={() => connect()}
+				onClick={() => connectUsb()}
 				disabled={!support.supported || isConnecting}
 				className="flex w-full items-center justify-center gap-3 rounded-xl bg-foreground px-6 py-4 text-lg font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
 			>

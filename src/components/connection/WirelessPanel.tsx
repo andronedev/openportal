@@ -2,8 +2,13 @@ import { Button, Card } from "@/components/ui/primitives";
 import { enableWireless } from "@/lib/adb/wireless";
 import { BRIDGE_DOWNLOAD_URL, detectBridge } from "@/lib/adb/ws-connection";
 import { cn } from "@/lib/utils";
-import { useDeviceStore } from "@/store/device-store";
-import { useWirelessStore } from "@/store/wireless-store";
+import {
+	useActiveAdb,
+	useActiveTransport,
+	useConnecting,
+	useFleetStore,
+} from "@/store/fleet-store";
+import { useLatestEndpoint, useWirelessStore } from "@/store/wireless-store";
 import {
 	Check,
 	ChevronRight,
@@ -46,11 +51,11 @@ function useBridgeStatus(active: boolean) {
 
 export function WirelessSetup() {
 	const { t } = useTranslation();
-	const adb = useDeviceStore((s) => s.adb);
-	const transport = useDeviceStore((s) => s.transport);
-	const disconnect = useDeviceStore((s) => s.disconnect);
-	const lastEndpoint = useWirelessStore((s) => s.lastEndpoint);
-	const setEndpoint = useWirelessStore((s) => s.setEndpoint);
+	const adb = useActiveAdb();
+	const transport = useActiveTransport();
+	const disconnect = useFleetStore((s) => s.disconnect);
+	const lastEndpoint = useLatestEndpoint();
+	const addEndpoint = useWirelessStore((s) => s.addEndpoint);
 	const [busy, setBusy] = useState(false);
 
 	if (!adb || transport !== "usb") return null;
@@ -63,7 +68,7 @@ export function WirelessSetup() {
 				toast.error(t("wirelessNoIp"));
 				return;
 			}
-			setEndpoint(endpoint);
+			addEndpoint(endpoint);
 			toast.success(
 				t("wirelessEnabledAt", {
 					address: formatAddress(endpoint.ip, endpoint.port),
@@ -109,16 +114,19 @@ export function WirelessSetup() {
 	);
 }
 
-export function WirelessConnect() {
+export function WirelessConnect({
+	onConnected,
+}: {
+	onConnected?: () => void;
+}) {
 	const { t } = useTranslation();
-	const state = useDeviceStore((s) => s.state);
-	const connectViaWireless = useDeviceStore((s) => s.connectViaWireless);
-	const lastEndpoint = useWirelessStore((s) => s.lastEndpoint);
+	const connectViaWireless = useFleetStore((s) => s.connectWireless);
+	const lastEndpoint = useLatestEndpoint();
 	const enabled = !!lastEndpoint;
 	const { status: bridge, recheck } = useBridgeStatus(enabled);
 	const [open, setOpen] = useState(enabled);
 
-	const connecting = state === "connecting" || state === "authenticating";
+	const connecting = useConnecting();
 	const canConnect = enabled && bridge === "present";
 
 	return (
@@ -191,8 +199,10 @@ export function WirelessConnect() {
 						variant="primary"
 						loading={connecting}
 						disabled={!canConnect}
-						onClick={() => {
-							if (lastEndpoint) connectViaWireless(lastEndpoint);
+						onClick={async () => {
+							if (!lastEndpoint) return;
+							const serial = await connectViaWireless(lastEndpoint);
+							if (serial) onConnected?.();
 						}}
 						className="w-full"
 					>

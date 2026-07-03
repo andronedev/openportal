@@ -1,11 +1,10 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Spinner } from "@/components/ui/primitives";
 import { useTheme } from "@/hooks/use-theme";
-import { MOCK_DEVICE_INFO } from "@/lib/adb/mock";
-import { resolveModel } from "@/lib/device/models";
+import { MOCK_DEVICES } from "@/lib/adb/mock";
 import { AppsPage } from "@/pages/AppsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { useDeviceStore } from "@/store/device-store";
+import { useFleetStore } from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
@@ -36,11 +35,7 @@ function useDemoMode() {
 	const isDemo = new URLSearchParams(window.location.search).has("demo");
 	useEffect(() => {
 		if (isDemo) {
-			useDeviceStore.setState({
-				state: "connected",
-				deviceInfo: MOCK_DEVICE_INFO,
-				portalModel: resolveModel(MOCK_DEVICE_INFO.codename),
-			});
+			useFleetStore.getState().seedDemoDevices(MOCK_DEVICES);
 		}
 	}, [isDemo]);
 	return isDemo;

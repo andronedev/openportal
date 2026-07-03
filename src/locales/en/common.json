@@ -91,5 +91,39 @@
 	"wirelessBridgeRecheck": "Check again",
 	"wirelessStepConnectTitle": "Connect over Wi-Fi",
 	"wirelessConnectAction": "Connect over Wi-Fi",
-	"wirelessConnectBlocked": "Finish the steps above to connect without the cable."
+	"wirelessConnectBlocked": "Finish the steps above to connect without the cable.",
+	"fleet": {
+		"deviceCount_one": "{{count}} device",
+		"deviceCount_other": "{{count}} devices",
+		"addDevice": "Add a device",
+		"switchTo": "Switch to {{name}}",
+		"active": "Active",
+		"selectDevice": "Select {{name}}",
+		"disconnectOne": "Disconnect {{name}}",
+		"disconnectAll": "Disconnect all",
+		"disconnectAllConfirmTitle": "Disconnect all devices?",
+		"disconnectAllConfirmMessage": "Every connected Portal will be disconnected. You can reconnect them at any time.",
+		"reconnectAll": "Reconnect all",
+		"alreadyConnected": "{{name}} is already connected",
+		"busyProvisioning": "Wait for the current setup to finish before switching devices"
+	},
+	"bulk": {
+		"selectedCount_one": "{{count}} device selected",
+		"selectedCount_other": "{{count}} devices selected",
+		"clearSelection": "Clear selection",
+		"install": "Install APK",
+		"reboot": "Reboot",
+		"uninstall": "Uninstall",
+		"setFlag": "Set flag",
+		"runningOn_one": "Applies to {{count}} selected device.",
+		"runningOn_other": "Applies to {{count}} selected devices.",
+		"rebootConfirm_one": "Reboot the selected device?",
+		"rebootConfirm_other": "Reboot all {{count}} selected devices?",
+		"packageNamePlaceholder": "Package name (e.g. org.fdroid.fdroid)",
+		"uninstallConfirm_one": "Uninstall {{name}} from the selected device?",
+		"uninstallConfirm_other": "Uninstall {{name}} from all {{count}} selected devices?",
+		"done_one": "Done on {{count}} device.",
+		"done_other": "Done on all {{count}} devices.",
+		"failedOn": "Failed on: {{names}}"
+	}
 }
