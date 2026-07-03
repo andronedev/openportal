@@ -216,7 +216,7 @@ blob SHAs against the vendored snapshot in `meta.json`.
 | `maybe_restore_alexa` / `restore_alexa` | `restoreAlexa` | gate A9; download + sha256 falcon; `install -r`; grants; `am start`; install millennium; logcat poll | primary URL path only (see deviations) |
 | `restore_alexa_undo` | (in `restore`) | remove millennium; keep falcon | |
 | `do_provision` / `do_restore` / `do_status` | `provision` / `restore` / `status` | same step order | plus `resetLauncher` |
-| `enable_wifi_adb_now` (`--wifi-adb`) | (omitted) | `adb tcpip 5555` | not portable (see deviations) |
+| `enable_wifi_adb_now` (`--wifi-adb`) | (omitted) | `adb tcpip 5555` | device-side ported via `adb.tcpip.setPort` (see deviations) |
 
 `exitCode` is unreliable in the browser ADB transport (forced to 0 on the legacy
 protocol), so every step is best-effort and success is confirmed by `status()`
@@ -225,8 +225,13 @@ reading real device state, not by return codes. This matches the script's own
 
 ## Browser deviations (intentional)
 
-1. **`--wifi-adb` is not ported.** `adb tcpip` followed by a raw TCP `adb connect`
-   is impossible from a browser. The Wi-Fi fleet agent is the persistent channel.
+1. **`--wifi-adb` is split, not dropped.** The device-side half (`adb tcpip 5555`)
+   is ported: `@yume-chan/adb` exposes `adb.tcpip.setPort(5555)`, wrapped in
+   `src/lib/adb/wireless.ts` and exposed as "Enable wireless ADB" in the UI. Only
+   the raw TCP `adb connect` (the wireless session itself) is impossible from a
+   browser and needs the local OpenPortal Bridge (`bridge/`, see
+   `docs/prd-wireless-adb.md`). The Wi-Fi fleet agent remains the persistent
+   channel.
 2. **The falcon bsdiff fallback is deferred.** The primary Alexa path
    (`FALCON_PATCHED_URL`, a direct download) works device-side. Only the offline
    reconstruct path (stock APK + binary diff) would need a WASM `bspatch`.

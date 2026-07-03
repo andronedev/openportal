@@ -1,11 +1,25 @@
 import { Adb, AdbDaemonTransport } from "@yume-chan/adb";
+import type { AdbDaemonConnection } from "@yume-chan/adb";
 import {
 	type AdbDaemonWebUsbDevice,
 	AdbDaemonWebUsbDeviceManager,
 } from "@yume-chan/adb-daemon-webusb";
 import { credentialStore } from "./credential-store";
+import type { WirelessEndpoint } from "./wireless";
+import { openWsConnection } from "./ws-connection";
 
 const USB_FILTER = { vendorId: 0x2ec6 };
+
+export type TransportKind = "usb" | "wireless";
+
+export interface ActiveConnection {
+	adb: Adb;
+	kind: TransportKind;
+	serial: string;
+	name: string | undefined;
+	watchDisconnect: (onDisconnect: () => void) => () => void;
+	close: () => Promise<void>;
+}
 
 let manager: AdbDaemonWebUsbDeviceManager | undefined;
 
@@ -38,29 +52,60 @@ export async function getPairedDevices(): Promise<AdbDaemonWebUsbDevice[]> {
 	return mgr.getDevices({ filters: [USB_FILTER] });
 }
 
-export async function connectDevice(
-	device: AdbDaemonWebUsbDevice,
+async function authenticate(
+	serial: string,
+	connection: AdbDaemonConnection,
 ): Promise<Adb> {
-	const connection = await device.connect();
-
 	const transport = await AdbDaemonTransport.authenticate({
-		serial: device.serial,
+		serial,
 		connection,
 		credentialStore,
 	});
-
 	return new Adb(transport);
 }
 
-export async function disconnectDevice(adb: Adb): Promise<void> {
-	await adb.close();
+export async function connectUsb(
+	device: AdbDaemonWebUsbDevice,
+): Promise<ActiveConnection> {
+	const connection = await device.connect();
+	const adb = await authenticate(device.serial, connection);
+	return {
+		adb,
+		kind: "usb",
+		serial: device.serial,
+		name: device.name,
+		watchDisconnect: (onDisconnect) => watchUsbDisconnect(device, onDisconnect),
+		close: () => adb.close(),
+	};
 }
 
-/**
- * Fires `onDisconnect` when the given device is physically unplugged.
- * Returns an unsubscribe function. No-op when WebUSB is unavailable.
- */
-export function watchDisconnect(
+export async function connectWireless(
+	endpoint: WirelessEndpoint,
+): Promise<ActiveConnection> {
+	const { connection, socket } = await openWsConnection(endpoint);
+	const adb = await authenticate(endpoint.serial, connection);
+	return {
+		adb,
+		kind: "wireless",
+		serial: endpoint.serial,
+		name: endpoint.serial,
+		watchDisconnect: (onDisconnect) => {
+			const handler = () => onDisconnect();
+			socket.addEventListener("close", handler, { once: true });
+			return () => socket.removeEventListener("close", handler);
+		},
+		close: async () => {
+			await adb.close();
+			try {
+				socket.close();
+			} catch {
+				// ignore
+			}
+		},
+	};
+}
+
+function watchUsbDisconnect(
 	device: AdbDaemonWebUsbDevice,
 	onDisconnect: () => void,
 ): () => void {

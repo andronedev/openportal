@@ -1,0 +1,43 @@
+[package]
+name = "openportal-bridge"
+version = "0.1.0"
+edition = "2021"
+description = "Local WebSocket-to-TCP relay that lets openportal.cc reach a Portal's ADB port over Wi-Fi"
+license = "MIT"
+repository = "https://github.com/andronedev/openportal"
+
+[[bin]]
+name = "openportal-bridge"
+path = "src/main.rs"
+
+[features]
+default = []
+tls = ["dep:axum-server"]
+desktop = ["dep:tray-icon", "dep:tao", "dep:auto-launch"]
+production = ["tls", "desktop"]
+
+[dependencies]
+tokio = { version = "1", features = [
+	"rt-multi-thread",
+	"macros",
+	"net",
+	"io-util",
+	"signal",
+] }
+axum = { version = "0.7", features = ["ws"] }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+axum-server = { version = "0.7", features = ["tls-rustls"], optional = true }
+tray-icon = { version = "0.19", optional = true }
+tao = { version = "0.30", optional = true }
+auto-launch = { version = "0.5", optional = true }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"
