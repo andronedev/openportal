@@ -19,6 +19,7 @@
 		"portal-calendar",
 		"portal-iss-tracker",
 		"portal-overlays",
+		"portal-ha-bridge",
 		"morphe-youtube",
 		"morphe-youtube-music",
 		"revanced-gmscore"
@@ -28,6 +29,7 @@
 		"google-photos-screensaver",
 		"portal-calendar",
 		"portal-iss-tracker",
-		"portal-overlays"
+		"portal-overlays",
+		"portal-ha-bridge"
 	]
 }
