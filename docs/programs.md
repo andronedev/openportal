@@ -213,7 +213,7 @@ blob SHAs against the vendored snapshot in `meta.json`.
 | `set_screensaver` | `setScreensaver` | `settings put secure screensaver_*` | |
 | `enable_fleet` | `enableFleet` | push `provision.json`, relaunch, poll `agent.json`, read wlan0 IP | host inventory file becomes a **download** |
 | `configure_boot_apps` | `configureBootApps` | write `boot_apps.txt` | |
-| `maybe_restore_alexa` / `restore_alexa` | `restoreAlexa` | gate A9; download + sha256 falcon; `install -r`; grants; `am start`; install millennium; logcat poll | primary URL path only (see deviations) |
+| `maybe_restore_alexa` / `restore_alexa` | `restoreAlexa` | gate A9; download + sha256 falcon; `install -r`; grants; `am start`; install millennium (removed instead when `INSTALL_ALEXA_WAKE_WORD=false`); logcat poll | primary URL path only (see deviations) |
 | `restore_alexa_undo` | (in `restore`) | remove millennium; keep falcon | |
 | `do_provision` / `do_restore` / `do_status` | `provision` / `restore` / `status` | same step order | plus `resetLauncher` |
 | `enable_wifi_adb_now` (`--wifi-adb`) | (omitted) | `adb tcpip 5555` | not portable (see deviations) |
@@ -233,7 +233,9 @@ reading real device state, not by return codes. This matches the script's own
 3. **The fleet inventory is offered as a download.** A browser cannot write
    `fleet/<serial>.json` to disk, so the panel rebuilds that JSON (token and IP
    read back from the device) and offers it for download.
-4. **Live config values are validated before use.** `loadProvisionConfig`
+4. **`--update-hey` is not ported.** It re-installs only the wake-word app for a
+   fleet sweep; re-running the Alexa step from the panel does the same.
+5. **Live config values are validated before use.** `loadProvisionConfig`
    allowlist-checks every value that reaches a device command and falls back to
    the vendored snapshot on any violation, so a compromised upstream value cannot
    inject shell into an ADB command.
