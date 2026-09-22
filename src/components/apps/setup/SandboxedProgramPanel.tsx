@@ -25,8 +25,13 @@ import {
 	type LoadedProgramConfig,
 	loadProgramConfig,
 } from "@/lib/programs/config";
-import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import { useAppStore, useIsInstalled } from "@/store/app-store";
+import {
+	getActiveSerial,
+	useActiveAdb,
+	useActiveState,
+	useFleetStore,
+} from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import {
 	AlertTriangle,
@@ -83,13 +88,15 @@ export default function SandboxedProgramPanel({
 }: SetupPanelProps) {
 	const { t } = useTranslation("apps");
 	const spec = app.program?.kind === "sandboxed" ? app.program : null;
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const advanced = useUIStore((s) => s.mode) === "advanced";
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
 	const refreshDefaultLauncher = useAppStore((s) => s.refreshDefaultLauncher);
-	const connect = useDeviceStore((s) => s.connect);
-	const deviceState = useDeviceStore((s) => s.state);
-	const isInstalled = useAppStore((s) => s.isInstalled(app.packageName));
+	const connect = useFleetStore((s) => s.connectUsb);
+	const deviceState = useActiveState();
+	const isInstalled = useIsInstalled(app.packageName);
+	const markBusy = useFleetStore((s) => s.markBusy);
+	const clearBusy = useFleetStore((s) => s.clearBusy);
 
 	const [phase, setPhase] = useState<Phase>("loading");
 	const [loaded, setLoaded] = useState<LoadedProgramConfig | null>(null);
@@ -180,6 +187,8 @@ export default function SandboxedProgramPanel({
 
 	const runProgram = async () => {
 		if (!adb || !loaded || !program) return;
+		const runAdb = adb;
+		const runSerial = getActiveSerial();
 		setMode("provision");
 		setEvents([]);
 		setAudit([]);
@@ -189,8 +198,9 @@ export default function SandboxedProgramPanel({
 		setPhase("running");
 		const controller = new AbortController();
 		abortRef.current = controller;
+		if (runSerial) markBusy(runSerial, () => controller.abort());
 		try {
-			const result = await provision(adb, loaded.cfg, answers, onStep, {
+			const result = await provision(runAdb, loaded.cfg, answers, onStep, {
 				signal: controller.signal,
 				onCommand,
 				program,
@@ -199,8 +209,8 @@ export default function SandboxedProgramPanel({
 			});
 			setFleet(result.fleet);
 			setResultView(result.view ?? null);
-			await refreshInstalled();
-			await refreshDefaultLauncher();
+			await refreshInstalled(runSerial ?? undefined);
+			await refreshDefaultLauncher(runSerial ?? undefined);
 			toast.success(app.name, { description: t("provisioning.done") });
 			setPhase("done");
 		} catch (err) {
@@ -211,11 +221,14 @@ export default function SandboxedProgramPanel({
 		} finally {
 			setWorking(false);
 			abortRef.current = null;
+			if (runSerial) clearBusy(runSerial);
 		}
 	};
 
 	const runRestore = async () => {
 		if (!adb || !loaded || !program) return;
+		const runAdb = adb;
+		const runSerial = getActiveSerial();
 		setMode("restore");
 		setEvents([]);
 		setAudit([]);
@@ -225,15 +238,16 @@ export default function SandboxedProgramPanel({
 		setPhase("running");
 		const controller = new AbortController();
 		abortRef.current = controller;
+		if (runSerial) markBusy(runSerial, () => controller.abort());
 		try {
-			await restore(adb, loaded.cfg, onStep, {
+			await restore(runAdb, loaded.cfg, onStep, {
 				signal: controller.signal,
 				onCommand,
 				program,
 				app: programApp,
 			});
-			await refreshInstalled();
-			await refreshDefaultLauncher();
+			await refreshInstalled(runSerial ?? undefined);
+			await refreshDefaultLauncher(runSerial ?? undefined);
 			toast.success(app.name, { description: t("provisioning.restoreDone") });
 			setPhase("done");
 		} catch (err) {
@@ -243,6 +257,7 @@ export default function SandboxedProgramPanel({
 			setPhase("done");
 		} finally {
 			setWorking(false);
+			if (runSerial) clearBusy(runSerial);
 			abortRef.current = null;
 		}
 	};

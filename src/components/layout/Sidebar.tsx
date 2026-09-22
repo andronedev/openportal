@@ -1,6 +1,7 @@
+import { FleetSwitcher } from "@/components/fleet/FleetSwitcher";
 import { LogoMark, LogoWordmark } from "@/components/ui/Logo";
 import { ConfirmDialog } from "@/components/ui/primitives";
-import { useDeviceStore } from "@/store/device-store";
+import { useFleetConnections, useFleetStore } from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import {
 	FileText,
@@ -66,10 +67,10 @@ export function Sidebar({
 }) {
 	const { t } = useTranslation();
 	const { mode } = useUIStore();
-	const state = useDeviceStore((s) => s.state);
-	const disconnect = useDeviceStore((s) => s.disconnect);
+	const connections = useFleetConnections();
+	const disconnectAll = useFleetStore((s) => s.disconnectAll);
 	const [confirmDisconnect, setConfirmDisconnect] = useState(false);
-	const connected = state === "connected";
+	const hasFleet = connections.length > 0;
 
 	const visibleItems = NAV_ITEMS.filter(
 		(item) => item.mode === "all" || mode === "advanced",
@@ -96,6 +97,8 @@ export function Sidebar({
 					<LogoMark className="h-6 w-6" />
 					<LogoWordmark className="text-base font-bold" />
 				</div>
+
+				<FleetSwitcher onNavigate={onClose} />
 
 				<nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
 					{visibleItems.map((item) => (
@@ -128,27 +131,27 @@ export function Sidebar({
 						<Github className="h-4 w-4" />
 						{t("sourceCode")}
 					</a>
-					{connected && (
+					{hasFleet && (
 						<button
 							type="button"
 							onClick={() => setConfirmDisconnect(true)}
 							className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
 						>
 							<LogOut className="h-4 w-4" />
-							{t("disconnect")}
+							{t("fleet.disconnectAll")}
 						</button>
 					)}
 				</div>
 			</aside>
 
-			{connected && (
+			{hasFleet && (
 				<ConfirmDialog
 					open={confirmDisconnect}
 					onClose={() => setConfirmDisconnect(false)}
-					onConfirm={disconnect}
-					title={t("disconnectConfirmTitle")}
-					message={t("disconnectConfirmMessage")}
-					confirmLabel={t("disconnect")}
+					onConfirm={disconnectAll}
+					title={t("fleet.disconnectAllConfirmTitle")}
+					message={t("fleet.disconnectAllConfirmMessage")}
+					confirmLabel={t("fleet.disconnectAll")}
 					danger
 				/>
 			)}

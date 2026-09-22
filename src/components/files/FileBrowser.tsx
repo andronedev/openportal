@@ -12,7 +12,7 @@ import {
 } from "@/lib/adb/file-system";
 import { downloadBlob } from "@/lib/utils/download";
 import { formatBytes, formatTimestamp } from "@/lib/utils/format";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import {
 	ArrowUp,
 	Download,
@@ -32,7 +32,7 @@ const DEFAULT_PATH = "/sdcard";
 
 export function FileBrowser() {
 	const { t } = useTranslation("tools");
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const [path, setPath] = useState(DEFAULT_PATH);
 	const [entries, setEntries] = useState<FileEntry[]>([]);
 	const [loading, setLoading] = useState(false);

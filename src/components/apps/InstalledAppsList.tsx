@@ -7,8 +7,15 @@ import {
 import { installApp } from "@/lib/adb/install";
 import type { InstalledPackage } from "@/lib/adb/types";
 import { getAppIconUrl, getCatalogApp, isPanelProgram } from "@/lib/catalog";
-import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import {
+	useAppStore,
+	useAppUpdates,
+	useAppVersion,
+	useAppsLoading,
+	useInstalledPackages,
+	useIsDefaultLauncher,
+} from "@/store/app-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import {
 	ArrowUpCircle,
@@ -38,10 +45,10 @@ function displayName(pkg: InstalledPackage): string {
 export function InstalledAppsList() {
 	const { t } = useTranslation("apps");
 	const mode = useUIStore((s) => s.mode);
-	const adb = useDeviceStore((s) => s.adb);
-	const packages = useAppStore((s) => s.installedPackages);
-	const loading = useAppStore((s) => s.loading);
-	const updates = useAppStore((s) => s.updates);
+	const adb = useActiveAdb();
+	const packages = useInstalledPackages();
+	const loading = useAppsLoading();
+	const updates = useAppUpdates();
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
 	const clearUpdate = useAppStore((s) => s.clearUpdate);
 
@@ -184,10 +191,8 @@ function InstalledRow({
 	const catApp = getCatalogApp(pkg.packageName);
 	const name = catApp?.name ?? pkg.packageName;
 	const actions = useAppActions(pkg.packageName, name);
-	const version = useAppStore((s) => s.versions[pkg.packageName]);
-	const isDefaultLauncher = useAppStore(
-		(s) => s.defaultLauncher === pkg.packageName,
-	);
+	const version = useAppVersion(pkg.packageName);
+	const isDefaultLauncher = useIsDefaultLauncher(pkg.packageName);
 
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [setupOpen, setSetupOpen] = useState(false);
