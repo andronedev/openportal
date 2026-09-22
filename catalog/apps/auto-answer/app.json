@@ -1,0 +1,21 @@
+{
+	"id": "auto-answer",
+	"name": "Auto Answer",
+	"packageName": "com.aeonos.autoanswer",
+	"description": "Answers incoming calls by itself, for a Portal used by someone who can't reach the Answer button",
+	"category": "utility",
+	"version": "latest",
+	"source": "github",
+	"repo": "RoadRunner-1024/portal-autoanswer",
+	"downloadUrl": "https://github.com/RoadRunner-1024/portal-autoanswer/releases/latest",
+	"assetPattern": "portal-autoanswer.*apk",
+	"skipUpdateCheck": true,
+	"program": {
+		"kind": "commands",
+		"auto": true,
+		"commands": [
+			"pm grant com.aeonos.autoanswer android.permission.ANSWER_PHONE_CALLS"
+		],
+		"labelKey": "grantPermissions"
+	}
+}
