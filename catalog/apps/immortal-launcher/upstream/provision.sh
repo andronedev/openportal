@@ -19,8 +19,10 @@
 #                             for the laptop fleet tool (the persistent channel)
 #   ./provision.sh --wifi-adb on-demand raw adb-over-WiFi for shell/scrcpy (temp;
 #                             pauses Shizuku, resets on reboot)
-#   ./provision.sh --alexa    restore the original Amazon Alexa app (the "hey"
-#                             free tier): revive falcon + install the wake word
+#   ./provision.sh --alexa    restore the original Amazon Alexa app; the "hey"
+#                             wake word installs by default (config opt-out)
+#   ./provision.sh --update-hey  refresh just the "hey" wake-word app to the current
+#                             release (no ~115 MB falcon re-download); leaves falcon as-is
 
 set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -309,6 +311,11 @@ grant_perms() {
   # Lets the fleet agent's /logcat endpoint read system-wide logs (READ_LOGS is a
   # development permission, so pm grant works). Harmless if it can't be granted.
   a shell pm grant "$PKG" android.permission.READ_LOGS >/dev/null 2>&1
+  # Camera snapshots for Home Assistant. The feature stays OFF until the user turns it on in
+  # Settings; granting here only means it works when they do, instead of silently doing nothing.
+  a shell pm grant "$PKG" android.permission.CAMERA >/dev/null 2>&1
+  # Sound for the camera stream, and the intercom. Both stay OFF until the user turns them on.
+  a shell pm grant "$PKG" android.permission.RECORD_AUDIO >/dev/null 2>&1
   # Lets Immortal bring the photo frame back instantly when the system force-wakes
   # the screensaver (~2 min in, a quirk of Meta's power manager) even if another
   # app is in the foreground. SYSTEM_ALERT_WINDOW holders may start activities
@@ -382,7 +389,7 @@ disable_installer_overlay() {
   # Newer Portals (API >= 29) have a working installer dialog and don't ship this
   # overlay — skip them so we don't touch theming that isn't broken.
   [ "${sdk:-99}" -lt 29 ] 2>/dev/null || return
-  step "Fixing the on-device installer dialog (disabling Meta's white-on-white overlay)"
+  step "Fixing Meta's white-on-white overlays (installer dialog + system settings)"
   local did=0
   for ov in $INSTALLER_OVERLAY_PKGS; do
     # Only act on overlays actually present on this device.
@@ -499,14 +506,69 @@ set_screensaver() {
 # Revives the original Amazon Alexa client ("falcon") on this locked, unrooted
 # Portal: reconstruct our patched+signed APK from the PUBLIC stock dump via our
 # binary diff (we never host Amazon's binary), install it, apply the privileged
-# grants, then install the "hey" wake-word app. Optional, opt-in, and NON-FATAL:
-# a failure here never aborts an otherwise-successful provision. Config in
-# config.env (ALEXA_* / FALCON_* / MILLENNIUM_*); local-path overrides let us
-# test against built artifacts before the hosted URLs exist.
+# grants, then optionally install the "hey" wake-word app. Optional, opt-in, and
+# NON-FATAL: a failure here never aborts an otherwise-successful provision.
+# Config in config.env (ALEXA_* / FALCON_* / MILLENNIUM_*); local-path overrides
+# let us test against built artifacts before the hosted URLs exist.
 sha256() {
   if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}'
   elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'
   else echo ""; fi
+}
+
+# Installed versionCode of a package on the device, or empty if it isn't installed.
+hey_vc() { a shell dumpsys package "$1" 2>/dev/null | sed -n 's/.*versionCode=\([0-9]*\).*/\1/p' | head -1 | tr -d '\r'; }
+
+# Install / refresh the "hey" (millennium) wake-word app to the CURRENT build, over any existing
+# install. This is the one-time, non-OTA way a device already in the field picks up a hey newer
+# than the one on it (builds shipped before hey's in-app OTA updater existed can't self-update, so
+# a re-provision is how they get current). We `install -r` — replace the code but KEEP app data;
+# NEVER uninstall hey, that would wipe its saved state (incl. the license). Reinstalling the same
+# version, or finding the device already newer, is a harmless no-op we report as such; the version
+# transition is printed so it's clear the update landed. Callers gate on INSTALL_ALEXA_WAKE_WORD —
+# this only runs when hey is wanted (opted in, or the explicit --update-hey command). $1 = work dir.
+update_hey() {
+  local work="$1"; mkdir -p "$work"
+  local MP="${MILLENNIUM_PKG:-com.millennium}"
+  local mapk="${MILLENNIUM_APK_LOCAL:-}"
+  if [ -z "$mapk" ] && [ -n "${MILLENNIUM_APK_URL:-}" ]; then
+    step "Downloading the hey (millennium) app"
+    rm -f "$work/millennium.apk"   # always fetch fresh — never resume onto a stale/partial file
+    if curl -fSL --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 \
+         -o "$work/millennium.apk" "$MILLENNIUM_APK_URL" 2>/dev/null; then mapk="$work/millennium.apk"
+    else warn "hey download failed (Alexa text/voice still work; the wake word needs it)"; return 1; fi
+  fi
+  [ -n "$mapk" ] && [ -f "$mapk" ] || { warn "No hey APK to install (set MILLENNIUM_APK_URL or MILLENNIUM_APK_LOCAL)"; return 1; }
+
+  local before after out
+  before="$(hey_vc "$MP")"
+  step "Installing hey (millennium)${before:+ — replacing installed build $before}"
+  out="$(a install -r "$mapk" 2>&1)" || true
+  after="$(hey_vc "$MP")"
+  if printf '%s' "$out" | grep -q Success; then
+    if [ -n "$before" ] && [ "$before" != "$after" ]; then ok "hey updated ($before -> $after)"
+    elif [ -n "$before" ]; then ok "hey reinstalled (already $after)"
+    else ok "hey installed ($after)"; fi
+  elif printf '%s' "$out" | grep -q INSTALL_FAILED_VERSION_DOWNGRADE; then
+    ok "hey already current (installed $after is newer than the bundle)"
+  elif printf '%s' "$out" | grep -qiE 'signature|INCOMPATIBLE'; then
+    warn "hey is installed with a different signature — left as-is (a forced replace would wipe its saved state). Remove it by hand only if you know it isn't the release build."
+  elif a shell pm path "$MP" >/dev/null 2>&1; then
+    warn "install -r reported an issue but hey is present ($after); continuing"
+  else warn "hey install failed"; return 1; fi
+
+  a shell pm path "$MP" >/dev/null 2>&1 && a shell pm grant "$MP" android.permission.RECORD_AUDIO >/dev/null 2>&1
+  return 0
+}
+
+# Standalone entry: refresh hey to the current release WITHOUT the full falcon re-provision (which
+# re-downloads ~115 MB). The cheap way to sweep a fleet onto a new hey — running it is itself the
+# opt-in, so it installs regardless of INSTALL_ALEXA_WAKE_WORD; falcon and its Amazon registration
+# are left untouched.
+do_update_hey() {
+  resolve_adb; wait_for_device
+  step "Updating the hey (millennium) wake-word app to the current release"
+  update_hey "$SCRIPT_DIR/alexa"
 }
 
 restore_alexa() {
@@ -597,7 +659,7 @@ restore_alexa() {
   ok "falcon provisioned"
 
   # 3b. Surface the Amazon sign-in NOW, right after install, so a fresh Portal shows the linking
-  #     code immediately and the user can complete registration WHILE we install the wake app and
+  #     code immediately and the user can complete registration while we finish the Alexa step and
   #     wait to connect — turning a fresh setup into a single pass. (Already-linked Portals just
   #     reconnect; this launch is harmless for them.) We clear logcat here so the ReadyState we
   #     watch for below is from this launch onward, not a stale entry from a prior run.
@@ -607,18 +669,20 @@ restore_alexa() {
   a shell am start -n "$SETUP" >/dev/null 2>&1
   printf "  %sIf this Portal isn't linked yet, an Amazon sign-in is now on screen — go to amazon.com/code\n  and enter the code shown. You can do this while the rest of setup runs.%s\n" "$Y" "$N"
 
-  # 4. millennium = the "hey" wake-word app (drives falcon hands-free).
+  # 4. millennium = the "hey" wake-word app (drives falcon hands-free). ON by default: the current
+  #    build cooperatively yields the mic during calls, so the old #86 Messenger-call interference
+  #    is addressed. Opt out per-device with INSTALL_ALEXA_WAKE_WORD=false (then we remove our copy).
   local MP="${MILLENNIUM_PKG:-com.millennium}"
-  local mapk="${MILLENNIUM_APK_LOCAL:-}"
-  if [ -z "$mapk" ] && [ -n "${MILLENNIUM_APK_URL:-}" ]; then
-    step "Downloading the hey (millennium) app"
-    if curl -fSL --retry 2 -o "$work/millennium.apk" "$MILLENNIUM_APK_URL" 2>/dev/null; then mapk="$work/millennium.apk"; else warn "millennium download failed (Alexa text/voice still works; wake word needs it)"; fi
+  local install_wake="${INSTALL_ALEXA_WAKE_WORD:-true}"
+  if [ "$install_wake" != false ]; then
+    update_hey "$work"   # force the current build over any existing install (see update_hey)
+  else
+    step "Skipping the hey (millennium) wake-word app (INSTALL_ALEXA_WAKE_WORD=false)"
+    if a shell pm path "$MP" >/dev/null 2>&1; then
+      a uninstall "$MP" >/dev/null 2>&1 && ok "millennium removed" || warn "Couldn't remove millennium"
+    fi
+    warn "Wake word disabled for this device. It's on by default now that hey yields the mic during calls (the old Gen-1 Portal+ Messenger issue, #86); set INSTALL_ALEXA_WAKE_WORD=true to re-enable."
   fi
-  if [ -n "$mapk" ] && [ -f "$mapk" ]; then
-    step "Installing hey (millennium)"
-    a install -r "$mapk" >/dev/null 2>&1 && ok "millennium installed" || warn "millennium install failed"
-  fi
-  a shell pm path "$MP" >/dev/null 2>&1 && a shell pm grant "$MP" android.permission.RECORD_AUDIO >/dev/null 2>&1
 
   # 5. Wait for ReadyState — EVENT-DRIVEN, not on a timer. falcon is already on screen (3b).
   #
@@ -648,8 +712,12 @@ restore_alexa() {
     sleep 5; i=$((i + 1))
   done
   if [ "$ready" = 1 ]; then
-    a shell pm path "$MP" >/dev/null 2>&1 && a shell am start -n "$MP/com.millennium.ui.HeyActivity" >/dev/null 2>&1
-    ok "Alexa connected (ReadyState) — say \"Hey Alexa, what's the weather?\""
+    if [ "$install_wake" != false ]; then
+      a shell pm path "$MP" >/dev/null 2>&1 && a shell am start -n "$MP/com.millennium.ui.HeyActivity" >/dev/null 2>&1
+      ok "Alexa connected (ReadyState) — say \"Hey Alexa, what's the weather?\""
+    else
+      ok "Alexa connected (ReadyState); wake word disabled for this device"
+    fi
     printf "  %sOnce linked, you can hide falcon's icon from the launcher — it runs headless.%s\n" "$D" "$N"
   else
     warn "Alexa didn't connect within ~6 min. Check Wi-Fi + that the Amazon account is linked, then re-run './provision.sh --alexa'."
@@ -670,7 +738,7 @@ maybe_restore_alexa() {
   if [ -z "$want" ]; then
     if [ -t 0 ]; then
       printf "\n%sRestore Amazon Alexa on this Portal?%s Revives the original Alexa app —\n" "$B" "$N"
-      printf "  hands-free \"Hey Alexa\", with text, voice and visual answers. %s[y/N]%s " "$B" "$N"
+      printf "  text, voice and visual answers. Wake word is a separate opt-in. %s[y/N]%s " "$B" "$N"
       local ans; read -r ans || ans=""
       case "$ans" in [Yy]*) want=true ;; *) want=false ;; esac
     else
@@ -884,7 +952,8 @@ case "${1:-}" in
   --fleet|-f)   resolve_adb; wait_for_device; enable_fleet ;;
   --wifi-adb)   enable_wifi_adb_now ;;
   --alexa|-A)   resolve_adb; wait_for_device; restore_alexa ;;
-  --help|-h)    sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
+  --update-hey) do_update_hey ;;
+  --help|-h)    sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//' ;;
   "")           do_provision ;;
   *)            die "Unknown option: $1 (use --restore, --status, or no argument)" ;;
 esac

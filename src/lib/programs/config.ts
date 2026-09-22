@@ -38,6 +38,7 @@ export interface ProgramConfig {
 	falconResultSha256: string;
 	millenniumPkg: string;
 	millenniumApkUrl: string;
+	installAlexaWakeWord: boolean;
 	raw: Record<string, string>;
 }
 
@@ -119,6 +120,7 @@ export function toProgramConfig(raw: Record<string, string>): ProgramConfig {
 		falconResultSha256: str(raw, "FALCON_RESULT_SHA256"),
 		millenniumPkg: str(raw, "MILLENNIUM_PKG", "com.millennium"),
 		millenniumApkUrl: str(raw, "MILLENNIUM_APK_URL"),
+		installAlexaWakeWord: bool(raw, "INSTALL_ALEXA_WAKE_WORD", true),
 		raw,
 	};
 }
