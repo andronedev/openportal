@@ -4,7 +4,7 @@ import { getprop } from "@/lib/adb/shell";
 import {
 	MORPHE_MANIFEST_URLS,
 	type MorpheManifestApp,
-	verifyAndParseManifest,
+	parseManifest,
 } from "@/lib/catalog/morphe";
 import type { Adb } from "@yume-chan/adb";
 import type { OnStep } from "./types";
@@ -37,12 +37,9 @@ async function pickArch(
 }
 
 /**
- * Installs a Morphe (modded) app entirely on the host: fetch the signed manifest
- * from the device (bypasses browser CORS), verify its Ed25519 signature against
- * OpenPortal's pinned key, pick the arch-matched build, and install it with a
- * sha256 check. This used to run as a sandboxed program, but Morphe is
- * first-party and the signature check was already host-side, so the sandbox
- * added nothing — the pinned key never leaves the host either way.
+ * Installs a Morphe (modded) app entirely on the host: fetch `latest.json` from
+ * the device (bypasses browser CORS), pick the arch-matched build, and install
+ * it with an on-device sha256 check.
  */
 export async function installMorpheApp(
 	adb: Adb,
@@ -69,7 +66,7 @@ export async function installMorpheApp(
 			? lastError
 			: new Error("Could not fetch the Morphe manifest");
 	}
-	const parsed = await verifyAndParseManifest(text);
+	const parsed = parseManifest(text);
 	onStep({ id: "fetch", status: "ok" });
 
 	const entries = parsed.apps.filter(
