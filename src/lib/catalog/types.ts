@@ -74,7 +74,7 @@ export interface CatalogApp {
 	/**
 	 * Where the APK comes from. `github`/`fdroid`/`url`/`morphe` can be installed
 	 * automatically (the device downloads them); `external` only opens a page.
-	 * `morphe` resolves a signed remote manifest (modded builds) and verifies the
+	 * `morphe` resolves a remote manifest (modded builds) and verifies the
 	 * APK hash on-device before install. Apps whose install is driven by a
 	 * `program` (e.g. a launcher) need no `source`.
 	 */
