@@ -23,6 +23,8 @@
 			"appops set com.aeonos.portalha REQUEST_INSTALL_PACKAGES allow",
 			"settings put system screen_off_timeout 60000",
 			"if [ \"$(getprop ro.build.version.sdk)\" -lt 29 ]; then cmd overlay disable com.facebook.aloha.rro.niu.android; fi; true",
+			"if pm list packages com.facebook.alohaapps.launcher | grep -q .; then pm enable com.facebook.alohaapps.launcher; fi; true",
+			"if pm list packages com.immortal.launcher | grep -q .; then cmd package set-home-activity com.immortal.launcher/com.immortal.launcher.HomeActivity; fi; true",
 			"am force-stop com.aeonos.portalha",
 			"am start -n com.aeonos.portalha/.DashboardActivity"
 		]
