@@ -113,6 +113,8 @@ async function pushFileToDevice(
 	return remotePath;
 }
 
+const DOWNLOAD_STALL_TIMEOUT_MS = 60_000;
+
 async function downloadToStaging(
 	adb: Adb,
 	source: { urls: string | string[]; sha256?: string },
@@ -139,20 +141,24 @@ async function downloadToStaging(
 			? await orderByMeasuredSpeed(adb, downloader, candidates)
 			: candidates;
 
+	const failures: string[] = [];
 	let downloaded = false;
-	let lastError: Error | null = null;
 	for (const url of ordered) {
 		try {
 			await downloadToDevice(adb, downloader, url, dest, onProgress);
 			downloaded = true;
 			break;
 		} catch (err) {
-			lastError = err instanceof Error ? err : new Error(String(err));
+			failures.push(err instanceof Error ? err.message : String(err));
 			await execShell(adb, `rm -f "${dest}"`);
 		}
 	}
 	if (!downloaded) {
-		throw lastError ?? new Error("Download failed on the device");
+		throw new Error(
+			failures.length > 1
+				? `Download failed from every mirror:\n${failures.join("\n")}`
+				: (failures[0] ?? "Download failed on the device"),
+		);
 	}
 
 	onProgress?.("downloading", 100);
@@ -227,7 +233,7 @@ async function verifyDeviceSha256(
 		throw new Error("Could not compute the APK checksum on the device");
 	}
 	if (actual !== expected.trim().toLowerCase()) {
-		throw new Error("APK checksum does not match the signed manifest");
+		throw new Error("APK checksum does not match the expected one");
 	}
 }
 
@@ -246,35 +252,56 @@ async function downloadToDevice(
 			: `wget -q -O "${dest}" "${url}"`;
 
 	let downloadDone = false;
-	const downloadPromise = execShell(adb, download, {
-		timeoutMs: 180_000,
-	}).finally(() => {
-		downloadDone = true;
-	});
+	const downloadPromise = execShell(adb, download, { timeoutMs: 0 }).finally(
+		() => {
+			downloadDone = true;
+		},
+	);
 
-	const progressLoop = (async () => {
-		if (!total) return;
+	let stalled = false;
+	const watchdog = (async () => {
+		let lastBytes = -1;
+		let lastGrowth = Date.now();
 		while (!downloadDone) {
-			await new Promise((resolve) => setTimeout(resolve, 300));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (downloadDone) break;
+			let bytes = 0;
 			try {
 				const { stdout } = await execShell(
 					adb,
 					`wc -c < "${dest}" 2>/dev/null || echo 0`,
 				);
-				const bytes = Number(stdout.trim());
-				if (bytes > 0) {
+				bytes = Number(stdout.trim()) || 0;
+			} catch {}
+			if (bytes > lastBytes) {
+				lastBytes = bytes;
+				lastGrowth = Date.now();
+				if (total && bytes > 0) {
 					onProgress?.(
 						"downloading",
 						Math.min(99, Math.round((bytes / total) * 100)),
 					);
 				}
-			} catch {}
+			} else if (Date.now() - lastGrowth > DOWNLOAD_STALL_TIMEOUT_MS) {
+				stalled = true;
+				await execShell(
+					adb,
+					`pkill -f "[${downloader[0]}]${downloader.slice(1)} .*${dest}"`,
+				).catch(() => {});
+				break;
+			}
 		}
 	})();
 
+	await watchdog;
+	if (stalled) {
+		await Promise.race([
+			downloadPromise,
+			new Promise((resolve) => setTimeout(resolve, 5000)),
+		]);
+		throw new Error(`Download stalled: ${url}`);
+	}
 	const downloadResult = await downloadPromise;
-	await progressLoop;
 	if (downloadResult.exitCode !== 0) {
 		throw new Error(`Download failed: ${url}`);
 	}
