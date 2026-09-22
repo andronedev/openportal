@@ -70,7 +70,7 @@ its whole UI from the catalog. Uploaded files are placed with
 | Config (typed view of `config.env`, live fetch + fallback) | `src/lib/programs/config.ts` |
 | Vendored upstream snapshot + pinned ref | `catalog/apps/immortal-launcher/upstream/` |
 | Generic UI runner (status, manifest form, progress, audit, restore) | `src/components/apps/setup/SandboxedProgramPanel.tsx` |
-| Morphe (modded-app) host-side installer | `src/lib/programs/morphe-runner.ts` (+ Ed25519 verify in `src/lib/catalog/morphe.ts`) |
+| Morphe (modded-app) host-side installer | `src/lib/programs/morphe-runner.ts` (+ manifest URL and parsing in `src/lib/catalog/morphe.ts`) |
 | Program SDK (types, template, docs) | `sdk/` |
 | Drift detector / re-vendor scripts | `scripts/check-provision-drift.mjs`, `scripts/vendor-provision.mjs` |
 | Drift CI | `.github/workflows/provision-drift.yml` |
@@ -127,8 +127,8 @@ breaking change to the contract.
 reproduces (`getprop`, `getIpAddress`, `deviceFetchText`, `makeDirectory`,
 `removePath`, `getSetting`/`putSetting`, `dumpLogcat`/`clearLogcat`, `launchApp`,
 `log`, `sleep`). Morphe's `verifyMorpheManifest` also left the surface: Morphe now
-installs entirely host-side (`morphe-runner.ts`), since it is first-party and the
-Ed25519 check was already on the host, so the sandbox added nothing.
+installs entirely host-side (`morphe-runner.ts`), since it is first-party, so the
+sandbox added nothing.
 
 ## Security model
 
