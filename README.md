@@ -22,6 +22,9 @@ Install apps on a Meta Portal, mirror its screen and poke around its shell, stra
 
 Every Portal model works. Firefox and Safari don't support WebUSB.
 
+> [!WARNING]
+> Don't change **Display size** in the Portal's own Settings. It can put the device in a boot loop ([#10](https://github.com/andronedev/openportal/issues/10)). If ADB is still enabled, `adb shell wm density reset` brings it back. Otherwise only a factory reset will.
+
 ## Add your app
 
 The catalog is plain JSON in [`catalog/`](catalog/): one folder per app, added by pull request with no code change. See [catalog/README.md](catalog/README.md).
