@@ -153,6 +153,8 @@ async function grantPerms(portal) {
 	await sh(portal, `pm grant ${p} android.permission.READ_EXTERNAL_STORAGE`);
 	await sh(portal, `pm grant ${p} android.permission.WRITE_EXTERNAL_STORAGE`);
 	await sh(portal, `pm grant ${p} android.permission.READ_LOGS`);
+	await sh(portal, `pm grant ${p} android.permission.CAMERA`);
+	await sh(portal, `pm grant ${p} android.permission.RECORD_AUDIO`);
 	await sh(portal, `appops set ${p} SYSTEM_ALERT_WINDOW allow`);
 	await sh(portal, `appops set ${p} REQUEST_INSTALL_PACKAGES allow`);
 	await sh(portal, `appops set ${p} GET_USAGE_STATS allow`);
@@ -439,12 +441,17 @@ async function restoreAlexa(portal) {
 	await sh(portal, `dumpsys deviceidle whitelist +${fp}`);
 	await sh(portal, `am start -n ${setup}`);
 	const mp = cfg.millenniumPkg;
-	if (cfg.millenniumApkUrl) {
-		try {
-			await portal.installFromUrl([cfg.millenniumApkUrl]);
-		} catch {}
+	const wakeWord = cfg.installAlexaWakeWord !== false;
+	if (wakeWord) {
+		if (cfg.millenniumApkUrl) {
+			try {
+				await portal.installFromUrl([cfg.millenniumApkUrl]);
+			} catch {}
+		}
+		await sh(portal, `pm grant ${mp} android.permission.RECORD_AUDIO`);
+	} else if ((await sh(portal, `pm path ${mp}`)).stdout.includes("package:")) {
+		await sh(portal, `pm uninstall ${mp}`);
 	}
-	await sh(portal, `pm grant ${mp} android.permission.RECORD_AUDIO`);
 	let ready = false;
 	let regAt = -1;
 	let lastKick = -100;
@@ -466,7 +473,9 @@ async function restoreAlexa(portal) {
 		await sleep(5000);
 	}
 	if (ready) {
-		await sh(portal, `am start -n ${mp}/com.millennium.ui.HeyActivity`);
+		if (wakeWord) {
+			await sh(portal, `am start -n ${mp}/com.millennium.ui.HeyActivity`);
+		}
 		portal.step("restoreAlexa", "ok");
 	} else {
 		portal.step("restoreAlexa", "warn", undefined, "alexaTimeout");
