@@ -1,0 +1,30 @@
+{
+	"id": "portal-ha-bridge",
+	"name": "Portal HA Bridge",
+	"packageName": "com.aeonos.portalha",
+	"description": "Expose the Portal to Home Assistant over MQTT: screen, camera stream, presence, ambient sensors, intercom, and a kiosk dashboard",
+	"category": "smartHome",
+	"version": "latest",
+	"source": "github",
+	"repo": "RoadRunner-1024/portal-ha-bridge",
+	"downloadUrl": "https://github.com/RoadRunner-1024/portal-ha-bridge/releases/latest",
+	"iconFile": "svg",
+	"program": {
+		"kind": "commands",
+		"auto": true,
+		"labelKey": "grantPermissions",
+		"commands": [
+			"pm grant com.aeonos.portalha android.permission.WRITE_SECURE_SETTINGS",
+			"pm grant com.aeonos.portalha android.permission.RECORD_AUDIO",
+			"pm grant com.aeonos.portalha android.permission.CAMERA",
+			"pm grant com.aeonos.portalha android.permission.READ_LOGS",
+			"appops set com.aeonos.portalha WRITE_SETTINGS allow",
+			"appops set com.aeonos.portalha SYSTEM_ALERT_WINDOW allow",
+			"appops set com.aeonos.portalha REQUEST_INSTALL_PACKAGES allow",
+			"settings put system screen_off_timeout 60000",
+			"if [ \"$(getprop ro.build.version.sdk)\" -lt 29 ]; then cmd overlay disable com.facebook.aloha.rro.niu.android; fi; true",
+			"am force-stop com.aeonos.portalha",
+			"am start -n com.aeonos.portalha/.DashboardActivity"
+		]
+	}
+}
