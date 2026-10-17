@@ -769,6 +769,8 @@ enable_fleet() {
   # app applies it on startup and writes agent.json (with the generated token)
   # back for us to read. The agent is the persistent WiFi channel; we never switch
   # the device to adb-over-WiFi here (that restarts adbd, killing the shell helpers).
+  # Gates the default provision run (fleet is opt-in via config.env). An explicit
+  # ./provision.sh --fleet sets ENABLE_FLEET=true for the call, so the flag always wins.
   [ "${ENABLE_FLEET:-true}" = true ] || return
   step "Enabling the WiFi fleet agent"
   local files_dir="/sdcard/Android/data/$PKG/files/fleet"
@@ -949,7 +951,7 @@ case "${1:-}" in
   --apps|-a)    resolve_adb; wait_for_device; install_apps ;;
   --overlay-fix) resolve_adb; wait_for_device; disable_installer_overlay ;;
   --shizuku|-z) resolve_adb; wait_for_device; start_shizuku ;;
-  --fleet|-f)   resolve_adb; wait_for_device; enable_fleet ;;
+  --fleet|-f)   resolve_adb; wait_for_device; ENABLE_FLEET=true enable_fleet ;;
   --wifi-adb)   enable_wifi_adb_now ;;
   --alexa|-A)   resolve_adb; wait_for_device; restore_alexa ;;
   --update-hey) do_update_hey ;;

@@ -204,7 +204,7 @@ blob SHAs against the vendored snapshot in `meta.json`.
 | `push_assets` | `pushAssets` | push photos via `portal.pushUserPhotos`, first becomes `frame.jpg` | photos are user-supplied |
 | `grant_perms` | `grantPerms` | `pm grant`, `appops set`, `dpm set-active-admin`, `cmd notification allow_listener` | device-admin failure is a warning |
 | `apply_system_tweaks` | `applySystemTweaks` | `settings put global policy_control / hidden_api_policy* / development_settings_enabled` | |
-| `disable_verifier` | `disableVerifier` | `pm disable-user <appverifier>`, `package_verifier_enable 0` | the step the maintainer's objection is about |
+| `disable_verifier` | `disableVerifier` | `pm disable-user <appverifier>`, `package_verifier_enable 0` | the step the maintainer's objection is about; runs first, before `installClient`, since a device-side `pm install` is rejected with `INSTALL_FAILED_VERIFICATION_FAILURE` while the verifier is on |
 | `disable_installer_overlay` | `disableInstallerOverlay` | gated `sdk < 29`; `cmd overlay disable`; marker setting | gate via `portal.sdk` |
 | `disable_ota` | `disableOta` | `pm disable-user` OTA packages | manifest toggle `disableOta` (default on) |
 | `disable_presence` | `disablePresence` | `pm disable-user <presence>` | manifest toggle (default off) |
