@@ -4,13 +4,13 @@ import "@xterm/xterm/css/xterm.css";
 import { ConnectGate } from "@/components/connection/ConnectGate";
 import { PageHeader } from "@/components/ui/primitives";
 import { type PtyHandle, openPty } from "@/lib/adb/pty";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export function TerminalPage() {
 	const { t } = useTranslation("tools");
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [error, setError] = useState<string | null>(null);
 

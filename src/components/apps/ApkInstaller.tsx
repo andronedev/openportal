@@ -1,6 +1,6 @@
 import { Modal } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
-import { useAppStore } from "@/store/app-store";
+import { useAppStore, useInstallTasks } from "@/store/app-store";
 import { FileUp, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 function useApkInstall() {
 	const { t } = useTranslation("apps");
 	const installFile = useAppStore((s) => s.installFile);
-	const installTasks = useAppStore((s) => s.installTasks);
+	const installTasks = useInstallTasks();
 
 	const handleFile = useCallback(
 		async (file: File) => {

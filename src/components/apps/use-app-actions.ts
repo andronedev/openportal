@@ -10,8 +10,13 @@ import { type InstallStage, installApp } from "@/lib/adb/install";
 import { type CatalogApp, getCatalogApp, isPanelProgram } from "@/lib/catalog";
 import { resolveApk } from "@/lib/catalog/sources";
 import { installMorpheApp } from "@/lib/programs/morphe-runner";
-import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import {
+	useAppStore,
+	useAppUpdate,
+	useInstalledPackages,
+	useIsInstalled,
+} from "@/store/app-store";
+import { getActiveAdb, useActiveAdb, useFleetStore } from "@/store/fleet-store";
 import type { Adb } from "@yume-chan/adb";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,16 +33,16 @@ export type AppActionKind =
 
 export function useAppActions(packageName: string, displayName: string) {
 	const { t } = useTranslation("apps");
-	const adb = useDeviceStore((s) => s.adb);
-	const connect = useDeviceStore((s) => s.connect);
-	const isInstalled = useAppStore((s) => s.isInstalled(packageName));
-	const update = useAppStore((s) => s.updates[packageName]);
+	const adb = useActiveAdb();
+	const connectUsb = useFleetStore((s) => s.connectUsb);
+	const isInstalled = useIsInstalled(packageName);
+	const update = useAppUpdate(packageName);
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
 	const refreshDefaultLauncher = useAppStore((s) => s.refreshDefaultLauncher);
 	const clearUpdate = useAppStore((s) => s.clearUpdate);
 	const markInstalled = useAppStore((s) => s.markInstalled);
 	const uninstallPackage = useAppStore((s) => s.uninstall);
-	const installedPackages = useAppStore((s) => s.installedPackages);
+	const installedPackages = useInstalledPackages();
 
 	const [busy, setBusy] = useState<AppActionKind | null>(null);
 	const [stage, setStage] = useState<InstallStage | null>(null);
@@ -99,8 +104,8 @@ export function useAppActions(packageName: string, displayName: string) {
 			if (!app) return;
 			let activeAdb = adb;
 			if (!activeAdb) {
-				await connect();
-				activeAdb = useDeviceStore.getState().adb;
+				await connectUsb();
+				activeAdb = getActiveAdb();
 				if (!activeAdb) return;
 				await refreshInstalled();
 				if (useAppStore.getState().isInstalled(packageName)) {

@@ -72,6 +72,16 @@ export async function getprop(adb: Adb, key: string): Promise<string> {
 	return stdout;
 }
 
+/**
+ * The device disconnects mid-command as it reboots, so a normal shell reply
+ * never arrives; that failure mode is expected and swallowed here.
+ */
+export async function reboot(adb: Adb): Promise<void> {
+	try {
+		await execShell(adb, "reboot", { timeoutMs: 5000 });
+	} catch {}
+}
+
 export async function getAllProps(adb: Adb): Promise<Map<string, string>> {
 	const { stdout } = await execShell(adb, "getprop");
 	const props = new Map<string, string>();
