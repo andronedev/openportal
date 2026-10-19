@@ -130,6 +130,7 @@
 		"resetLauncherHint": "Immortal is your Portal's home screen.",
 		"resetLauncherDone": "Stock launcher restored.",
 		"close": "Done",
+		"tryAgain": "Back to setup",
 		"fleetDownload": "Download fleet record",
 		"fleetDownloadHint": "Save this device's fleet record (name, IP, agent token) for the laptop fleet tool. It replaces the file the kit writes locally.",
 		"status": {
@@ -165,6 +166,11 @@
 		},
 		"steps": {
 			"installClient": "Install Immortal",
+			"pushCredentials": "Push OAuth credentials",
+			"grant": "Grant permissions",
+			"screensaver": "Set as screensaver",
+			"launch": "Open the app",
+			"address": "Set calendar address",
 			"startShizuku": "Start Shizuku server",
 			"installApps": "Pre-install apps",
 			"pushAssets": "Push photos",

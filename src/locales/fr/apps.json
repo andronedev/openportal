@@ -151,6 +151,7 @@
 		"resetLauncherHint": "Immortal est l'écran d'accueil de votre Portal.",
 		"resetLauncherDone": "Launcher d'origine restauré.",
 		"close": "Terminé",
+		"tryAgain": "Retour à la configuration",
 		"fleetDownload": "Télécharger la fiche fleet",
 		"fleetDownloadHint": "Enregistrez la fiche fleet de cet appareil (nom, IP, jeton d'agent) pour l'outil fleet du PC. Elle remplace le fichier que le kit écrit en local.",
 		"status": {
@@ -186,6 +187,11 @@
 		},
 		"steps": {
 			"installClient": "Installer Immortal",
+			"pushCredentials": "Envoyer les identifiants OAuth",
+			"grant": "Accorder les autorisations",
+			"screensaver": "Définir comme économiseur d'écran",
+			"launch": "Ouvrir l'application",
+			"address": "Définir l'adresse du calendrier",
 			"startShizuku": "Démarrer le serveur Shizuku",
 			"installApps": "Pré-installer les apps",
 			"pushAssets": "Envoyer les photos",

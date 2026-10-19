@@ -297,7 +297,10 @@ function isManifestField(value: unknown): value is ManifestField {
 	const f = value as Record<string, unknown>;
 	return (
 		typeof f.key === "string" &&
-		(f.type === "boolean" || f.type === "text" || f.type === "select")
+		(f.type === "boolean" ||
+			f.type === "text" ||
+			f.type === "select" ||
+			f.type === "file")
 	);
 }
 
