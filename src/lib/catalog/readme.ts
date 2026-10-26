@@ -1,3 +1,4 @@
+import { githubApiFetch } from "@/lib/github-token";
 import { useEffect, useState } from "react";
 
 export interface ReadmeData {
@@ -30,9 +31,9 @@ export function fetchReadme(repo: string): Promise<ReadmeData> {
 	const cached = cache.get(repo);
 	if (cached) return cached;
 	const promise = (async () => {
-		const res = await fetch(`https://api.github.com/repos/${repo}/readme`, {
-			headers: { Accept: "application/vnd.github+json" },
-		});
+		const res = await githubApiFetch(
+			`https://api.github.com/repos/${repo}/readme`,
+		);
 		if (!res.ok) {
 			throw new Error(`GitHub API returned ${res.status}`);
 		}

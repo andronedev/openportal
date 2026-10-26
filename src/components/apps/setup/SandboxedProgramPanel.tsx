@@ -107,6 +107,7 @@ export default function SandboxedProgramPanel({
 	const [confirmRestore, setConfirmRestore] = useState(false);
 	const [resettingLauncher, setResettingLauncher] = useState(false);
 	const [resultView, setResultView] = useState<ResultView | null>(null);
+	const [failed, setFailed] = useState(false);
 	const [files, setFiles] = useState<Record<string, File>>({});
 	const abortRef = useRef<AbortController | null>(null);
 
@@ -185,6 +186,7 @@ export default function SandboxedProgramPanel({
 		setAudit([]);
 		setFleet(null);
 		setResultView(null);
+		setFailed(false);
 		setWorking(true);
 		setPhase("running");
 		const controller = new AbortController();
@@ -207,6 +209,7 @@ export default function SandboxedProgramPanel({
 			toast.error(app.name, {
 				description: err instanceof Error ? err.message : t("actionFailed"),
 			});
+			setFailed(true);
 			setPhase("done");
 		} finally {
 			setWorking(false);
@@ -221,6 +224,7 @@ export default function SandboxedProgramPanel({
 		setAudit([]);
 		setFleet(null);
 		setResultView(null);
+		setFailed(false);
 		setWorking(true);
 		setPhase("running");
 		const controller = new AbortController();
@@ -240,6 +244,7 @@ export default function SandboxedProgramPanel({
 			toast.error(app.name, {
 				description: err instanceof Error ? err.message : t("actionFailed"),
 			});
+			setFailed(true);
 			setPhase("done");
 		} finally {
 			setWorking(false);
@@ -427,7 +432,12 @@ export default function SandboxedProgramPanel({
 				)}
 
 				{phase === "done" && (
-					<div className="flex justify-end">
+					<div className="flex justify-end gap-2">
+						{failed && (
+							<Button variant="secondary" onClick={() => setPhase("review")}>
+								{t("provisioning.tryAgain")}
+							</Button>
+						)}
 						<Button variant="primary" onClick={onClose}>
 							{t("provisioning.close")}
 						</Button>

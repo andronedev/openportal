@@ -1,6 +1,7 @@
 import { ConnectButton } from "@/components/connection/ConnectButton";
 import { ConnectionStatus } from "@/components/connection/ConnectionStatus";
 import { Menu } from "lucide-react";
+import { GithubTokenButton } from "./GithubTokenButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ModeToggle } from "./ModeToggle";
 
@@ -18,6 +19,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
 			<ConnectionStatus />
 			<div className="ml-auto flex items-center gap-2 md:gap-3">
 				<ConnectButton />
+				<GithubTokenButton />
 				<LanguageSwitcher />
 				<ModeToggle />
 			</div>
