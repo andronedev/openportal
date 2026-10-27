@@ -35,5 +35,20 @@
 	"locked": "Verrouillé",
 	"unlocked": "Déverrouillé",
 	"allowed": "Autorisé",
-	"blocked": "Bloqué"
+	"blocked": "Bloqué",
+	"controlCenter": {
+		"title": "Caméra et micro dans le navigateur",
+		"description": "Chrome et Edge refusent les demandes de caméra et de micro, par exemple dans Google Meet, tant que le centre de contrôle du Portal est actif. Le désactiver règle le problème, mais retire aussi le panneau de contrôle du Portal.",
+		"on": "Centre de contrôle activé",
+		"off": "Centre de contrôle désactivé",
+		"turnOff": "Désactiver",
+		"turnOn": "Réactiver",
+		"confirmOffTitle": "Désactiver le centre de contrôle ?",
+		"confirmOff": "Chrome et Edge pourront de nouveau demander la caméra et le micro. Le Portal redémarre pour appliquer le changement, et vous pourrez réactiver le centre de contrôle ici à tout moment.",
+		"confirmOnTitle": "Réactiver le centre de contrôle ?",
+		"confirmOn": "Le panneau de contrôle du Portal revient, et Chrome et Edge bloqueront de nouveau les demandes de caméra et de micro. Le Portal redémarre pour appliquer le changement.",
+		"restart": "Redémarrer le Portal",
+		"restarting": "Le Portal redémarre. Reconnectez-le une fois qu'il est rallumé.",
+		"failed": "Impossible de modifier le centre de contrôle"
+	}
 }
