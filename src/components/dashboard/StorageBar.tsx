@@ -1,11 +1,11 @@
 import { formatBytes, formatStoragePercent } from "@/lib/utils/format";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveDeviceInfo } from "@/store/fleet-store";
 import { HardDrive } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function StorageBar() {
 	const { t } = useTranslation("dashboard");
-	const { deviceInfo } = useDeviceStore();
+	const deviceInfo = useActiveDeviceInfo();
 
 	if (!deviceInfo || deviceInfo.storageTotal === 0) return null;
 

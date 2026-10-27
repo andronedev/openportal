@@ -7,7 +7,7 @@ import {
 	streamLogcat,
 } from "@/lib/adb/logcat";
 import { downloadBlob } from "@/lib/utils/download";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import { Download, Play, Square, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,7 +47,7 @@ const PRIORITY_COLOR: Record<LogPriority | "?", string> = {
 
 export function LogcatPage() {
 	const { t } = useTranslation("tools");
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const [lines, setLines] = useState<LogLine[]>([]);
 	const [running, setRunning] = useState(false);
 	const [tagFilter, setTagFilter] = useState("");
@@ -113,6 +113,12 @@ export function LogcatPage() {
 			handleRef.current = null;
 		};
 	}, [start]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: adb is not read here, only used to key the reset on device switch.
+	useEffect(() => {
+		bufferRef.current = [];
+		setLines([]);
+	}, [adb]);
 
 	const filtered = useMemo(() => {
 		const tag = tagFilter.toLowerCase();

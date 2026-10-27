@@ -25,6 +25,32 @@ export const MOCK_DEVICE_INFO: DeviceInfo = {
 	storageFree: 17.2 * 1024 * 1024 * 1024,
 };
 
+// A small fleet of distinct mock Portals, so demo mode (`?demo`) can exercise
+// the multi-device UI (FleetSwitcher, per-device app lists) without hardware.
+export const MOCK_DEVICES: DeviceInfo[] = [
+	MOCK_DEVICE_INFO,
+	{
+		...MOCK_DEVICE_INFO,
+		model: "Portal (1st Gen)",
+		codename: "aloha",
+		serial: "PORTAL987654321",
+		firmwareVersion: "1.42.1",
+		storageTotal: 32 * 1024 * 1024 * 1024,
+		storageUsed: 21.5 * 1024 * 1024 * 1024,
+		storageFree: 10.5 * 1024 * 1024 * 1024,
+	},
+	{
+		...MOCK_DEVICE_INFO,
+		model: "Portal+ (2nd Gen)",
+		codename: "cipher",
+		serial: "PORTAL555000111",
+		firmwareVersion: "1.47.4",
+		storageTotal: 64 * 1024 * 1024 * 1024,
+		storageUsed: 12 * 1024 * 1024 * 1024,
+		storageFree: 52 * 1024 * 1024 * 1024,
+	},
+];
+
 // A few catalog apps plus typical system packages, so the Installed tab and
 // the catalog's "Installed" states have something to show in demo mode.
 export const MOCK_INSTALLED_PACKAGES: InstalledPackage[] = [

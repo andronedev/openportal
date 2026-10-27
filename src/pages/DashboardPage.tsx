@@ -1,12 +1,14 @@
 import { ConnectPanel } from "@/components/connection/ConnectPanel";
+import { WirelessSetup } from "@/components/connection/WirelessPanel";
 import { DeviceCard } from "@/components/dashboard/DeviceCard";
 import { DeviceHero } from "@/components/dashboard/DeviceHero";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SetupGuide } from "@/components/dashboard/SetupGuide";
 import { StorageBar } from "@/components/dashboard/StorageBar";
+import { FleetReconnect } from "@/components/fleet/FleetReconnect";
 import { ScreenMirror } from "@/components/screen/ScreenMirror";
 import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb, useActiveState } from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import { MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -14,8 +16,8 @@ import { useTranslation } from "react-i18next";
 
 export function DashboardPage() {
 	const { t } = useTranslation("dashboard");
-	const state = useDeviceStore((s) => s.state);
-	const adb = useDeviceStore((s) => s.adb);
+	const state = useActiveState();
+	const adb = useActiveAdb();
 	const mode = useUIStore((s) => s.mode);
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
 	const [showScreen, setShowScreen] = useState(false);
@@ -44,6 +46,7 @@ export function DashboardPage() {
 		return (
 			<div className="mx-auto max-w-md space-y-6">
 				<ConnectPanel />
+				<FleetReconnect />
 			</div>
 		);
 	}
@@ -56,6 +59,7 @@ export function DashboardPage() {
 			<div className="mx-auto max-w-4xl space-y-6">
 				<DeviceHero />
 				<SetupGuide />
+				<WirelessSetup />
 			</div>
 		);
 	}
@@ -67,6 +71,7 @@ export function DashboardPage() {
 			<DeviceCard />
 			<StorageBar />
 			<QuickActions />
+			<WirelessSetup />
 		</div>
 	);
 }

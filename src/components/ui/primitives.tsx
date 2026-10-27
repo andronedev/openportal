@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Loader2, X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 export function Card({
@@ -201,7 +202,10 @@ export function Modal({
 
 	if (!open) return null;
 
-	return (
+	// Portalled to <body>: a fixed-position ancestor (e.g. the sidebar's
+	// translate-x transform) would otherwise become the containing block for
+	// this dialog's `fixed inset-0` and trap it inside that ancestor's box.
+	return createPortal(
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 			onClick={onClose}
@@ -234,7 +238,8 @@ export function Modal({
 					</div>
 				)}
 			</div>
-		</div>
+		</div>,
+		document.body,
 	);
 }
 

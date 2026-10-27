@@ -1,5 +1,5 @@
 import { formatBytes, formatStoragePercent } from "@/lib/utils/format";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveDeviceInfo, useActivePortalModel } from "@/store/fleet-store";
 import { useTranslation } from "react-i18next";
 import { DeviceSnapshot } from "./DeviceSnapshot";
 
@@ -10,8 +10,8 @@ import { DeviceSnapshot } from "./DeviceSnapshot";
  */
 export function DeviceHero() {
 	const { t } = useTranslation("dashboard");
-	const deviceInfo = useDeviceStore((s) => s.deviceInfo);
-	const portalModel = useDeviceStore((s) => s.portalModel);
+	const deviceInfo = useActiveDeviceInfo();
+	const portalModel = useActivePortalModel();
 
 	if (!deviceInfo || !portalModel) return null;
 

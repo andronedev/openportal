@@ -25,8 +25,12 @@ import {
 	getSourceLabel,
 	getSourceUrl,
 } from "@/lib/catalog/sources";
-import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import {
+	useAppVersion,
+	useInstalledPackages,
+	useIsDefaultLauncher,
+} from "@/store/app-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import { useUIStore } from "@/store/ui-store";
 import {
 	ArrowLeft,
@@ -56,23 +60,20 @@ export function AppDetailPage() {
 function AppDetailView({ routePackage }: { routePackage: string | undefined }) {
 	const { t } = useTranslation("apps");
 	const navigate = useNavigate();
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const advanced = useUIStore((s) => s.mode) === "advanced";
 
 	const catApp = routePackage ? getCatalogApp(routePackage) : undefined;
-	const pkg = useAppStore((s) =>
-		s.installedPackages.find((p) => p.packageName === routePackage),
-	);
+	const packages = useInstalledPackages();
+	const pkg = packages.find((p) => p.packageName === routePackage);
 
 	const packageName = catApp?.packageName ?? pkg?.packageName ?? "";
 	const name = catApp?.name ?? packageName;
 	const isSystem = pkg?.isSystem ?? false;
 
 	const actions = useAppActions(packageName, name);
-	const isDefaultLauncher = useAppStore(
-		(s) => s.defaultLauncher === packageName,
-	);
-	const storeVersion = useAppStore((s) => s.versions[packageName]);
+	const isDefaultLauncher = useIsDefaultLauncher(packageName);
+	const storeVersion = useAppVersion(packageName);
 	const readme = useReadme(catApp?.repo);
 
 	const [liveVersion, setLiveVersion] = useState<string | null>(null);

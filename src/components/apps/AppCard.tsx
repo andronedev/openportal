@@ -1,7 +1,7 @@
 import { ConfirmDialog } from "@/components/ui/primitives";
 import { type CatalogApp, getAppIconUrl, isPanelProgram } from "@/lib/catalog";
 import { canAutoInstall } from "@/lib/catalog/sources";
-import { useAppStore } from "@/store/app-store";
+import { useIsDefaultLauncher } from "@/store/app-store";
 import {
 	ArrowUpCircle,
 	Check,
@@ -31,9 +31,7 @@ const ICON_BUTTON =
 export function AppCard({ app }: { app: CatalogApp }) {
 	const { t } = useTranslation("apps");
 	const actions = useAppActions(app.packageName, app.name);
-	const isDefaultLauncher = useAppStore(
-		(s) => s.defaultLauncher === app.packageName,
-	);
+	const isDefaultLauncher = useIsDefaultLauncher(app.packageName);
 
 	const [confirmUninstall, setConfirmUninstall] = useState(false);
 	const [confirmSetup, setConfirmSetup] = useState(false);

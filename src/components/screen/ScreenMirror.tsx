@@ -8,7 +8,7 @@ import {
 import { canvasToPngBlob } from "@/lib/adb/screen";
 import { cn } from "@/lib/utils";
 import { downloadBlob } from "@/lib/utils/download";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import {
 	Camera,
 	CornerDownLeft,
@@ -40,7 +40,7 @@ export function ScreenMirror({
 	className?: string;
 }) {
 	const { t } = useTranslation("tools");
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const [status, setStatus] = useState<Status>("idle");
 	const [error, setError] = useState<string | null>(null);
 	const [isFullscreen, setIsFullscreen] = useState(false);

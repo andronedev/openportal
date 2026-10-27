@@ -15,7 +15,7 @@ import {
 	listFlags,
 	putFlag,
 } from "@/lib/adb/device-config";
-import { useDeviceStore } from "@/store/device-store";
+import { useActiveAdb } from "@/store/fleet-store";
 import { AlertTriangle, Check, Plus, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,7 @@ import { toast } from "sonner";
 
 export function FlagsPage() {
 	const { t } = useTranslation("tools");
-	const adb = useDeviceStore((s) => s.adb);
+	const adb = useActiveAdb();
 	const [source, setSource] = useState<FlagSource>("settings");
 	const [namespace, setNamespace] = useState<string>("global");
 	const [flags, setFlags] = useState<Flag[]>([]);

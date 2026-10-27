@@ -5,8 +5,13 @@ import {
 import { AppCatalog } from "@/components/apps/AppCatalog";
 import { InstalledAppsList } from "@/components/apps/InstalledAppsList";
 import { Button, Segmented } from "@/components/ui/primitives";
-import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import {
+	useAppStore,
+	useAppUpdates,
+	useAppsLoading,
+	useInstalledPackages,
+} from "@/store/app-store";
+import { useActiveState } from "@/store/fleet-store";
 import { FileUp, RefreshCw, Usb } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,13 +20,13 @@ type Tab = "catalog" | "installed";
 
 export function AppsPage() {
 	const { t } = useTranslation("apps");
-	const isVisitor = useDeviceStore((s) => s.state) !== "connected";
+	const isVisitor = useActiveState() !== "connected";
 	const refreshInstalled = useAppStore((s) => s.refreshInstalled);
 	const checkUpdates = useAppStore((s) => s.checkUpdates);
 	const refreshDefaultLauncher = useAppStore((s) => s.refreshDefaultLauncher);
-	const installedPackages = useAppStore((s) => s.installedPackages);
-	const updates = useAppStore((s) => s.updates);
-	const loading = useAppStore((s) => s.loading);
+	const installedPackages = useInstalledPackages();
+	const updates = useAppUpdates();
+	const loading = useAppsLoading();
 	const [tab, setTab] = useState<Tab>("catalog");
 	const [apkOpen, setApkOpen] = useState(false);
 

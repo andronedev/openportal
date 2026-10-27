@@ -1,12 +1,12 @@
 import { useAppStore } from "@/store/app-store";
-import { useDeviceStore } from "@/store/device-store";
+import { getActiveAdb, useFleetStore } from "@/store/fleet-store";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 export function useSetupPanel() {
 	const { t } = useTranslation("apps");
-	const connect = useDeviceStore((s) => s.connect);
+	const connectUsb = useFleetStore((s) => s.connectUsb);
 	const [open, setOpen] = useState(false);
 	const [connecting, setConnecting] = useState(false);
 
@@ -14,14 +14,14 @@ export function useSetupPanel() {
 		packageName: string;
 		name: string;
 	}) => {
-		if (!useDeviceStore.getState().adb) {
+		if (!getActiveAdb()) {
 			setConnecting(true);
 			try {
-				await connect();
+				await connectUsb();
 			} finally {
 				setConnecting(false);
 			}
-			if (!useDeviceStore.getState().adb) return;
+			if (!getActiveAdb()) return;
 			if (skipIfInstalled) {
 				await useAppStore.getState().refreshInstalled();
 				if (useAppStore.getState().isInstalled(skipIfInstalled.packageName)) {
