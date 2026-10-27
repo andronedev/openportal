@@ -35,5 +35,20 @@
 	"locked": "Locked",
 	"unlocked": "Unlocked",
 	"allowed": "Allowed",
-	"blocked": "Blocked"
+	"blocked": "Blocked",
+	"controlCenter": {
+		"title": "Camera and microphone in the browser",
+		"description": "Chrome and Edge refuse camera and microphone requests, for example in Google Meet, while the Portal Control Center is active. Turning the Control Center off fixes this, but removes the Portal's own control panel.",
+		"on": "Control Center on",
+		"off": "Control Center off",
+		"turnOff": "Turn off",
+		"turnOn": "Turn back on",
+		"confirmOffTitle": "Turn off the Control Center?",
+		"confirmOff": "Chrome and Edge will be able to ask for the camera and microphone again. The Portal restarts to apply the change, and you can turn the Control Center back on here at any time.",
+		"confirmOnTitle": "Turn the Control Center back on?",
+		"confirmOn": "The Portal control panel comes back, and Chrome and Edge will block camera and microphone requests again. The Portal restarts to apply the change.",
+		"restart": "Restart Portal",
+		"restarting": "The Portal is restarting. Reconnect it once it's back on.",
+		"failed": "Couldn't change the Control Center"
+	}
 }
