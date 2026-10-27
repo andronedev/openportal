@@ -6,6 +6,7 @@ import {
 	watchDisconnect,
 } from "@/lib/adb/connection";
 import { getDeviceInfo } from "@/lib/adb/device-info";
+import { rebootDevice } from "@/lib/adb/power";
 import type { ConnectionState, DeviceInfo } from "@/lib/adb/types";
 import { resolveModel } from "@/lib/device/models";
 import type { PortalModelInfo } from "@/lib/device/models";
@@ -25,6 +26,7 @@ interface DeviceStore {
 
 	connect: (preselected?: AdbDaemonWebUsbDevice) => Promise<void>;
 	disconnect: () => Promise<void>;
+	reboot: () => Promise<void>;
 	refreshDeviceInfo: () => Promise<void>;
 }
 
@@ -98,6 +100,15 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 			error: null,
 			unwatch: null,
 		});
+	},
+
+	reboot: async () => {
+		const { adb, unwatch } = get();
+		if (!adb) return;
+		unwatch?.();
+		set({ unwatch: null });
+		await rebootDevice(adb);
+		await get().disconnect();
 	},
 
 	refreshDeviceInfo: async () => {

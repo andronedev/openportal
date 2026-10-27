@@ -1,4 +1,5 @@
 import { ConnectPanel } from "@/components/connection/ConnectPanel";
+import { ControlCenterCard } from "@/components/dashboard/ControlCenterCard";
 import { DeviceCard } from "@/components/dashboard/DeviceCard";
 import { DeviceHero } from "@/components/dashboard/DeviceHero";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -66,6 +67,7 @@ export function DashboardPage() {
 			{screenBlock}
 			<DeviceCard />
 			<StorageBar />
+			<ControlCenterCard />
 			<QuickActions />
 		</div>
 	);
